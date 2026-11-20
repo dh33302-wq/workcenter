@@ -52,7 +52,7 @@ h2{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:6px}
 .pane{display:none;gap:10px;grid-template-columns:minmax(0,1fr)}
 .pane.on{display:grid;animation:pin .2s ease-out}
 @keyframes pin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@media(min-width:640px){.pane.on{grid-template-columns:repeat(2,minmax(0,1fr))}#p-pipe #pipe-stages{grid-column:1/-1}#p-plan .card{grid-column:1/-1}}
+@media(min-width:640px){.pane.on{grid-template-columns:repeat(2,minmax(0,1fr))}#p-pipe .card,#p-pipe #jobs{grid-column:1/-1}#jobs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 10px;align-items:start}#jobs>.more,#jobs>.empty{grid-column:1/-1}#p-plan .card{grid-column:1/-1}}
 @media(prefers-reduced-motion:reduce){.pane.on{animation:none}}
 .sub{color:var(--mut);font-size:12px;font-weight:normal}
 [data-go]{cursor:pointer}
@@ -75,6 +75,14 @@ h2{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:6px}
 .st-chip.진행{background:#163650;color:#9fd0ff}.st-chip.완료{background:#173a24;color:#a5e0a8}.st-chip.막힘{background:#4a1d1d;color:#ffb4ab}
 .bar1{height:8px;background:#24313f;border-radius:4px;overflow:hidden;margin:4px 0}.bar1>b{display:block;height:100%;background:var(--b)}
 .stg.완료 .bar1>b{background:var(--g)}.stg.막힘 .bar1>b{background:var(--r)}
+/* 진행도(여러 작업) */
+.job h3{flex-wrap:wrap}.job .jn{min-width:0;overflow-wrap:anywhere}.job .jt{margin-top:2px}
+.st-chip.멈춤{background:#3a3320;color:#ffe08a}.stg.멈춤 .bar1>b{background:var(--y)}.stg.멈춤{opacity:.8}
+.stg.stale{border-color:#7a6520}.bar1.ind>b{background:repeating-linear-gradient(45deg,#2f4a63 0 8px,#24313f 8px 16px)}
+.jsg{border-top:1px solid var(--line);padding:8px 0 4px}.jl{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:14px}
+.jsg.완료 .bar1>b{background:var(--g)}.jsg.막힘 .bar1>b{background:var(--r)}.jst{margin-top:6px}
+.jrow{display:flex;gap:8px;align-items:center;padding:3px 0;font-size:14px}.jrow .dot{margin-top:0}
+.jrow .nm{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.jrow .jp{flex:none;color:var(--mut);font-size:13px}
 .res{margin-top:6px;font-size:13px;color:#cfe3d0;background:#13261a;border-radius:8px;padding:6px 8px;word-break:keep-all;overflow-wrap:anywhere}
 .blk{font-size:13px;padding:6px 0;border-top:1px solid var(--line);word-break:keep-all;overflow-wrap:anywhere}.blk:first-child{border-top:0}
 .blk .src{color:var(--mut);font-size:12px}
@@ -138,15 +146,16 @@ h2{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:6px}
 </header>
 <main id="main">
   <section id="p-home" class="pane on">
+    <div class="card" id="h-jobs" data-go="pipe"><h2>📊 진행 중 <span id="home-jobcnt" class="sub"></span></h2><div id="home-jobs"></div></div>
     <div class="card" id="h-pipe" data-go="pipe"><h2>🛠️ 파이프라인</h2><div id="home-pipe"></div></div>
     <div class="card"><h2>📅 오늘 일정 <span id="home-pdate" class="sub"></span></h2><div id="home-plan"></div></div>
     <div class="card"><h2>✅ 할 일</h2><div id="home-tasks"></div></div>
     <div class="card" data-go="noti"><h2>📬 알림</h2><div id="home-noti"></div></div>
   </section>
   <section id="p-pipe" class="pane">
-    <div class="card"><h2>🛠️ 파이프라인 <span id="pipe-upd" class="sub"></span></h2><div id="pipe-sum"></div></div>
-    <div id="pipe-stages"></div>
-    <div class="card"><h2>⛔ 막힘</h2><div id="pipe-blocks"></div></div>
+    <div class="card"><h2>📊 진행도 <span id="jobs-cnt" class="sub"></span></h2><div id="jobs-sum"></div></div>
+    <div id="jobs"></div>
+    <div class="card"><h2>⛔ 파이프라인 막힘</h2><div id="pipe-blocks"></div></div>
   </section>
   <section id="p-plan" class="pane">
     <div class="card">
@@ -168,7 +177,7 @@ h2{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:6px}
 </main>
 <nav id="tabs">
   <button data-tab="home" class="on"><i>🏠</i>홈</button>
-  <button data-tab="pipe"><i>🛠️</i>파이프라인</button>
+  <button data-tab="pipe"><i>📊</i>진행도</button>
   <button data-tab="plan"><i>📅</i>일정</button>
   <button data-tab="work"><i>📈</i>작업</button>
   <button data-tab="noti"><i>📬</i>알림<span id="tab-badge" class="badge"></span></button>
@@ -188,11 +197,11 @@ h2{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:6px}
 </div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=2;
+const BUILD=3;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
-// v1 5개 + v2 5개(SPEC_v2 3절)
-const STATE_NAMES=['meta','board','notices','progress','quiz_today','pipeline','tasks','plan_today','plan_week','answers'];
+// v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도)
+const STATE_NAMES=['meta','board','notices','progress','quiz_today','pipeline','tasks','plan_today','plan_week','answers','jobs'];
 const SYNC_MS=60000, SYNC_FAST_MS=8000, BUILD_CHECK_MS=300000, NOTICE_SHOW=4;
 const TABS=['home','pipe','plan','work','noti'];
 const ASK_TO=[['anim_teacher','🎓','애니·리깅 선생님'],['ref_factory','🏭','레퍼런스 공장'],['job_prep','💼','취업 준비실'],['control','🛰️','관제센터'],['code','🤖','Code']];
@@ -285,7 +294,7 @@ const Q={
 };
 
 // 화면: 구역마다 HTML을 만들어 이전과 같으면 손대지 않는다(바뀐 구역만 교체, 전체 다시 그리기 없음).
-// v2: 아래 탭 5개(홈·파이프라인·일정·작업·알림). 탭 전환은 보이기만 바꾼다(애니 1개 0.2초).
+// v2: 아래 탭 5개(홈·진행도·일정·작업·알림). 진행도 탭 id는 그대로 pipe. 탭 전환은 보이기만 바꾼다(애니 1개 0.2초).
 const UI=(()=>{
   const last={};let showAll=false,quizSel=null,quizReasons=new Set(),quizKey=null;
   let tab=TABS.includes(lsGet('wc_tab','home'))?lsGet('wc_tab','home'):'home',planView='day',planDate=null,editing=null;
@@ -351,6 +360,35 @@ const UI=(()=>{
     put('#quiz',html);
   }
 
+  // ---------- 진행도: 여러 작업 자동 표시 (SPEC_v2 6절) ----------
+  // jobs.json = hub\jobs\*.json 전부 + 추출기 신호. 새 작업은 다음 동기화 때 저절로 카드가 생긴다.
+  const JORD={'막힘':0,'진행':1,'대기':2,'멈춤':3,'완료':4};
+  const jobOpen=new Set(lsGet('wc_jopen',[]));let jobOld=false;
+  const ago=t=>{const m=Math.max(0,Math.round((Date.now()/1000-t)/60));return m<1?'방금':m<60?m+'분 전':m<1440?Math.floor(m/60)+'시간 전':Math.floor(m/1440)+'일 전'};
+  const stagesHtml=P=>P.stages.map(s=>`<div class="jsg ${esc(s.status)}"><div class="jl"><b>${esc(s.n)}단계 ${esc(s.name)}</b><span class="st-chip ${esc(s.status)}">${esc(s.status||'—')}</span><span class="sp"></span><span class="sub">${Math.round(s.pct)}%${s.status!=='완료'&&s.eta_min!=null?' · '+fmtMin(s.eta_min):''}</span></div>
+      <div class="bar1"><b style="width:${Math.round(s.pct)}%"></b></div>${s.now?`<div class="pnow">${esc(s.now)}</div>`:''}
+      ${s.done?`<div class="res">✅ ${esc((s.done.t||'').slice(5))} ${esc(s.done.summary||s.done.title)}</div>`:''}</div>`).join('');
+  function jobs(st){
+    if(!st.jobs||!st.jobs.jobs){put('#home-jobs','<div class="empty">진행도 정보 없음</div>');$('#home-jobcnt').textContent='';$('#jobs-cnt').textContent='';
+      put('#jobs-sum','<div class="empty">진행도 정보 없음 (PC 에이전트가 켜지면 자동으로 나와요)</div>');put('#jobs','');return}
+    const nowS=Date.now()/1000;
+    const J=st.jobs.jobs.slice().sort((a,b)=>((JORD[a.status]??1)-(JORD[b.status]??1))||(b.t-a.t));
+    const isOld=j=>j.status==='완료'&&nowS-j.t>86400, isStale=j=>j.status==='진행'&&nowS-j.t>1800;
+    const live=J.filter(j=>!isOld(j)),olds=J.filter(isOld);
+    const run=live.filter(j=>j.status==='진행'||j.status==='막힘');
+    const cnt={};for(const j of live)cnt[j.status]=(cnt[j.status]||0)+1;
+    $('#home-jobcnt').textContent=run.length+'개';$('#jobs-cnt').textContent='진행 중 '+run.length+'개';
+    put('#home-jobs',run.length?run.slice(0,5).map(j=>`<div class="jrow"><span class="dot ${j.status==='막힘'?'r':isStale(j)?'y':'g'}"></span><span class="nm">${esc(j.name)}</span><span class="jp">${j.status==='막힘'?'⛔ ':isStale(j)?'⚠️ ':''}${j.pct!=null?Math.round(j.pct)+'%':esc(j.status)}</span></div>`).join('')+(run.length>5?`<div class="sub">외 ${run.length-5}개</div>`:''):'<div class="empty">지금 도는 작업 없음</div>');
+    put('#jobs-sum',`<div class="tally">${['막힘','진행','대기','멈춤','완료'].filter(k=>cnt[k]).map(k=>`${k} <b>${cnt[k]}</b>`).join(' · ')||'작업 없음'}</div><div class="sub">새 작업은 1분 안에 자동으로 추가돼요 · 30분 넘게 소식 없으면 ⚠️</div>`);
+    const card=j=>{const stale=isStale(j),p=j.pct==null?null:Math.round(j.pct);
+      const P=st.pipeline,hasSt=j.kind==='pipeline'&&P&&P.stages&&P.stages.length,op=jobOpen.has(j.id);
+      return `<div class="stg job ${esc(j.status)}${stale?' stale':''}" data-job="${esc(j.id)}"><h3><span class="jn">${esc(j.name)}</span><span class="st-chip ${esc(j.status)}">${esc(j.status)}</span><span class="sp"></span><span class="sub">${p!=null?p+'%':''}${j.eta_min!=null&&j.status!=='완료'?(p!=null?' · ':'')+'남은 '+fmtMin(j.eta_min):''}</span></h3>
+      <div class="bar1${p==null?' ind':''}"><b style="width:${p==null?100:p}%"></b></div>${j.now?`<div class="pnow">${esc(j.now)}</div>`:''}
+      <div class="sub jt">${stale?'⚠️ ':''}마지막 갱신 ${ago(j.t)}${j.started?' · 시작 '+esc(j.started.slice(5)):''}</div>
+      ${hasSt?`<button class="more" data-jx="${esc(j.id)}">${op?'단계 접기':'단계 '+P.stages.length+'개 펼치기'}</button>${op?'<div class="jst">'+stagesHtml(P)+'</div>':''}`:''}</div>`};
+    put('#jobs',(live.map(card).join('')||'<div class="empty">등록된 작업 없음</div>')+(olds.length?`<button class="more" data-jold="1">${jobOld?'끝난 작업 접기':'끝난 지 하루 넘은 작업 '+olds.length+'개 보기'}</button>${jobOld?olds.map(card).join(''):''}`:''));
+  }
+
   // ---------- 파이프라인 ----------
   function pipeBar(P){
     return '<div class="pbar">'+P.stages.map(s=>`<div class="pseg${s.status==='완료'?' done':s.status==='막힘'?' blk':''}${s.n===P.stage?' cur':''}" title="${esc(s.n+'단계 '+s.name)}"><b style="width:${Math.round(s.pct)}%"></b></div>`).join('')+'</div>';
@@ -358,15 +396,10 @@ const UI=(()=>{
   function curStage(P){return P.stages.find(s=>s.n===P.stage)||P.stages.find(s=>s.status!=='완료')||P.stages[P.stages.length-1]}
   function pipeline(st){
     const P=st.pipeline;
-    if(!P||!P.stages||!P.stages.length){put('#home-pipe','<div class="empty">파이프라인 정보 없음</div>');put('#pipe-sum','<div class="empty">파이프라인 정보 없음</div>');put('#pipe-stages','');put('#pipe-blocks','');return}
+    if(!P||!P.stages||!P.stages.length){put('#home-pipe','<div class="empty">파이프라인 정보 없음</div>');put('#pipe-blocks','');return}
     const c=curStage(P);
     const line=`<div class="pline"><b>${esc(c.n)}단계 ${esc(c.name)}</b> · ${Math.round(c.pct)}% · ${c.status==='막힘'?'⛔ ':''}${esc(c.status)}</div><div class="pnow">${esc(c.now||'—')}</div><div class="sub">전체 ${P.pct}% · 남은 시간 약 ${fmtMin(P.eta_min)} · 갱신 ${esc((P.updated||'').slice(5))}</div>`;
     put('#home-pipe',pipeBar(P)+line);
-    put('#pipe-sum',pipeBar(P)+line);
-    $('#pipe-upd').textContent='';
-    put('#pipe-stages',P.stages.map(s=>`<div class="stg ${esc(s.status)}"><h3>${esc(s.n)}단계 ${esc(s.name)}<span class="st-chip ${esc(s.status)}">${esc(s.status||'—')}</span><span class="sp"></span><span class="sub">${Math.round(s.pct)}%${s.status!=='완료'&&s.eta_min!=null?' · '+fmtMin(s.eta_min):''}</span></h3>
-      <div class="bar1"><b style="width:${Math.round(s.pct)}%"></b></div>${s.now?`<div class="pnow">${esc(s.now)}</div>`:''}
-      ${s.done?`<div class="res">✅ ${esc((s.done.t||'').slice(5))} ${esc(s.done.summary||s.done.title)}</div>`:''}</div>`).join(''));
     const B=(P.blocks||[]).slice().reverse();
     put('#pipe-blocks',B.length?B.map(b=>`<div class="blk"><div class="src">${b.n!=null?esc(b.n)+'단계 · ':''}${esc((b.date||'').slice(5))} ${esc(b.time||'')}</div>${esc(b.text)}</div>`).join(''):'<div class="empty">막힘 없음</div>');
   }
@@ -453,7 +486,7 @@ const UI=(()=>{
   }
 
   function all(st){
-    header(st);const n=notices(st);board(st);progress(st);quiz(st);pipeline(st);homePlan(st);plan(st);tasks(st);
+    header(st);const n=notices(st);board(st);progress(st);quiz(st);pipeline(st);jobs(st);homePlan(st);plan(st);tasks(st);
     const a=Ask.render(st);
     put('#home-noti',`<div class="pline">안 읽은 알림 <b>${n.unread}</b>${n.urgent?` · 🔴 ${n.urgent}`:''}${a.unseen?` · 🎓 새 답 <b>${a.unseen}</b>`:''}</div>${n.top.map(x=>`<div class="pnow">· ${esc(x.text)}</div>`).join('')}`);
     $('#tab-badge').textContent=(n.unread+a.unseen)||'';
@@ -480,6 +513,8 @@ const UI=(()=>{
       else if(t.id==='edit-save')saveEdit();
       else if(t.id==='edit-close'){$('#edit').hidden=true;editing=null}
       else if(t.dataset.tdone){Q.add('task_done',{key:t.dataset.tdone,text:t.dataset.ttext});all(Sync.state);Sync.push();toast('끝 표시했어요')}
+      else if(t.dataset.jx){const k=t.dataset.jx;jobOpen.has(k)?jobOpen.delete(k):jobOpen.add(k);lsSet('wc_jopen',[...jobOpen]);jobs(Sync.state)}
+      else if(t.dataset.jold){jobOld=!jobOld;jobs(Sync.state)}
       else if(t.id==='speak')speak(Sync.state);
       else Ask.click(t);
     });
