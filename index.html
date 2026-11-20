@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f1720">
+<title>작업센터</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>:root{--bg:#0f1720;--card:#17212c;--line:#24313f;--tx:#e8eef4;--mut:#8ea0b2;--r:#ef5350;--y:#ffca28;--g:#66bb6a;--b:#42a5f5}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.4 system-ui,-apple-system,"Noto Sans KR",sans-serif}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 6px) 12px 6px;background:rgba(15,23,32,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.ttl{font-size:16px}#ver{color:var(--mut);font-size:12px}.sp{flex:1}
+#sync{font-size:12px;color:var(--mut)}#sync.ok{color:var(--g)}#sync.wait{color:var(--y)}#sync.err{color:var(--r)}
+header button{background:none;border:0;color:var(--tx);font-size:20px;padding:4px 6px;cursor:pointer}
+main{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:10px;max-width:1200px;margin:0 auto}
+@media(min-width:640px){main{grid-template-columns:repeat(2,minmax(0,1fr))}#s-notice{grid-row:span 2}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+h2{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:6px}
+.badge{background:var(--r);color:#fff;border-radius:10px;font-size:12px;padding:0 7px;min-width:20px;text-align:center}
+.badge:empty{display:none}
+.row{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.dot{width:10px;height:10px;border-radius:50%;flex:none;margin-top:5px}
+.dot.r{background:var(--r)}.dot.y{background:var(--y)}.dot.g{background:var(--g)}.dot.n{background:var(--line)}
+.nt{flex:1;min-width:0}.nt .src{color:var(--mut);font-size:12px}.nt .tx{word-break:keep-all;overflow-wrap:anywhere}
+.row.read{opacity:.5}
+.row.urg .tx{color:#ffb4ab}
+.chk{flex:none;background:none;border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:2px 8px;font-size:13px;cursor:pointer}
+.pend{color:var(--y);font-size:12px}.fail{color:var(--r);font-size:12px}
+.more{width:100%;margin-top:6px;background:none;border:1px dashed var(--line);color:var(--mut);border-radius:8px;padding:6px;cursor:pointer}
+.brd .nm{flex:none;white-space:nowrap;min-width:7em}.brd .now{flex:1;min-width:0;color:var(--mut);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brd .cnt{flex:none;font-size:12px;color:var(--mut)}
+.rings{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+.ring{text-align:center;font-size:12px}.ring svg{width:64px;height:64px}.ring .st{color:var(--mut)}
+.ring .lb{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.opt{background:#1d2a37;border:2px solid transparent;border-radius:10px;padding:6px;color:var(--tx);cursor:pointer;text-align:center;font-size:12px;min-width:0}
+.opt img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:6px;background:#0b1118;display:block;margin-bottom:4px}
+.opt.on{border-color:var(--b)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{background:none;border:1px solid var(--line);color:var(--tx);border-radius:14px;padding:4px 10px;font-size:13px;cursor:pointer}
+.chip.on{background:var(--b);border-color:var(--b)}
+.send{margin-top:8px;width:100%;background:var(--b);border:0;color:#fff;border-radius:10px;padding:8px;font-size:15px;cursor:pointer}
+.send:disabled{opacity:.4}
+.empty{color:var(--mut);font-size:13px;padding:6px 0}
+#toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);background:#263544;color:var(--tx);padding:8px 14px;border-radius:10px;font-size:14px;z-index:9;transition:opacity .2s}
+.dot.b{background:var(--b)}
+</style>
+</head>
+<body>
+<header id="top">
+  <b class="ttl">작업센터</b><span id="ver"></span>
+  <span class="sp"></span>
+  <span id="sync" title="동기화">●</span>
+  <button id="speak" aria-label="읽어 주기">🔊</button>
+</header>
+<main id="main">
+  <section id="s-notice" class="card"><h2>📬 알림 <span id="n-unread" class="badge"></span></h2><div id="notices"></div><button id="n-more" class="more" hidden>펼치기</button></section>
+  <section id="s-board" class="card"><h2>🛰️ 현황</h2><div id="board"></div></section>
+  <section id="s-prog" class="card"><h2>📈 진도</h2><div id="prog"></div></section>
+  <section id="s-quiz" class="card"><h2>❓ 오늘의 퀴즈</h2><div id="quiz"></div></section>
+</main>
+<div id="toast" hidden></div>
+<script>'use strict';
+const BUILD=1;
+// 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
+const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
+const STATE_NAMES=['meta','board','notices','progress','quiz_today'];
+const SYNC_MS=60000, BUILD_CHECK_MS=300000, NOTICE_SHOW=4;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2200)}
+
+// 데이터층: 브리지(postMessage) 또는 개발용 HTTP. 화면은 api.get / api.post만 쓴다.
+const api=(()=>{
+  // 브리지(Apps Script, 나만 접근)가 토큰·폴더 ID를 건네주면, 드라이브 REST로 직접 읽고 쓴다(이글 앱 방식).
+  let boot=lsGet('wc_boot',null),pending=null;
+  const DRV='https://www.googleapis.com/drive/v3/files';
+  function getBoot(force){
+    if(!force&&boot&&Date.now()-boot.time<45*60000)return Promise.resolve(boot);
+    if(pending)return pending;
+    pending=new Promise((res,rej)=>{
+      const fr=document.createElement('iframe');fr.style.display='none';
+      fr.src=BRIDGE_URL+(BRIDGE_URL.includes('?')?'&':'?')+'bridge=1';
+      const done=(fn,v)=>{clearTimeout(to);window.removeEventListener('message',on);fr.remove();pending=null;fn(v)};
+      const to=setTimeout(()=>done(rej,new Error('브리지 응답 없음(구글 로그인 확인)')),20000);
+      function on(ev){
+        let h='';try{h=new URL(ev.origin).hostname}catch(e){}
+        if(!/\.googleusercontent\.com$/.test(h))return; // 출처 검사
+        const m=ev.data||{};if(!m.wcBridge)return;
+        if(m.error)return done(rej,new Error(m.error));
+        boot=m.boot;lsSet('wc_boot',boot);done(res,boot);
+      }
+      window.addEventListener('message',on);document.body.appendChild(fr);
+    });
+    return pending;
+  }
+  async function drive(url,opt,retry){
+    const b=await getBoot(retry);
+    const r=await fetch(url,Object.assign({},opt,{headers:Object.assign({Authorization:'Bearer '+b.token},(opt||{}).headers||{})}));
+    if((r.status===401||r.status===403)&&!retry)return drive(url,opt,true); // 토큰 만료·권한 → 다시 받기
+    return r;
+  }
+  const dev=()=>!BRIDGE_URL||BRIDGE_URL.startsWith('/*');
+  return {
+    async get(names){
+      if(dev()){const out={};for(const n of names){const r=await fetch('dev/state/'+n+'.json?v='+Date.now(),{cache:'no-store'});if(r.ok)out[n]=await r.json()}return {ok:true,state:out}}
+      let b=await getBoot();
+      if(names.some(n=>!b.files[n]))b=await getBoot(true); // 새 파일이 생겼을 수 있음
+      const out={};
+      await Promise.all(names.map(async n=>{const id=b.files[n];if(!id)return;
+        const r=await drive(DRV+'/'+id+'?alt=media&v='+Date.now(),{cache:'no-store'});if(r.ok)out[n]=await r.json()}));
+      return {ok:true,state:out};
+    },
+    async post(req){
+      if(dev()){const r=await fetch('dev/inbox',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(req)});return r.ok?{ok:true}:{ok:false,msg:'HTTP '+r.status}}
+      const b=await getBoot();
+      const meta={name:req.id+'.json',parents:[b.inbox],mimeType:'application/json'};
+      const bd='wc'+Date.now();
+      const body=`--${bd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${bd}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(req)}\r\n--${bd}--`;
+      const r=await drive('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+bd},body});
+      return r.ok?{ok:true}:{ok:false,msg:'드라이브 쓰기 '+r.status+(r.status===403?' (쓰기 권한 없음)':'')};
+    }
+  };
+})();
+
+// 보낼 요청 큐: 오프라인이어도 입력은 저장 → 연결되면 보냄. 상태: pend(보내는 중)/sent(보냄, 처리 대기)/ok/fail
+const Q={
+  list:()=>lsGet('wc_q',[]),
+  save:l=>lsSet('wc_q',l.slice(-200)),
+  add(kind,data){const l=Q.list();const req={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Math.floor(Date.now()/1000),kind,data,st:'pend'};l.push(req);Q.save(l);return req},
+  async flush(){
+    const l=Q.list();let ch=false;
+    for(const r of l){if(r.st!=='pend'&&r.st!=='fail')continue;
+      try{const res=await api.post({id:r.id,t:r.t,kind:r.kind,data:r.data});r.st=res.ok?'sent':'fail';r.msg=res.msg||''}catch(e){r.st='fail';r.msg=e.message}
+      ch=true}
+    if(ch)Q.save(l);return l;
+  },
+  applyDone(done){ // meta.done = {id:{ok,msg}} — 에이전트가 처리한 결과
+    if(!done)return;const l=Q.list();let ch=false;
+    for(const r of l){const d=done[r.id];if(d&&r.st!=='ok'){r.st=d.ok?'ok':'fail';r.msg=d.msg||'';ch=true}}
+    if(ch)Q.save(l.filter(r=>!(r.st==='ok'&&Date.now()/1000-r.t>86400)));
+  },
+  stateOf(kind,key){const r=Q.list().filter(x=>x.kind===kind&&x.data&&x.data.key===key).pop();return r?r.st:null}
+};
+
+// 화면: 구역마다 HTML을 만들어 이전과 같으면 손대지 않는다(바뀐 구역만 교체, 전체 다시 그리기 없음).
+const UI=(()=>{
+  const last={};let showAll=false,quizSel=null,quizReasons=new Set(),quizKey=null;
+  function put(id,html){if(last[id]===html)return false;last[id]=html;$(id).innerHTML=html;return true}
+  const LIGHT={'🔴':'r','🟡':'y','🟢':'g'};
+
+  function notices(st){
+    const items=(st.notices&&st.notices.items)||[];
+    const readLocal=new Set(Q.list().filter(r=>r.kind==='notice_read').map(r=>r.data.key));
+    const rows=items.map(n=>({...n,isRead:n.read||readLocal.has(n.id)}))
+      .sort((a,b)=>(a.isRead-b.isRead)||(b.urgent-a.urgent)||String(b.date+b.time).localeCompare(a.date+a.time));
+    const unread=rows.filter(r=>!r.isRead).length;
+    $('#n-unread').textContent=unread||'';
+    const shown=showAll?rows:rows.slice(0,Math.max(NOTICE_SHOW,unread));
+    const html=shown.length?shown.map(n=>{
+      const qs=Q.stateOf('notice_read',n.id);
+      const tag=qs==='pend'||qs==='sent'?'<span class="pend">⏳</span>':qs==='fail'?'<span class="fail">⚠️</span>':'';
+      return `<div class="row${n.isRead?' read':''}${n.urgent?' urg':''}" data-id="${esc(n.id)}"><span class="dot ${n.urgent?'r':n.isRead?'n':'b'}"></span>
+      <div class="nt"><div class="src">${esc(n.source)} · ${esc((n.date||'').slice(5))} ${esc(n.time||'')}</div><div class="tx">${esc(n.text)}</div></div>
+      ${n.isRead?tag:`<button class="chk" data-read="${esc(n.id)}">읽음</button>`}</div>`}).join(''):'<div class="empty">새 알림 없음</div>';
+    put('#notices',html);
+    const more=$('#n-more');more.hidden=rows.length<=shown.length&&!showAll;more.textContent=showAll?'접기':`펼치기 (${rows.length-shown.length})`;
+  }
+
+  function board(st){
+    const ps=(st.board&&st.board.projects)||[];
+    put('#board',ps.length?ps.map(p=>`<div class="row brd"><span class="dot ${LIGHT[p.light]||'n'}"></span><span class="nm">${esc(p.name)}</span><span class="now">${esc(p.blocked&&!/^없음/.test(p.blocked)?'⛔ '+p.blocked:p.now)}</span><span class="cnt">${p.inbox_req?'📨'+p.inbox_req:''}</span></div>`).join(''):'<div class="empty">현황 없음</div>');
+  }
+
+  function ring(pct,color){const r=26,c=2*Math.PI*r,off=c*(1-Math.max(0,Math.min(1,pct)));
+    return `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="#24313f" stroke-width="7"/><circle cx="32" cy="32" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 32 32)"/><text x="32" y="37" text-anchor="middle" font-size="14" fill="#e8eef4">${Math.round(pct*100)}</text></svg>`}
+  const STAGE={'기획':.1,'블로킹':.35,'스플라인':.55,'폴리싱':.75,'디테일':.9,'완료':1};
+  function progress(st){
+    const ms=(st.progress&&st.progress.items)||[];
+    put('#prog',ms.length?'<div class="rings">'+ms.map(m=>{
+      const p=m.pct!=null?m.pct:(STAGE[m.stage]??0);
+      const late=m.target&&m.days>m.target;
+      return `<div class="ring">${ring(p,late?'#ef5350':'#42a5f5')}<div class="lb">${esc(m.motion)}</div><div class="st">${esc(m.stage)}${m.days!=null?' · '+m.days+'일':''}${late?' ⚠️':''}</div></div>`}).join('')+'</div>':'<div class="empty">진행 중인 모션 없음</div>');
+  }
+
+  function quiz(st){
+    const q=st.quiz_today;
+    if(!q||!q.options||!q.options.length){put('#quiz','<div class="empty">오늘 퀴즈 준비 중</div>');return}
+    const key=q.date+'|'+q.motion_type;
+    const qs=Q.stateOf('quiz_answer',key);
+    if(qs){put('#quiz',`<div class="empty">${qs==='ok'?'✅ 답 저장됨':qs==='fail'?'⚠️ 저장 실패 — <button class="chip" data-retry="1">다시 보내기</button>':'⏳ 보내는 중'}</div>`);return}
+    if(quizKey!==key){quizKey=key;quizSel=null;quizReasons=new Set()}
+    const html=`<div class="empty">${esc(q.motion_type)} — 가장 마음에 드는 것은?</div><div class="opts">${q.options.map((o,i)=>`<button class="opt${quizSel===o.id?' on':''}" data-opt="${esc(o.id)}">${o.thumb?`<img loading="lazy" src="${esc(o.thumb)}" alt="">`:''}${String.fromCharCode(65+i)}</button>`).join('')}</div>
+      <div class="chips">${(q.reasons||[]).map(r=>`<button class="chip${quizReasons.has(r)?' on':''}" data-rs="${esc(r)}">${esc(r)}</button>`).join('')}</div>
+      <button class="send" data-qsend="1" ${quizSel?'':'disabled'}>보내기</button>`;
+    put('#quiz',html);
+  }
+
+  function header(st){
+    $('#ver').textContent='v'+BUILD;
+    const m=st.meta||{};const s=$('#sync');
+    const age=m.last_sync?(Date.now()/1000-m.last_sync)/60:null;
+    s.className=Sync.err?'err':(age!=null&&age<15?'ok':'wait');
+    s.title=Sync.err?('오류: '+Sync.err):(age!=null?`PC 동기화 ${Math.round(age)}분 전`:'동기화 기록 없음');
+  }
+
+  function all(st){header(st);notices(st);board(st);progress(st);quiz(st)}
+
+  function bind(){
+    document.addEventListener('click',e=>{
+      const t=e.target.closest('button');if(!t)return;
+      if(t.dataset.read){Q.add('notice_read',{key:t.dataset.read});all(Sync.state);Sync.push()}
+      else if(t.id==='n-more'){showAll=!showAll;notices(Sync.state)}
+      else if(t.dataset.opt){quizSel=t.dataset.opt;quiz(Sync.state)}
+      else if(t.dataset.rs){const r=t.dataset.rs;quizReasons.has(r)?quizReasons.delete(r):quizReasons.add(r);quiz(Sync.state)}
+      else if(t.dataset.qsend){const q=Sync.state.quiz_today;Q.add('quiz_answer',{key:q.date+'|'+q.motion_type,date:q.date,motion_type:q.motion_type,pick:quizSel,reasons:[...quizReasons],options:q.options.map(o=>o.id)});quiz(Sync.state);Sync.push();toast('답을 보냈어요')}
+      else if(t.dataset.retry){const l=Q.list();for(const r of l)if(r.st==='fail')r.st='pend';Q.save(l);Sync.push()}
+      else if(t.id==='speak')speak(Sync.state);
+    });
+  }
+
+  function speak(st){
+    if(!('speechSynthesis' in window)){toast('읽기를 지원하지 않아요');return}
+    if(speechSynthesis.speaking){speechSynthesis.cancel();return}
+    const items=((st.notices&&st.notices.items)||[]).filter(n=>!n.read).slice(0,8).map(n=>`${n.source}. ${n.text}`);
+    const reds=((st.board&&st.board.projects)||[]).filter(p=>p.light==='🔴').map(p=>`${p.name} 막힘. ${p.blocked||p.now}`);
+    const txt=[...reds,...items].join('. ')||'새 알림이 없어요';
+    const u=new SpeechSynthesisUtterance(txt.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,''));u.lang='ko-KR';speechSynthesis.speak(u);
+  }
+  return {all,bind};
+})();
+
+// 동기화: 저장본 즉시 표시 → 큐 보내기 → 상태 받기. 켤 때·돌아올 때·1분마다.
+const Sync={state:lsGet('wc_state',{}),err:'',busy:false,
+  async run(){
+    if(this.busy)return;this.busy=true;
+    try{
+      await Q.flush();
+      const res=await api.get(STATE_NAMES);
+      if(!res.ok)throw new Error(res.msg||'상태 못 받음');
+      this.state=Object.assign({},this.state,res.state);lsSet('wc_state',this.state);
+      Q.applyDone(this.state.meta&&this.state.meta.done);this.err='';
+    }catch(e){this.err=e.message}
+    this.busy=false;UI.all(this.state);
+  },
+  push(){clearTimeout(this._p);this._p=setTimeout(()=>this.run(),300)}
+};
+
+// 새 버전 확인: 손 뗀 화면(입력 중 아님·퀴즈 고르는 중 아님)에서만 새로고침
+async function checkBuild(){
+  try{const r=await fetch('version.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;
+    const v=await r.json();
+    if(v.build>BUILD){const busy=document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)||document.querySelector('.opt.on');
+      // 같은 새 번호로 2분 안에 다시 새로고침하지 않는다(Pages 캐시로 옛 index가 올 때 무한 새로고침 방지)
+      const last=lsGet('wc_reload',{});if(last.b===v.build&&Date.now()-last.t<120000)return;
+      if(!busy){lsSet('wc_reload',{b:v.build,t:Date.now()});location.reload()}else setTimeout(checkBuild,30000)}}catch(e){}
+}
+
+UI.bind();UI.all(Sync.state);Sync.run();checkBuild();
+setInterval(()=>{if(!document.hidden)Sync.run()},SYNC_MS);
+setInterval(checkBuild,BUILD_CHECK_MS);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){Sync.run();checkBuild()}});
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
