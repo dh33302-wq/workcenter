@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="theme-color" content="#0f1720">
 <title>작업센터</title>
 <link rel="manifest" href="manifest.webmanifest">
@@ -14,8 +14,8 @@ header{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;p
 .ttl{font-size:16px}#ver{color:var(--mut);font-size:12px}.sp{flex:1}
 #sync{font-size:12px;color:var(--mut)}#sync.ok{color:var(--g)}#sync.wait{color:var(--y)}#sync.err{color:var(--r)}
 header button{background:none;border:0;color:var(--tx);font-size:20px;padding:4px 6px;cursor:pointer}
-main{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;padding:10px;max-width:1200px;margin:0 auto}
-@media(min-width:640px){main{grid-template-columns:repeat(2,minmax(0,1fr))}#s-notice{grid-row:span 2}}
+main{padding:10px 10px calc(env(safe-area-inset-bottom) + 70px);max-width:1200px;margin:0 auto}
+
 .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
 h2{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:6px}
 .badge{background:var(--r);color:#fff;border-radius:10px;font-size:12px;padding:0 7px;min-width:20px;text-align:center}
@@ -47,6 +47,85 @@ h2{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:6px}
 .empty{color:var(--mut);font-size:13px;padding:6px 0}
 #toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 16px);transform:translateX(-50%);background:#263544;color:var(--tx);padding:8px 14px;border-radius:10px;font-size:14px;z-index:9;transition:opacity .2s}
 .dot.b{background:var(--b)}
+
+/* ---------- v2: 탭·파이프라인·일정·작업·묻기 ---------- */
+.pane{display:none;gap:10px;grid-template-columns:minmax(0,1fr)}
+.pane.on{display:grid;animation:pin .2s ease-out}
+@keyframes pin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(min-width:640px){.pane.on{grid-template-columns:repeat(2,minmax(0,1fr))}#p-pipe #pipe-stages{grid-column:1/-1}#p-plan .card{grid-column:1/-1}}
+@media(prefers-reduced-motion:reduce){.pane.on{animation:none}}
+.sub{color:var(--mut);font-size:12px;font-weight:normal}
+[data-go]{cursor:pointer}
+#tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;background:rgba(15,23,32,.96);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+#tabs button{flex:1;background:none;border:0;color:var(--mut);font-size:11px;padding:6px 0 7px;cursor:pointer;position:relative;display:flex;flex-direction:column;align-items:center;gap:1px}
+#tabs button i{font-style:normal;font-size:19px;line-height:1.2;filter:grayscale(.7);opacity:.75}
+#tabs button.on{color:var(--tx)}#tabs button.on i{filter:none;opacity:1}
+#tabs .badge{position:absolute;top:2px;left:calc(50% + 6px);font-size:11px;min-width:18px}
+.askbtn{font-size:14px!important;border:1px solid var(--line)!important;border-radius:16px;padding:3px 10px!important;position:relative;white-space:nowrap}
+.askbtn .badge{position:absolute;top:-6px;right:-6px;font-size:11px}
+/* 파이프라인 막대 */
+.pbar{display:flex;gap:3px;height:16px;margin:2px 0 6px}
+.pseg{flex:1;background:#24313f;border-radius:4px;overflow:hidden;position:relative}
+.pseg>b{position:absolute;left:0;top:0;bottom:0;background:var(--b)}
+.pseg.done>b{background:var(--g)}.pseg.blk>b{background:var(--r)}.pseg.cur{outline:1px solid var(--tx)}
+.pline{font-size:14px}.pnow{color:var(--mut);font-size:13px;word-break:keep-all;overflow-wrap:anywhere}
+.stg{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:10px 12px;margin-bottom:10px}
+.stg h3{margin:0 0 6px;font-size:15px;display:flex;gap:6px;align-items:center}
+.st-chip{font-size:12px;border-radius:10px;padding:1px 8px;background:#24313f;color:var(--mut);font-weight:normal}
+.st-chip.진행{background:#163650;color:#9fd0ff}.st-chip.완료{background:#173a24;color:#a5e0a8}.st-chip.막힘{background:#4a1d1d;color:#ffb4ab}
+.bar1{height:8px;background:#24313f;border-radius:4px;overflow:hidden;margin:4px 0}.bar1>b{display:block;height:100%;background:var(--b)}
+.stg.완료 .bar1>b{background:var(--g)}.stg.막힘 .bar1>b{background:var(--r)}
+.res{margin-top:6px;font-size:13px;color:#cfe3d0;background:#13261a;border-radius:8px;padding:6px 8px;word-break:keep-all;overflow-wrap:anywhere}
+.blk{font-size:13px;padding:6px 0;border-top:1px solid var(--line);word-break:keep-all;overflow-wrap:anywhere}.blk:first-child{border-top:0}
+.blk .src{color:var(--mut);font-size:12px}
+/* 일정 */
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;font-weight:normal}
+.seg button{background:none;border:0;color:var(--mut);padding:3px 12px;font-size:13px;cursor:pointer}.seg button.on{background:var(--b);color:#fff}
+.slots{display:grid;grid-template-columns:minmax(0,1fr)}
+.slot{display:flex;align-items:center;gap:6px;padding:4px 0;border-top:1px solid var(--line);min-height:36px}
+.slot:first-child{border-top:0}
+.slot .hh{width:2.4em;flex:none;color:var(--mut);font-size:13px;text-align:right}
+.slot.now .hh{color:var(--y);font-weight:bold}.slot.now{background:linear-gradient(90deg,rgba(255,202,40,.08),transparent)}
+.slot .pl{flex:1;min-width:0;background:none;border:1px dashed transparent;color:var(--tx);text-align:left;padding:4px 6px;border-radius:6px;font-size:14px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.slot .pl:empty::before{content:'＋';color:var(--line)}
+.slot .pl:hover{border-color:var(--line)}
+.oxs{display:flex;gap:3px;flex:none}
+.ox{width:32px;height:28px;border-radius:7px;border:1px solid var(--line);background:none;color:var(--mut);font-size:14px;cursor:pointer;padding:0}
+.ox.on.O{background:var(--g);border-color:var(--g);color:#08130a}.ox.on.△{background:var(--y);border-color:var(--y);color:#1d1600}.ox.on.X{background:var(--r);border-color:var(--r);color:#fff}
+.pd{color:var(--y);font-size:11px}
+.wk{display:grid;grid-template-columns:2.2em repeat(7,minmax(0,1fr));gap:2px;font-size:11px}
+.wk .c{height:18px;border-radius:3px;background:#1b2632}.wk .c.p{background:#1f3347}.wk .c.O{background:var(--g)}.wk .c.△{background:var(--y)}.wk .c.X{background:var(--r)}
+.wk .hd{text-align:center;color:var(--mut);padding:2px 0;cursor:pointer;border-radius:4px}.wk .hd.today{color:var(--tx);background:#24313f}
+.wk .hl{color:var(--mut);text-align:right;padding-right:3px;line-height:18px}
+.tally{font-size:13px;color:var(--mut);margin:4px 0 6px}
+/* 할 일·작업 */
+.task{display:flex;gap:8px;align-items:flex-start;padding:6px 0;border-top:1px solid var(--line);font-size:14px}.task:first-child{border-top:0}
+.task .tx{flex:1;min-width:0;word-break:keep-all;overflow-wrap:anywhere}.task .src{color:var(--mut);font-size:12px}
+.grp{color:var(--mut);font-size:12px;margin:6px 0 2px}
+.oxv{flex:none;width:22px;text-align:center;font-weight:bold}.oxv.O{color:var(--g)}.oxv.X{color:var(--r)}.oxv.n{color:var(--line)}
+/* 묻기 창 */
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);display:flex;flex-direction:column;animation:pin .2s ease-out}
+.sheet[hidden]{display:none}
+.sheet.mini{inset:auto 0 0 0;border-top:1px solid var(--line);border-radius:16px 16px 0 0;padding:10px 12px calc(env(safe-area-inset-bottom) + 12px);gap:8px;box-shadow:0 -8px 30px rgba(0,0,0,.5)}
+.ask-top{display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top) + 8px) 12px 8px;border-bottom:1px solid var(--line)}
+.sheet.mini .ask-top{padding:0 0 6px}
+.ask-top button{background:none;border:0;color:var(--tx);font-size:20px;cursor:pointer;padding:2px 6px}
+#ask-to{padding:8px 12px 0;flex-wrap:nowrap;overflow-x:auto;margin:0}#ask-to .chip{white-space:nowrap}
+.ths{display:flex;gap:6px;overflow-x:auto;padding:8px 12px;border-bottom:1px solid var(--line)}
+.ths button{flex:none;max-width:12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;border:1px solid var(--line);color:var(--mut);border-radius:10px;padding:3px 9px;font-size:12px;cursor:pointer}
+.ths button.on{border-color:var(--b);color:var(--tx)}.ths .nb{color:var(--b)}
+#ask-msgs{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.bub{max-width:86%;padding:8px 11px;border-radius:14px;font-size:14px;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.bub.me{align-self:flex-end;background:#1f4f7a;border-bottom-right-radius:4px}
+.bub.ai{align-self:flex-start;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
+.bub.wait{color:var(--y)}.bub.bad{color:#ffb4ab}
+.bub .meta{display:block;color:var(--mut);font-size:11px;margin-top:3px;white-space:normal}
+.ask-in{display:flex;gap:6px;padding:8px 12px calc(env(safe-area-inset-bottom) + 8px);border-top:1px solid var(--line)}
+.ask-in textarea{flex:1;min-width:0;resize:none;background:#0b1118;border:1px solid var(--line);border-radius:10px;color:var(--tx);font:inherit;padding:7px 9px;max-height:30vh}
+.ask-in button{flex:none;background:var(--b);border:0;color:#fff;border-radius:10px;padding:0 14px;font-size:15px;cursor:pointer}
+.ask-in button:disabled{opacity:.4}
+#edit-val{background:#0b1118;border:1px solid var(--line);border-radius:10px;color:var(--tx);font:inherit;padding:8px 10px}
+.ansrow{display:flex;gap:8px;padding:6px 0;border-top:1px solid var(--line);cursor:pointer;font-size:14px}.ansrow:first-child{border-top:0}
 </style>
 </head>
 <body>
@@ -55,20 +134,68 @@ h2{margin:0 0 8px;font-size:15px;display:flex;align-items:center;gap:6px}
   <span class="sp"></span>
   <span id="sync" title="동기화">●</span>
   <button id="speak" aria-label="읽어 주기">🔊</button>
+  <button id="ask-open" class="askbtn" aria-label="선생님에게 묻기">🎓 묻기<span id="ask-badge" class="badge"></span></button>
 </header>
 <main id="main">
-  <section id="s-notice" class="card"><h2>📬 알림 <span id="n-unread" class="badge"></span></h2><div id="notices"></div><button id="n-more" class="more" hidden>펼치기</button></section>
-  <section id="s-board" class="card"><h2>🛰️ 현황</h2><div id="board"></div></section>
-  <section id="s-prog" class="card"><h2>📈 진도</h2><div id="prog"></div></section>
-  <section id="s-quiz" class="card"><h2>❓ 오늘의 퀴즈</h2><div id="quiz"></div></section>
+  <section id="p-home" class="pane on">
+    <div class="card" id="h-pipe" data-go="pipe"><h2>🛠️ 파이프라인</h2><div id="home-pipe"></div></div>
+    <div class="card"><h2>📅 오늘 일정 <span id="home-pdate" class="sub"></span></h2><div id="home-plan"></div></div>
+    <div class="card"><h2>✅ 할 일</h2><div id="home-tasks"></div></div>
+    <div class="card" data-go="noti"><h2>📬 알림</h2><div id="home-noti"></div></div>
+  </section>
+  <section id="p-pipe" class="pane">
+    <div class="card"><h2>🛠️ 파이프라인 <span id="pipe-upd" class="sub"></span></h2><div id="pipe-sum"></div></div>
+    <div id="pipe-stages"></div>
+    <div class="card"><h2>⛔ 막힘</h2><div id="pipe-blocks"></div></div>
+  </section>
+  <section id="p-plan" class="pane">
+    <div class="card">
+      <h2>📅 일정 <span class="sp"></span><span class="seg"><button data-pv="day" class="on">하루</button><button data-pv="week">주간</button></span></h2>
+      <div id="plan-head"></div><div id="plan-body"></div>
+    </div>
+  </section>
+  <section id="p-work" class="pane">
+    <div class="card"><h2>📈 모션 진도</h2><div id="prog"></div></div>
+    <div class="card"><h2>🎯 피드백 O/X</h2><div id="work-fb"></div></div>
+    <div class="card"><h2>🛰️ 프로젝트 현황</h2><div id="board"></div></div>
+    <div class="card"><h2>🤖 자동 작업 <span id="work-cnt" class="sub"></span></h2><div id="work-auto"></div></div>
+    <div class="card"><h2>❓ 오늘의 퀴즈</h2><div id="quiz"></div></div>
+  </section>
+  <section id="p-noti" class="pane">
+    <div class="card" id="noti-ans-card" hidden><h2>🎓 새 답</h2><div id="noti-ans"></div></div>
+    <div class="card"><h2>📬 알림 <span id="n-unread" class="badge"></span></h2><div id="notices"></div><button id="n-more" class="more" hidden>펼치기</button></div>
+  </section>
 </main>
+<nav id="tabs">
+  <button data-tab="home" class="on"><i>🏠</i>홈</button>
+  <button data-tab="pipe"><i>🛠️</i>파이프라인</button>
+  <button data-tab="plan"><i>📅</i>일정</button>
+  <button data-tab="work"><i>📈</i>작업</button>
+  <button data-tab="noti"><i>📬</i>알림<span id="tab-badge" class="badge"></span></button>
+</nav>
+<div id="ask" class="sheet" hidden>
+  <div class="ask-top"><button id="ask-close" aria-label="닫기">✕</button><b>선생님에게 묻기</b><span class="sp"></span><span id="ask-run" class="sub"></span></div>
+  <div id="ask-to" class="chips"></div>
+  <div id="ask-ths" class="ths"></div>
+  <div id="ask-msgs"></div>
+  <div class="ask-in"><textarea id="ask-text" rows="2" placeholder="질문 입력 (키보드 🎤 음성 입력 가능)"></textarea><button id="ask-send">보내기</button></div>
+</div>
+<div id="edit" class="sheet mini" hidden>
+  <div class="ask-top"><b id="edit-ttl">계획 고치기</b><span class="sp"></span><button id="edit-close">✕</button></div>
+  <input id="edit-val" maxlength="40" placeholder="예: 작업 / 퀴즈 / 휴식">
+  <div class="chips" id="edit-quick"></div>
+  <button id="edit-save" class="send">저장</button>
+</div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=1;
+const BUILD=2;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
-const STATE_NAMES=['meta','board','notices','progress','quiz_today'];
-const SYNC_MS=60000, BUILD_CHECK_MS=300000, NOTICE_SHOW=4;
+// v1 5개 + v2 5개(SPEC_v2 3절)
+const STATE_NAMES=['meta','board','notices','progress','quiz_today','pipeline','tasks','plan_today','plan_week','answers'];
+const SYNC_MS=60000, SYNC_FAST_MS=8000, BUILD_CHECK_MS=300000, NOTICE_SHOW=4;
+const TABS=['home','pipe','plan','work','noti'];
+const ASK_TO=[['anim_teacher','🎓','애니·리깅 선생님'],['ref_factory','🏭','레퍼런스 공장'],['job_prep','💼','취업 준비실'],['control','🛰️','관제센터'],['code','🤖','Code']];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
@@ -110,7 +237,8 @@ const api=(()=>{
     async get(names){
       if(dev()){const out={};for(const n of names){const r=await fetch('dev/state/'+n+'.json?v='+Date.now(),{cache:'no-store'});if(r.ok)out[n]=await r.json()}return {ok:true,state:out}}
       let b=await getBoot();
-      if(names.some(n=>!b.files[n]))b=await getBoot(true); // 새 파일이 생겼을 수 있음
+      // 새 파일이 생겼을 수 있음 — 다시 받기는 5분에 한 번만(없는 파일 때문에 매번 브리지를 부르지 않게)
+      if(names.some(n=>!b.files[n])&&Date.now()-(api._fb||0)>300000){api._fb=Date.now();b=await getBoot(true)}
       const out={};
       await Promise.all(names.map(async n=>{const id=b.files[n];if(!id)return;
         const r=await drive(DRV+'/'+id+'?alt=media&v='+Date.now(),{cache:'no-store'});if(r.ok)out[n]=await r.json()}));
@@ -133,27 +261,48 @@ const Q={
   list:()=>lsGet('wc_q',[]),
   save:l=>lsSet('wc_q',l.slice(-200)),
   add(kind,data){const l=Q.list();const req={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Math.floor(Date.now()/1000),kind,data,st:'pend'};l.push(req);Q.save(l);return req},
+  // 보내는 동안(await) 새로 들어온 입력을 덮어쓰지 않게: 하나 보낼 때마다 최신 목록을 다시 읽어 그 항목만 고친다.
+  // 보내기 실패(fail)는 다음 동기화 때 자동으로 다시 보냄. PC가 거절한 것(rej)은 자동으로 다시 보내지 않음.
   async flush(){
-    const l=Q.list();let ch=false;
-    for(const r of l){if(r.st!=='pend'&&r.st!=='fail')continue;
-      try{const res=await api.post({id:r.id,t:r.t,kind:r.kind,data:r.data});r.st=res.ok?'sent':'fail';r.msg=res.msg||''}catch(e){r.st='fail';r.msg=e.message}
-      ch=true}
-    if(ch)Q.save(l);return l;
+    const ids=Q.list().filter(r=>r.st==='pend'||(r.st==='fail'&&!r.rej)).map(r=>r.id);
+    for(const id of ids){
+      const r=Q.list().find(x=>x.id===id);if(!r)continue;
+      let st,msg='';
+      try{const res=await api.post({id:r.id,t:r.t,kind:r.kind,data:r.data});st=res.ok?'sent':'fail';msg=res.msg||''}catch(e){st='fail';msg=e.message}
+      const l=Q.list();const x=l.find(y=>y.id===id);
+      if(x&&(x.st==='pend'||x.st==='fail')){x.st=st;x.msg=msg;Q.save(l)}
+    }
+    return Q.list();
   },
   applyDone(done){ // meta.done = {id:{ok,msg}} — 에이전트가 처리한 결과
     if(!done)return;const l=Q.list();let ch=false;
-    for(const r of l){const d=done[r.id];if(d&&r.st!=='ok'){r.st=d.ok?'ok':'fail';r.msg=d.msg||'';ch=true}}
-    if(ch)Q.save(l.filter(r=>!(r.st==='ok'&&Date.now()/1000-r.t>86400)));
+    for(const r of l){const d=done[r.id];if(d&&r.st!=='ok'&&r.st!=='x'&&!(r.rej&&r.st==='fail')){r.st=d.ok?'ok':'fail';r.rej=!d.ok;r.msg=d.msg||'';ch=true}}
+    // 끝난 요청은 하루 뒤 정리. 묻기(ask)는 답이 answers에 들어가므로 7일 보관
+    if(ch)Q.save(l.filter(r=>!(r.st==='ok'&&Date.now()/1000-r.t>(r.kind==='ask'?7*86400:86400))));
   },
-  stateOf(kind,key){const r=Q.list().filter(x=>x.kind===kind&&x.data&&x.data.key===key).pop();return r?r.st:null}
+  stateOf(kind,key){const r=Q.list().filter(x=>x.kind===kind&&x.data&&x.data.key===key).pop();return r?r.st:null},
+  of(kind){return Q.list().filter(x=>x.kind===kind)}
 };
 
 // 화면: 구역마다 HTML을 만들어 이전과 같으면 손대지 않는다(바뀐 구역만 교체, 전체 다시 그리기 없음).
+// v2: 아래 탭 5개(홈·파이프라인·일정·작업·알림). 탭 전환은 보이기만 바꾼다(애니 1개 0.2초).
 const UI=(()=>{
   const last={};let showAll=false,quizSel=null,quizReasons=new Set(),quizKey=null;
-  function put(id,html){if(last[id]===html)return false;last[id]=html;$(id).innerHTML=html;return true}
+  let tab=TABS.includes(lsGet('wc_tab','home'))?lsGet('wc_tab','home'):'home',planView='day',planDate=null,editing=null;
+  function put(id,html){if(last[id]===html)return false;last[id]=html;const el=$(id);if(el)el.innerHTML=html;return true}
   const LIGHT={'🔴':'r','🟡':'y','🟢':'g'};
+  const fmtMin=m=>{m=Math.round(+m||0);if(m<60)return m+'분';const h=Math.floor(m/60),r=m%60;return h+'시간'+(r?' '+r+'분':'')};
+  const hh=h=>String(h).padStart(2,'0');
 
+  // ---------- 탭 ----------
+  function go(t,quiet){
+    if(!TABS.includes(t))return;
+    if(t!==tab||quiet){tab=t;lsSet('wc_tab',t)}
+    for(const x of TABS){$('#p-'+x).classList.toggle('on',x===t);document.querySelector(`#tabs [data-tab="${x}"]`).classList.toggle('on',x===t)}
+    if(!quiet)window.scrollTo(0,0);
+  }
+
+  // ---------- 알림 (v1) ----------
   function notices(st){
     const items=(st.notices&&st.notices.items)||[];
     const readLocal=new Set(Q.list().filter(r=>r.kind==='notice_read').map(r=>r.data.key));
@@ -170,6 +319,7 @@ const UI=(()=>{
       ${n.isRead?tag:`<button class="chk" data-read="${esc(n.id)}">읽음</button>`}</div>`}).join(''):'<div class="empty">새 알림 없음</div>';
     put('#notices',html);
     const more=$('#n-more');more.hidden=rows.length<=shown.length&&!showAll;more.textContent=showAll?'접기':`펼치기 (${rows.length-shown.length})`;
+    return {unread,urgent:rows.filter(r=>!r.isRead&&r.urgent).length,top:rows.filter(r=>!r.isRead).slice(0,2)};
   }
 
   function board(st){
@@ -181,7 +331,7 @@ const UI=(()=>{
     return `<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="${r}" fill="none" stroke="#24313f" stroke-width="7"/><circle cx="32" cy="32" r="${r}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="${c.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}" transform="rotate(-90 32 32)"/><text x="32" y="37" text-anchor="middle" font-size="14" fill="#e8eef4">${Math.round(pct*100)}</text></svg>`}
   const STAGE={'기획':.1,'블로킹':.35,'스플라인':.55,'폴리싱':.75,'디테일':.9,'완료':1};
   function progress(st){
-    const ms=(st.progress&&st.progress.items)||[];
+    const ms=((st.progress&&st.progress.items)||[]).filter(m=>m.char!=='pipeline'); // 파이프라인은 v2에서 자기 탭
     put('#prog',ms.length?'<div class="rings">'+ms.map(m=>{
       const p=m.pct!=null?m.pct:(STAGE[m.stage]??0);
       const late=m.target&&m.days>m.target;
@@ -201,6 +351,99 @@ const UI=(()=>{
     put('#quiz',html);
   }
 
+  // ---------- 파이프라인 ----------
+  function pipeBar(P){
+    return '<div class="pbar">'+P.stages.map(s=>`<div class="pseg${s.status==='완료'?' done':s.status==='막힘'?' blk':''}${s.n===P.stage?' cur':''}" title="${esc(s.n+'단계 '+s.name)}"><b style="width:${Math.round(s.pct)}%"></b></div>`).join('')+'</div>';
+  }
+  function curStage(P){return P.stages.find(s=>s.n===P.stage)||P.stages.find(s=>s.status!=='완료')||P.stages[P.stages.length-1]}
+  function pipeline(st){
+    const P=st.pipeline;
+    if(!P||!P.stages||!P.stages.length){put('#home-pipe','<div class="empty">파이프라인 정보 없음</div>');put('#pipe-sum','<div class="empty">파이프라인 정보 없음</div>');put('#pipe-stages','');put('#pipe-blocks','');return}
+    const c=curStage(P);
+    const line=`<div class="pline"><b>${esc(c.n)}단계 ${esc(c.name)}</b> · ${Math.round(c.pct)}% · ${c.status==='막힘'?'⛔ ':''}${esc(c.status)}</div><div class="pnow">${esc(c.now||'—')}</div><div class="sub">전체 ${P.pct}% · 남은 시간 약 ${fmtMin(P.eta_min)} · 갱신 ${esc((P.updated||'').slice(5))}</div>`;
+    put('#home-pipe',pipeBar(P)+line);
+    put('#pipe-sum',pipeBar(P)+line);
+    $('#pipe-upd').textContent='';
+    put('#pipe-stages',P.stages.map(s=>`<div class="stg ${esc(s.status)}"><h3>${esc(s.n)}단계 ${esc(s.name)}<span class="st-chip ${esc(s.status)}">${esc(s.status||'—')}</span><span class="sp"></span><span class="sub">${Math.round(s.pct)}%${s.status!=='완료'&&s.eta_min!=null?' · '+fmtMin(s.eta_min):''}</span></h3>
+      <div class="bar1"><b style="width:${Math.round(s.pct)}%"></b></div>${s.now?`<div class="pnow">${esc(s.now)}</div>`:''}
+      ${s.done?`<div class="res">✅ ${esc((s.done.t||'').slice(5))} ${esc(s.done.summary||s.done.title)}</div>`:''}</div>`).join(''));
+    const B=(P.blocks||[]).slice().reverse();
+    put('#pipe-blocks',B.length?B.map(b=>`<div class="blk"><div class="src">${b.n!=null?esc(b.n)+'단계 · ':''}${esc((b.date||'').slice(5))} ${esc(b.time||'')}</div>${esc(b.text)}</div>`).join(''):'<div class="empty">막힘 없음</div>');
+  }
+
+  // ---------- 일정 ----------
+  function planOf(st,date){
+    const T=st.plan_today,W=st.plan_week;let slots=null,dflt=false;
+    if(T&&T.date===date){slots=T.slots.map(s=>({...s}));dflt=!!T.default}
+    else if(W&&W.days){const d=W.days.find(x=>x.date===date);if(d){slots=W.hours.map((h,i)=>({h,plan:d.plan[i]||'',actual:d.actual[i]||''}));dflt=d.default}}
+    if(!slots)return null;
+    // 아직 PC에 반영 안 된 내 수정(오프라인 큐) 덮어쓰기
+    for(const r of Q.of('plan_edit')){if(r.data.date!==date||r.st==='x')continue;
+      if(r.st==='ok'&&Date.now()/1000-r.t>120)continue;
+      const s=slots.find(x=>x.h===r.data.h);if(s){s[r.data.field]=r.data.value;s.q=r.st}}
+    return {slots,dflt};
+  }
+  function today(st){return (st.plan_today&&st.plan_today.date)||null}
+  function tally(slots){const c={O:0,'△':0,X:0};for(const s of slots)if(c[s.actual]!=null)c[s.actual]++;return `O ${c.O} · △ ${c['△']} · X ${c.X}`}
+  function homePlan(st){
+    const d=today(st);const p=d&&planOf(st,d);
+    $('#home-pdate').textContent=d?d.slice(5)+' '+(st.plan_today.dow||''):'';
+    if(!p){put('#home-plan','<div class="empty">일정 없음</div>');return}
+    const nh=new Date().getHours();const runs=[];
+    for(const s of p.slots){if(!s.plan)continue;const l=runs[runs.length-1];
+      if(l&&l.plan===s.plan&&(l.end%24)===s.h){l.end=s.h+1}else runs.push({plan:s.plan,start:s.h,end:s.h+1})}
+    const cur=p.slots.find(s=>s.h===nh);
+    put('#home-plan',`${cur?`<div class="pline">지금 ${hh(nh)}시: <b>${esc(cur.plan||'비어 있음')}</b>${cur.actual?' · '+esc(cur.actual):''}</div>`:''}
+      <div class="tally">${runs.map(r=>`${hh(r.start)}~${hh(r.end%24)} ${esc(r.plan)}`).join(' · ')||'계획 없음'}${p.dflt?' (기본 양식)':''}</div><div class="sub">실제 ${tally(p.slots)}</div>`);
+  }
+  function plan(st){
+    const td=today(st);if(!planDate)planDate=td;
+    document.querySelectorAll('[data-pv]').forEach(b=>b.classList.toggle('on',b.dataset.pv===planView));
+    if(planView==='week'){
+      const W=st.plan_week;
+      if(!W||!W.days){put('#plan-head','');put('#plan-body','<div class="empty">주간 일정 없음</div>');return}
+      put('#plan-head',`<div class="tally">${esc(W.days[0].date.slice(5))} ~ ${esc(W.days[6].date.slice(5))} · 날짜를 누르면 그날 고치기</div>`);
+      let h='<div class="wk"><span></span>'+W.days.map(d=>`<span class="hd${d.date===W.today?' today':''}" data-pday="${esc(d.date)}">${esc(d.dow)}<br>${esc(d.date.slice(8))}</span>`).join('');
+      W.hours.forEach((hr,i)=>{h+=`<span class="hl">${hh(hr)}</span>`+W.days.map(d=>{const p=planOf(st,d.date);const s=p?p.slots[i]:{};return `<span class="c ${s.actual||(s.plan?'p':'')}" title="${esc(s.plan||'')}"></span>`}).join('')});
+      put('#plan-body',h+'</div>');return;
+    }
+    const p=planDate&&planOf(st,planDate);
+    if(!p){put('#plan-head','');put('#plan-body','<div class="empty">일정 없음</div>');return}
+    const nh=new Date().getHours();
+    put('#plan-head',`<div class="tally"><b>${esc(planDate.slice(5))}</b>${planDate===td?' (오늘)':` <button class="chip" data-pday="${esc(td)}">오늘로</button>`} · 실제 ${tally(p.slots)}${p.dflt?' · 기본 양식(13~21 작업)':''}</div>`);
+    put('#plan-body','<div class="slots">'+p.slots.map(s=>`<div class="slot${planDate===td&&s.h===nh?' now':''}"><span class="hh">${hh(s.h)}</span>
+      <button class="pl" data-pedit="${s.h}">${esc(s.plan)}</button>${s.q==='pend'||s.q==='sent'?'<span class="pd">⏳</span>':s.q==='fail'?'<span class="pd">⚠️</span>':''}
+      <span class="oxs">${['O','△','X'].map(v=>`<button class="ox ${v}${s.actual===v?' on':''}" data-pox="${s.h}" data-v="${v}">${v}</button>`).join('')}</span></div>`).join('')+'</div>');
+  }
+  function planSet(h,field,value){
+    const date=planDate;if(!date)return;
+    Q.add('plan_edit',{date,h:+h,field,value});all(Sync.state);Sync.push();
+  }
+  function openEdit(h){
+    const p=planOf(Sync.state,planDate);const s=p&&p.slots.find(x=>x.h===+h);if(!s)return;
+    editing=+h;$('#edit-ttl').textContent=`${planDate.slice(5)} ${hh(h)}시 계획`;
+    const v=$('#edit-val');v.value=s.plan||'';
+    $('#edit-quick').innerHTML=['작업','공부','퀴즈','피드백','휴식','운동',''].map(q=>`<button class="chip" data-eq="${esc(q)}">${q||'비우기'}</button>`).join('');
+    $('#edit').hidden=false;setTimeout(()=>v.focus(),50);
+  }
+
+  // ---------- 할 일·작업 ----------
+  function tasks(st){
+    const T=st.tasks||{};const doneLocal=new Set(Q.of('task_done').filter(r=>r.st!=='fail').map(r=>r.data.key));
+    const mine=(T.mine||[]).filter(t=>!doneLocal.has(t.key));
+    const failed=Q.of('task_done').filter(r=>r.st==='fail');
+    const m=mine.length?mine.map(t=>`<div class="task"><span>🙋</span><div class="tx">${esc(t.text)} <span class="src">${esc(t.src||'')}</span></div><button class="chk" data-tdone="${esc(t.key)}" data-ttext="${esc(t.text)}">끝</button></div>`).join(''):'<div class="empty">내 할 일 없음</div>';
+    const auto=T.auto||[];
+    const aRow=a=>`<div class="task"><span>🤖</span><div class="tx">${a.kind==='pipe'?`<b>${esc(a.title)}</b> ${Math.round(a.pct||0)}% · ${esc(a.st)}<div class="src">${esc(a.now||'')}</div>`:`${esc(a.title)} <span class="src">${esc(a.from||'')} · ${esc((a.date||'').slice(5))}</span>`}</div></div>`;
+    put('#home-tasks',`<div class="grp">🙋 나 (${mine.length})</div>${m}${failed.length?'<div class="empty">⚠️ 끝 표시 실패 <button class="chip" data-retry="1">다시 보내기</button></div>':''}
+      <div class="grp">🤖 자동 (${auto.length})</div>${auto.slice(0,4).map(aRow).join('')||'<div class="empty">자동 작업 없음</div>'}${auto.length>4?`<button class="more" data-gotab="work">자동 작업 ${auto.length-4}개 더 보기</button>`:''}`);
+    const ci=T.code_inbox||{};
+    $('#work-cnt').textContent=`Code 요청 ${ci.req||0} · 대기 ${ci.wait||0}`;
+    put('#work-auto',auto.map(aRow).join('')||'<div class="empty">자동 작업 없음</div>');
+    const fb=T.feedback||[];const c={O:0,X:0,n:0};fb.forEach(f=>c[f.ox||'n']++);
+    put('#work-fb',fb.length?`<div class="tally">O ${c.O} · X ${c.X} · 아직 ${c.n}</div>`+fb.map(f=>`<div class="task"><span class="oxv ${f.ox||'n'}">${f.ox||'·'}</span><div class="tx">${esc(f.motion)} ${esc(f.frame)}f — ${esc(f.issue)} <span class="src">${esc((f.date||'').slice(5))}${f.conf?' · 확신 '+esc(f.conf):''}</span></div></div>`).join(''):'<div class="empty">피드백 기록 없음</div>');
+  }
+
   function header(st){
     $('#ver').textContent='v'+BUILD;
     const m=st.meta||{};const s=$('#sync');
@@ -209,20 +452,41 @@ const UI=(()=>{
     s.title=Sync.err?('오류: '+Sync.err):(age!=null?`PC 동기화 ${Math.round(age)}분 전`:'동기화 기록 없음');
   }
 
-  function all(st){header(st);notices(st);board(st);progress(st);quiz(st)}
+  function all(st){
+    header(st);const n=notices(st);board(st);progress(st);quiz(st);pipeline(st);homePlan(st);plan(st);tasks(st);
+    const a=Ask.render(st);
+    put('#home-noti',`<div class="pline">안 읽은 알림 <b>${n.unread}</b>${n.urgent?` · 🔴 ${n.urgent}`:''}${a.unseen?` · 🎓 새 답 <b>${a.unseen}</b>`:''}</div>${n.top.map(x=>`<div class="pnow">· ${esc(x.text)}</div>`).join('')}`);
+    $('#tab-badge').textContent=(n.unread+a.unseen)||'';
+  }
 
   function bind(){
     document.addEventListener('click',e=>{
-      const t=e.target.closest('button');if(!t)return;
-      if(t.dataset.read){Q.add('notice_read',{key:t.dataset.read});all(Sync.state);Sync.push()}
+      const g=e.target.closest('[data-go]');
+      const t=e.target.closest('button');
+      if(!t){if(g)go(g.dataset.go);return}
+      if(t.dataset.tab)go(t.dataset.tab);
+      else if(t.dataset.gotab)go(t.dataset.gotab);
+      else if(t.dataset.read){Q.add('notice_read',{key:t.dataset.read});all(Sync.state);Sync.push()}
       else if(t.id==='n-more'){showAll=!showAll;notices(Sync.state)}
       else if(t.dataset.opt){quizSel=t.dataset.opt;quiz(Sync.state)}
       else if(t.dataset.rs){const r=t.dataset.rs;quizReasons.has(r)?quizReasons.delete(r):quizReasons.add(r);quiz(Sync.state)}
       else if(t.dataset.qsend){const q=Sync.state.quiz_today;Q.add('quiz_answer',{key:q.date+'|'+q.motion_type,date:q.date,motion_type:q.motion_type,pick:quizSel,reasons:[...quizReasons],options:q.options.map(o=>o.id)});quiz(Sync.state);Sync.push();toast('답을 보냈어요')}
-      else if(t.dataset.retry){const l=Q.list();for(const r of l)if(r.st==='fail')r.st='pend';Q.save(l);Sync.push()}
+      else if(t.dataset.retry){const l=Q.list();for(const r of l)if(r.st==='fail'&&r.kind!=='ask'){r.st='pend';if(r.rej){r.rej=false;r.id=r.id+'r'}}Q.save(l);all(Sync.state);Sync.push()}
+      else if(t.dataset.pv){planView=t.dataset.pv;plan(Sync.state)}
+      else if(t.dataset.pday){planDate=t.dataset.pday;planView='day';plan(Sync.state)}
+      else if(t.dataset.pox){const p=planOf(Sync.state,planDate);const s=p&&p.slots.find(x=>x.h===+t.dataset.pox);if(s)planSet(s.h,'actual',s.actual===t.dataset.v?'':t.dataset.v)}
+      else if(t.dataset.pedit)openEdit(t.dataset.pedit);
+      else if(t.dataset.eq!=null){$('#edit-val').value=t.dataset.eq;saveEdit()}
+      else if(t.id==='edit-save')saveEdit();
+      else if(t.id==='edit-close'){$('#edit').hidden=true;editing=null}
+      else if(t.dataset.tdone){Q.add('task_done',{key:t.dataset.tdone,text:t.dataset.ttext});all(Sync.state);Sync.push();toast('끝 표시했어요')}
       else if(t.id==='speak')speak(Sync.state);
+      else Ask.click(t);
     });
+    $('#edit-val').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveEdit()}});
+    go(tab,true);
   }
+  function saveEdit(){if(editing==null)return;planSet(editing,'plan',$('#edit-val').value.trim().slice(0,40));$('#edit').hidden=true;editing=null}
 
   function speak(st){
     if(!('speechSynthesis' in window)){toast('읽기를 지원하지 않아요');return}
@@ -232,13 +496,113 @@ const UI=(()=>{
     const txt=[...reds,...items].join('. ')||'새 알림이 없어요';
     const u=new SpeechSynthesisUtterance(txt.replace(/[\u{1F300}-\u{1FAFF}☀-➿]/gu,''));u.lang='ko-KR';speechSynthesis.speak(u);
   }
-  return {all,bind};
+  return {all,bind,go,put,get tab(){return tab}};
 })();
 
-// 동기화: 저장본 즉시 표시 → 큐 보내기 → 상태 받기. 켤 때·돌아올 때·1분마다.
-const Sync={state:lsGet('wc_state',{}),err:'',busy:false,
+// 선생님에게 묻기(SPEC_v2 2절): 대상 고르기 → 질문 → inbox kind=ask → PC가 claude -p → answers.json 으로 답.
+// 대화는 thread(같은 대상과 이어서). 보낸 뒤 ⏳ → 답 오면 말풍선 + 알림 탭 배지. 실패는 ⚠️ + 다시 보내기.
+const Ask=(()=>{
+  let to=lsGet('wc_ask_to','anim_teacher'),th=lsGet('wc_ask_th',{}),isOpen=false,newTh=null;
+  const seen=new Set(lsGet('wc_seen',[]));
+  const saveSeen=()=>lsSet('wc_seen',[...seen].slice(-400));
+  const NAME=Object.fromEntries(ASK_TO.map(x=>[x[0],x[1]+' '+x[2]]));
+  const newId=()=>'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);
+
+  function threads(st){ // 서버 thread + 아직 서버에 없는 내 질문 thread
+    const T=((st.answers&&st.answers.threads)||[]).map(t=>({...t}));
+    const have=new Set(T.map(t=>t.id));
+    for(const r of Q.of('ask')){if(r.st==='x'||have.has(r.data.thread))continue;have.add(r.data.thread);
+      T.push({id:r.data.thread,to:r.data.to,title:r.data.text.slice(0,40),updated:new Date(r.t*1000).toISOString().slice(0,19).replace('T',' '),msgs:[],local:true})}
+    return T.sort((a,b)=>String(b.updated).localeCompare(String(a.updated)));
+  }
+  function unseen(st){let n=0;const list=[];
+    for(const t of (st.answers&&st.answers.threads)||[])for(const m of t.msgs)if(m.st==='ok'&&!seen.has(m.id)){n++;list.push({t,m})}
+    return {n,list}}
+  function cur(st){ // 지금 보는 thread id
+    if(th[to])return th[to];
+    const t=threads(st).find(x=>x.to===to);return t?t.id:(newTh||(newTh=newId()));
+  }
+  function msgsHtml(st,id){
+    const T=threads(st).find(x=>x.id===id);const sm=T?T.msgs:[];const ids=new Set(sm.map(m=>m.id));
+    let h='';
+    for(const m of sm){
+      h+=`<div class="bub me">${esc(m.q)}<span class="meta">${esc((m.t||'').slice(5))}</span></div>`;
+      if(m.st==='ok')h+=`<div class="bub ai">${esc(m.a)}<span class="meta">${esc((m.at||'').slice(5))}${m.req?' · 📨 '+esc(m.req):''}</span></div>`;
+      else if(m.st==='fail')h+=`<div class="bub ai bad">⚠️ 답 실패: ${esc(m.err||'')}<span class="meta"><button class="chip" data-reask="${esc(m.id)}">다시 보내기</button></span></div>`;
+      else h+=`<div class="bub ai wait">${m.st==='run'?'✍️ 답 쓰는 중…':'⏳ 순서 기다리는 중'}</div>`;
+    }
+    for(const r of Q.of('ask')){if(r.data.thread!==id||ids.has(r.id)||r.st==='x')continue;
+      h+=`<div class="bub me">${esc(r.data.text)}<span class="meta">${r.st==='fail'?'⚠️ '+esc(r.msg||'못 보냄'):r.st==='pend'?'⏳ 보내는 중':r.st==='sent'?'📨 PC 전달 기다리는 중':'✅ PC가 받음'}</span></div>`;
+      h+=r.st==='fail'?`<div class="bub ai bad">⚠️ 보내지 못함<span class="meta"><button class="chip" data-reask="${esc(r.id)}">다시 보내기</button></span></div>`:`<div class="bub ai wait">⏳ 답 기다리는 중</div>`;
+    }
+    return h||`<div class="empty">${esc(NAME[to])}에게 물어보세요. 결론 먼저, 짧게 답해요.</div>`;
+  }
+  function render(st){
+    const u=unseen(st);
+    $('#ask-badge').textContent=u.n||'';
+    UI.put('#noti-ans',u.list.slice(0,8).map(({t,m})=>`<div class="ansrow" data-goask="${esc(t.id)}" data-to="${esc(t.to)}"><span>${esc((NAME[t.to]||'').split(' ')[0])}</span><div class="tx"><b>${esc(t.title)}</b><div class="pnow">${esc(String(m.a).slice(0,90))}</div></div></div>`).join(''));
+    $('#noti-ans-card').hidden=!u.n;
+    if(isOpen){
+      const id=cur(st);
+      // 보고 있는 thread의 답은 먼저 읽음 처리(목록의 ● 표시가 남지 않게)
+      const T0=threads(st).find(x=>x.id===id);
+      if(T0&&!document.hidden){let c=false;for(const m of T0.msgs)if(m.st==='ok'&&!seen.has(m.id)){seen.add(m.id);c=true}if(c)saveSeen()}
+      UI.put('#ask-to',ASK_TO.map(([k,e,n])=>`<button class="chip${k===to?' on':''}" data-askto="${k}">${e} ${n}</button>`).join(''));
+      const ts=threads(st).filter(x=>x.to===to).slice(0,12);
+      UI.put('#ask-ths',`<button data-newth="1" class="${ts.some(x=>x.id===id)?'':'on'}">＋ 새 대화</button>`+ts.map(t=>{const nb=t.msgs.some(m=>m.st==='ok'&&!seen.has(m.id));return `<button data-th="${esc(t.id)}" class="${t.id===id?'on':''}">${nb?'<span class="nb">● </span>':''}${esc(t.title)}</button>`}).join(''));
+      if(UI.put('#ask-msgs',msgsHtml(st,id))){const el=$('#ask-msgs');el.scrollTop=el.scrollHeight}
+      const A=st.answers||{};$('#ask-run').textContent=(A.running||A.queued)?`PC에서 답 쓰는 중 ${A.running||0}${A.queued?' · 대기 '+A.queued:''}`:'';
+      // 보고 있는 thread의 답은 읽음
+      const T=threads(st).find(x=>x.id===id);let ch=false;
+      if(T&&!document.hidden)for(const m of T.msgs)if(m.st==='ok'&&!seen.has(m.id)){seen.add(m.id);ch=true}
+      if(ch){saveSeen();$('#ask-badge').textContent=unseen(st).n||''}
+    }
+    return {unseen:u.n};
+  }
+  function open(t,id){
+    if(t){to=t;lsSet('wc_ask_to',to)}
+    if(id){th[to]=id;lsSet('wc_ask_th',th)}
+    isOpen=true;$('#ask').hidden=false;UI.all(Sync.state);Sync.push();
+  }
+  function close(){isOpen=false;$('#ask').hidden=true;UI.all(Sync.state)}
+  function send(text){
+    text=(text||'').trim();if(!text)return;
+    const id=cur(Sync.state);th[to]=id;lsSet('wc_ask_th',th);newTh=null;
+    Q.add('ask',{to,thread:id,text:text.slice(0,2000)});
+    UI.all(Sync.state);Sync.push();
+  }
+  function click(t){
+    if(t.id==='ask-open')open();
+    else if(t.id==='ask-close')close();
+    else if(t.id==='ask-send'){const a=$('#ask-text');send(a.value);a.value=''}
+    else if(t.dataset.askto){to=t.dataset.askto;lsSet('wc_ask_to',to);UI.all(Sync.state)}
+    else if(t.dataset.newth){newTh=newId();th[to]=newTh;lsSet('wc_ask_th',th);UI.all(Sync.state);$('#ask-text').focus()}
+    else if(t.dataset.th){th[to]=t.dataset.th;lsSet('wc_ask_th',th);UI.all(Sync.state)}
+    else if(t.dataset.reask){
+      const l=Q.list();const r=l.find(x=>x.id===t.dataset.reask);let text='';
+      if(r){text=r.data.text;r.st='x';Q.save(l)}
+      else for(const T of (Sync.state.answers&&Sync.state.answers.threads)||[])for(const m of T.msgs)if(m.id===t.dataset.reask)text=m.q;
+      send(text);toast('다시 보냈어요');
+    }
+  }
+  function bind(){
+    document.addEventListener('click',e=>{const r=e.target.closest('[data-goask]');if(r)open(r.dataset.to,r.dataset.goask)});
+    $('#ask-text').addEventListener('keydown',e=>{if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();click($('#ask-send'))}});
+  }
+  // 답을 기다리는 중이면 동기화를 빠르게
+  function waiting(){
+    if(Q.of('ask').some(r=>r.st==='pend'||r.st==='sent'))return true;
+    const A=Sync.state.answers;if(A&&(A.running||A.queued))return true;
+    const done=new Set();for(const T of (A&&A.threads)||[])for(const m of T.msgs)if(m.st==='ok'||m.st==='fail')done.add(m.id);
+    return Q.of('ask').some(r=>r.st==='ok'&&!done.has(r.id)&&Date.now()/1000-r.t<900);
+  }
+  return {render,click,bind,open,close,waiting,get isOpen(){return isOpen}};
+})();
+
+// 동기화: 저장본 즉시 표시 → 큐 보내기 → 상태 받기. 켤 때·돌아올 때·1분마다(묻기 답 기다리는 중엔 8초마다).
+const Sync={state:lsGet('wc_state',{}),err:'',busy:false,t:0,
   async run(){
-    if(this.busy)return;this.busy=true;
+    if(this.busy)return;this.busy=true;this.t=Date.now();
     try{
       await Q.flush();
       const res=await api.get(STATE_NAMES);
@@ -251,18 +615,18 @@ const Sync={state:lsGet('wc_state',{}),err:'',busy:false,
   push(){clearTimeout(this._p);this._p=setTimeout(()=>this.run(),300)}
 };
 
-// 새 버전 확인: 손 뗀 화면(입력 중 아님·퀴즈 고르는 중 아님)에서만 새로고침
+// 새 버전 확인: 손 뗀 화면(입력 중 아님·퀴즈 고르는 중 아님·묻기/고치기 창 닫힘)에서만 새로고침
 async function checkBuild(){
   try{const r=await fetch('version.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;
     const v=await r.json();
-    if(v.build>BUILD){const busy=document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)||document.querySelector('.opt.on');
+    if(v.build>BUILD){const busy=document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)||document.querySelector('.opt.on')||Ask.isOpen||!$('#edit').hidden;
       // 같은 새 번호로 2분 안에 다시 새로고침하지 않는다(Pages 캐시로 옛 index가 올 때 무한 새로고침 방지)
       const last=lsGet('wc_reload',{});if(last.b===v.build&&Date.now()-last.t<120000)return;
       if(!busy){lsSet('wc_reload',{b:v.build,t:Date.now()});location.reload()}else setTimeout(checkBuild,30000)}}catch(e){}
 }
 
-UI.bind();UI.all(Sync.state);Sync.run();checkBuild();
-setInterval(()=>{if(!document.hidden)Sync.run()},SYNC_MS);
+UI.bind();Ask.bind();UI.all(Sync.state);Sync.run();checkBuild();
+setInterval(()=>{if(document.hidden)return;const gap=Ask.waiting()?SYNC_FAST_MS:SYNC_MS;if(Date.now()-Sync.t>=gap)Sync.run()},4000);
 setInterval(checkBuild,BUILD_CHECK_MS);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){Sync.run();checkBuild()}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
