@@ -195,6 +195,7 @@ main{padding:0 14px calc(env(safe-area-inset-bottom) + 92px);min-width:0}
 <main id="main">
   <section id="p-home" class="pane on">
     <div class="hero"><h1>🧭 작업센터</h1><div class="hsum" id="home-sum"></div></div>
+    <div id="home-today"></div>
     <div class="tiles" id="home-tiles"></div>
     <div class="sec">🙋 나 <span id="home-mine-n" class="cnt"></span></div>
     <div class="group" id="home-tasks"></div>
@@ -255,7 +256,7 @@ main{padding:0 14px calc(env(safe-area-inset-bottom) + 92px);min-width:0}
 </div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=4;
+const BUILD=5;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -399,6 +400,7 @@ const UI=(()=>{
     if(k==='fb')return fbDet(st);
     if(k==='auto')return autoDet(st);
     if(k==='home')return homeDet(st);
+    if(k==='today')return todayDet(st);
     return '';
   }
   function side(st){
@@ -566,6 +568,36 @@ const UI=(()=>{
   const aRow=a=>`<div class="li" style="cursor:default;padding:10px 0"><span class="ic ${a.kind==='pipe'?'b':'n'}">${a.kind==='pipe'?'🛠️':'🤖'}</span><span class="t"><b>${esc(a.title)}</b><s>${a.kind==='pipe'?Math.round(a.pct||0)+'% · '+esc(a.now||a.st):esc(a.from||'')+' · '+esc((a.date||'').slice(5))}</s></span></div>`;
   function autoDet(st){const T=st.tasks||{},auto=T.auto||[],ci=T.code_inbox||{};
     return `<div class="dh"><span class="ic b">🤖</span><h3>자동</h3></div><div class="kv"><div><b>${ci.req||0}</b><span>📨 일꾼 요청</span></div><div><b>${ci.wait||0}</b><span>⏳ 대기</span></div></div>`+(auto.map(aRow).join('')||'<div class="empty">자동 작업 없음</div>')}
+  // ☀️ 오늘 카드(관제센터 05:03): 날짜는 05시 기준(PC 지킴이 plan_today.date). 묻지 않고 자동. 계획 칸은 여기서 바로 고침(plan_edit)
+  function yDone(st){ // 어제(05시 기준 하루) 끝난 작업 3줄, 없으면 최근 끝난 것
+    const d=today(st);const J=jobList(st).filter(j=>j.status==='완료').sort((a,b)=>b.t-a.t);
+    if(!d)return J.slice(0,3);
+    const t0=new Date(d+'T05:00:00').getTime()/1000,y=J.filter(j=>j.t>=t0-86400&&j.t<t0);
+    return (y.length?y:J).slice(0,3);
+  }
+  function todayCard(st,J,mine){
+    const d=today(st),T=st.plan_today,p=d&&planOf(st,d),nh=new Date().getHours(),cur=p&&p.slots.find(s=>s.h===nh),key='today:1';
+    const rp=jobList(st).filter(j=>(j.status==='진행'||j.status==='막힘')&&j.pct!=null),avg=rp.length?rp.reduce((a,j)=>a+j.pct,0)/rp.length/100:null;
+    const nP=p?p.slots.filter(s=>s.plan).length:0,yd=yDone(st).length;
+    return `<button class="tile today${isSel(key)?' sel':''}" data-sel="${key}" style="width:100%;flex-direction:row;align-items:center;gap:14px;min-height:96px;margin-bottom:12px">
+      ${ring(avg,'var(--b)',J.run+'개','mini" style="width:64px;height:64px;flex:none')}
+      <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span class="big">☀️ ${d?esc(d.slice(5).replace('-','/')):'오늘'} ${esc(T&&T.dow||'')}</span>
+      <span class="lb">🙋 ${mine} · 🗓️ ${esc(cur&&cur.plan||'—')} · ${nP}칸${p&&p.dflt?'(기본)':''} · ✅ ${yd}</span></span><span class="v" style="color:var(--mut)">›</span></button>${inl('home',key,st)}`;
+  }
+  function todayDet(st){
+    const d=today(st),T=st.plan_today,p=d&&planOf(st,d),nh=new Date().getHours();
+    const doneLocal=new Set(Q.of('task_done').filter(r=>r.st!=='fail').map(r=>r.data.key));
+    const mine=((st.tasks&&st.tasks.mine)||[]).filter(t=>!doneLocal.has(t.key));
+    const run=jobList(st).filter(j=>j.status==='진행'||j.status==='막힘');
+    const slots=p?p.slots.filter(s=>s.plan||s.h===nh):[];
+    return `<div class="dh"><span class="ic y">☀️</span><h3>${d?esc(d.slice(5).replace('-','/')):'오늘'} ${esc(T&&T.dow||'')}</h3></div>
+      <div class="sec" style="margin:8px 0 4px">🙋 할 일 ${mine.length}</div>${mine.map(t=>`<div class="dl">• ${esc(t.text)}</div>`).join('')||'<div class="sub">🎉 없음</div>'}
+      <div class="sec" style="margin:12px 0 4px">📊 진행 ${run.length}</div>${run.map(j=>`<div class="dl">${stOf(j.status)[0]} ${esc(j.name)} <b>${j.pct!=null?Math.round(j.pct)+'%':''}</b></div>`).join('')||'<div class="sub">🛌 쉬는 중</div>'}
+      <div class="sec" style="margin:12px 0 4px">🗓️ 계획${p&&p.dflt?' (기본 13~21 작업)':''}</div>${p?slots.map(s=>`<div class="slot${s.h===nh?' now':''}" style="padding:6px 0"><span class="hh">${hh(s.h)}</span>
+        <button class="pl" data-tpedit="${s.h}">${esc(s.plan)}</button>${s.q==='pend'||s.q==='sent'?'<span class="pd">⏳</span>':''}
+        <span class="oxs">${['O','△','X'].map(v=>`<button class="ox ${v}${s.actual===v?' on':''}" data-tpox="${s.h}" data-v="${v}">${v}</button>`).join('')}</span></div>`).join(''):'<div class="sub">📅 없음</div>'}
+      <div class="sec" style="margin:12px 0 4px">✅ 어제 끝난 것</div>${yDone(st).map(j=>`<div class="dl">✅ ${esc(j.name)}</div>`).join('')||'<div class="sub">—</div>'}`;
+  }
   function homeDet(st){
     const run=jobList(st).filter(j=>j.status==='진행'||j.status==='막힘');
     return `<div class="dh"><span class="ic b">📊</span><h3>지금 도는 것</h3></div>`+(run.map(j=>{const [e,c]=stOf(j.status);return `<div class="li" data-sel="job:${esc(j.id)}" data-gojob="${esc(j.id)}" style="padding:10px 0"><span class="ic ${c}">${e}</span><span class="t"><b>${esc(j.name)}</b><s>${esc(j.now||'')}</s></span><span class="v">${j.pct!=null?Math.round(j.pct)+'%':''}</span></div>`}).join('')||'<div class="empty">🛌 쉬는 중</div>')}
@@ -606,7 +638,8 @@ const UI=(()=>{
       T('data-gotab="plan"','📅','y',esc(cur&&cur.plan||'—'),'⏱️ '+hh(nh)+'시')+
       T('data-gotab="noti"','📬',n.urgent?'r':'g',n.unread,n.urgent?'🔴 급함 '+n.urgent:'알림')+
       T('data-askopen="1"','🎓','p',a.unseen?'🆕 '+a.unseen:'묻기','선생님·팀장'));
-    eff.home='home:run';
+    eff.home='today:1';
+    put('#home-today',todayCard(st,J,tk.mine));
     put('#work-sum',`${hn(nm,'🎬 모션','b')}${hn(tk.c.O,'✅ O','g')}${hn(tk.c.X,'❌ X','r')}${hn(tk.auto,'🤖 자동')}`);
     put('#noti-sum',`${hn(n.unread,'📬 안 읽음','b')}${hn(n.urgent,'🔴 급함','r')}${hn(a.unseen,'🎓 새 답','g')}`);
     $('#tab-badge').textContent=(n.unread+a.unseen)||'';
@@ -633,6 +666,8 @@ const UI=(()=>{
       else if(t.dataset.pday){planDate=t.dataset.pday;planView='day';if(tab!=='plan')go('plan');plan(Sync.state)}
       else if(t.dataset.pox){const p=planOf(Sync.state,planDate);const s=p&&p.slots.find(x=>x.h===+t.dataset.pox);if(s)planSet(s.h,'actual',s.actual===t.dataset.v?'':t.dataset.v)}
       else if(t.dataset.pedit)openEdit(t.dataset.pedit);
+      else if(t.dataset.tpox||t.dataset.tpedit){planDate=today(Sync.state);planView='day';   // ☀️ 오늘 카드에서 바로 고치기
+        if(t.dataset.tpedit)openEdit(t.dataset.tpedit);else{const p=planOf(Sync.state,planDate);const s=p&&p.slots.find(x=>x.h===+t.dataset.tpox);if(s)planSet(s.h,'actual',s.actual===t.dataset.v?'':t.dataset.v)}}
       else if(t.dataset.eq!=null){$('#edit-val').value=t.dataset.eq;saveEdit()}
       else if(t.id==='edit-save')saveEdit();
       else if(t.id==='edit-close'){$('#edit').hidden=true;editing=null}
