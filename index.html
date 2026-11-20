@@ -202,6 +202,18 @@ details.more2>summary::-webkit-details-marker{display:none}
 .ask-in button{flex:none;background:var(--acc);border:0;color:#fff;border-radius:22px;padding:0 20px;min-height:48px;font-size:16px;font-weight:800;cursor:pointer}
 #edit-val{background:var(--chip);border:0;border-radius:16px;color:var(--tx);font:inherit;padding:12px 14px;min-height:48px}
 #toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 90px);transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:12px 20px;border-radius:22px;font-size:15px;z-index:30}
+
+/* BUILD 7: 🚩 신고·🔍 검수함·상태 점 */
+.qc .qflag{position:absolute;right:6px;top:6px;z-index:2;width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:20px;cursor:pointer;display:grid;place-items:center}
+.qc .qp{right:56px!important}
+.rv{margin-bottom:12px}.rv .rvv{border-radius:18px}.rv .rvv video{aspect-ratio:16/9}
+.rvt{font-size:16px;margin:10px 2px 4px}
+.tag{background:color-mix(in srgb,var(--r) 12%,var(--card));color:var(--tx);border-radius:14px;padding:4px 12px;font-size:14px}
+.opt.ok{background:color-mix(in srgb,var(--g) 18%,var(--chip))}.opt.no{background:color-mix(in srgb,var(--r) 16%,var(--chip))}
+.opt.ok,.opt.no{font-size:16px}
+.li .ic.dot{font-size:22px}
+.li .t s.when{font-size:13px}
+.stl{font-weight:800}.stl.g{color:var(--g)}.stl.r{color:var(--r)}.stl.y{color:var(--y)}.stl.n{color:var(--mut)}
 </style>
 </head>
 <body>
@@ -243,6 +255,8 @@ details.more2>summary::-webkit-details-marker{display:none}
     <div class="hero"><h1>🎓 공부</h1><p class="hsub">퀴즈를 풀고, 모션 진도와 선생님 소식을 봐요</p><div class="hsum" id="work-sum"></div></div>
     <div class="sec">🧠 오늘 퀴즈</div>
     <div class="card" id="quiz-card"><div id="quiz-vids"></div><div id="quiz"></div></div>
+    <div class="sec">🔍 검수함 <span id="rv-n" class="cnt"></span></div>
+    <div id="review"></div>
     <div class="sec">🎓 선생님·피드백</div>
     <div class="tiles" id="work-tiles"></div>
     <div class="sec">📈 모션 진도</div>
@@ -250,6 +264,7 @@ details.more2>summary::-webkit-details-marker{display:none}
   </section>
   <section id="p-noti" class="pane">
     <div class="hero"><h1>📬 소식</h1><p class="hsub">팀이 보낸 소식과 선생님 답이 여기 와요</p><div class="hsum" id="noti-sum"></div></div>
+    <div id="noti-done-card" hidden><div class="sec">✅ 방금 끝난 일</div><div class="group" id="noti-done"></div></div>
     <div id="noti-ans-card" hidden><div class="sec">🎓 새 답</div><div class="group" id="noti-ans"></div></div>
     <div class="sec">📬 소식 <span id="n-unread" class="badge"></span></div>
     <div class="group" id="notices"></div>
@@ -272,6 +287,11 @@ details.more2>summary::-webkit-details-marker{display:none}
   <div id="ask-msgs"></div>
   <div class="ask-in"><textarea id="ask-text" rows="2" placeholder="🎤 질문 (음성 입력 OK)"></textarea><button id="ask-send">보내기</button></div>
 </div>
+<div id="flag" class="sheet mini" hidden>
+  <div class="ask-top"><b>🚩 이 클립 뭐가 이상해요?</b><span class="sp"></span><button id="flag-close" class="ib" aria-label="닫기">✕</button></div>
+  <div class="sub">누르면 바로 퀴즈에서 빠지고, 팀장이 태그를 고치게 넘겨요</div>
+  <div class="chips" id="flag-rs"></div>
+</div>
 <div id="edit" class="sheet mini" hidden>
   <div class="ask-top"><b id="edit-ttl">계획</b><span class="sp"></span><button id="edit-close" class="ib">✕</button></div>
   <input id="edit-val" maxlength="40" placeholder="예: 작업 / 퀴즈 / 휴식">
@@ -280,11 +300,13 @@ details.more2>summary::-webkit-details-marker{display:none}
 </div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=6;
+const BUILD=7;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
-const STATE_NAMES=['meta','board','notices','progress','quiz_today','pipeline','tasks','plan_today','plan_week','answers','jobs','ext_games'];
+const STATE_NAMES=['meta','board','notices','progress','quiz_today','pipeline','tasks','plan_today','plan_week','answers','jobs','ext_games','review'];
+// BUILD 7: 🚩 신고 이유(동현 06:37) — 누르면 그 클립은 퀴즈에서 바로 빠지고 관제센터로 감
+const FLAG_REASONS=['걷기 아님','루프 아님','계단·경사','잘림','캐릭터 작음','기타'];
 const SYNC_MS=60000, SYNC_FAST_MS=8000, BUILD_CHECK_MS=300000, NOTICE_SHOW=4;
 const TABS=['home','pipe','plan','work','noti'];
 const ASK_TO=[['anim_teacher','🎓','선생님'],['ref_factory','🏭','공장'],['job_prep','💼','취준실'],['control','🛰️','팀장'],['code','🤖','일꾼']];  // 용어집 v1 말
@@ -380,7 +402,7 @@ const Q={
 // BUILD 6: 탭 이름 = 하는 일(오늘·진행·일정·공부·소식), 화면마다 "여기는 ○○하는 곳" 한 줄, 작업 줄은 headline 먼저.
 // 글 최소: 아이콘·색·숫자·링·사진. 설명 문장은 펼쳤을 때만. 구역마다 HTML이 같으면 손대지 않는다(바뀐 구역만 교체).
 const UI=(()=>{
-  const last={};let showAll=false,quizSel=null,quizReasons=new Set(),quizKey=null,jobOld=false;
+  const last={};let showAll=false,quizSel=null,quizReasons=new Set(),quizKey=null,jobOld=false,flagId=null;
   let tab=TABS.includes(lsGet('wc_tab','home'))?lsGet('wc_tab','home'):'home',planView='day',planDate=null,editing=null;
   const sel=lsGet('wc_sel',{});const eff={};   // 탭마다 고른 것 'kind:id' / 옆 창 기본값
   const wide=()=>innerWidth>=700;
@@ -474,26 +496,59 @@ const UI=(()=>{
   }
 
   // ---------- 퀴즈: 움직이는 클립(소리 없음·자동 반복·탭=멈춤·좌우로 넘겨 비교) ----------
+  // BUILD 7: 🚩 신고한 클립은 PC 답을 기다리지 않고 바로 퀴즈에서 뺀다(보내기 실패면 다시 보임)
+  const flagged=()=>new Set(Q.of('clip_flag').filter(r=>r.st!=='fail'&&r.st!=='x').map(r=>r.data.key));
+  function quizOpts(q){const f=flagged();return (q.options||[]).filter(o=>!f.has(o.clip_id||o.id))}
   function quiz(st){
     const q=st.quiz_today;
-    if(!q||!q.options||!q.options.length){put('#quiz-vids','');put('#quiz','<div class="empty">🎬 퀴즈 준비 중</div>');return}
+    const opts=q?quizOpts(q):[];
+    if(!q||opts.length<2){put('#quiz-vids','');put('#quiz',`<div class="empty">🎬 ${q&&q.options&&q.options.length?'새 클립으로 바꾸는 중이에요(PC가 1분 안에 채워요)':'퀴즈 준비 중이에요'}</div>`);return}
     const key=q.date+'|'+q.motion_type,qs=Q.stateOf('quiz_answer',key);
-    if(qs){put('#quiz-vids','');put('#quiz',`<div class="empty">${qs==='ok'?'✅ 답 저장됨':qs==='fail'?'⚠️ 저장 실패 <button class="chip" data-retry="1">다시</button>':'⏳ 보내는 중'}</div>`);return}
+    if(qs){put('#quiz-vids','');put('#quiz',`<div class="empty">${qs==='ok'?'✅ 답 저장됐어요':qs==='fail'?'⚠️ 저장 못 했어요 <button class="chip" data-retry="1">다시</button>':'⏳ 보내는 중'}</div>`);return}
     if(quizKey!==key){quizKey=key;quizSel=null;quizReasons=new Set()}
-    put('#quiz-vids',`<div class="qq">${esc(q.motion_type)} 👍 고르기</div><div class="qv">${q.options.map((o,i)=>`<div class="qc" data-qc="${esc(o.id)}">${o.clip_state?
+    put('#quiz-vids',`<div class="qq">${esc(q.motion_type)} ${opts.length}개 중 제일 좋은 것 👍</div><div class="qv">${opts.map((o,i)=>`<div class="qc" data-qc="${esc(o.id)}">${o.clip_state?
       `<video data-vid="${esc(o.clip_state)}" data-cid="${esc(o.clip_id||o.id)}" muted loop playsinline autoplay preload="auto"${o.thumb?` poster="${esc(o.thumb)}"`:''}></video>`:(o.thumb?`<img loading="lazy" src="${esc(o.thumb)}" alt="">`:'<img alt="">')}
-      <span class="ql">${String.fromCharCode(65+i)}</span><span class="qp" hidden>⏸️</span><span class="qg">🎮 ${esc(o.game)}</span></div>`).join('')}</div>`);
-    put('#quiz',`<div class="opts">${q.options.map((o,i)=>`<button class="opt${quizSel===o.id?' on':''}" data-opt="${esc(o.id)}">${String.fromCharCode(65+i)}</button>`).join('')}</div>
+      <span class="ql">${String.fromCharCode(65+i)}</span><span class="qp" hidden>⏸️</span>
+      <button class="qflag" data-flag="${esc(o.clip_id||o.id)}" aria-label="이 클립 신고">🚩</button>
+      <span class="qg">🎮 ${esc(o.game)}${o.found===false?' · 캐릭터 못 찾아 원본 그대로':''}</span></div>`).join('')}</div>`);
+    put('#quiz',`<div class="opts">${opts.map((o,i)=>`<button class="opt${quizSel===o.id?' on':''}" data-opt="${esc(o.id)}">${String.fromCharCode(65+i)}</button>`).join('')}</div>
       <div class="chips">${(q.reasons||[]).map(r=>`<button class="chip${quizReasons.has(r)?' on':''}" data-rs="${esc(r)}">${esc(r)}</button>`).join('')}</div>
-      <button class="send" data-qsend="1" ${quizSel?'':'disabled'}>보내기</button>`);
+      <button class="send" data-qsend="1" ${quizSel?'':'disabled'}>보내기</button>
+      <div class="sub" style="margin-top:8px">🚩 이상한 클립은 영상 오른쪽 위 깃발을 눌러 주세요 — 바로 빠져요</div>`);
     document.querySelectorAll('#quiz-vids .qc').forEach(c=>c.classList.toggle('on',c.dataset.qc===quizSel));
     Clip.apply();if(tab==='work')Clip.need(st);
+  }
+  // 🔍 검수함: 신고된 것 + 자동 검사에 걸린 것 → 영상 크게 + O(맞음)/X(틀림)+이유
+  let rvX=null;
+  function review(st){
+    const R=st.review||{},doneL=new Set(Q.of('review_result').filter(r=>r.st!=='fail'&&r.st!=='x').map(r=>r.data.key));
+    const items=(R.items||[]).filter(it=>!doneL.has(it.id));
+    $('#rv-n').textContent=items.length?items.length+'개':'';
+    put('#review',items.length?items.map(it=>`<div class="card rv" data-rv="${esc(it.id)}">
+      ${it.clip_state?`<div class="qc rvv"><video data-vid="${esc(it.clip_state)}" data-cid="${esc(it.id)}" muted loop playsinline autoplay preload="auto"></video><span class="qp" hidden>⏸️</span></div>`:'<div class="empty">🎬 영상은 앞 4개만 보여요</div>'}
+      <div class="rvt"><b>${it.src==='flag'?'🚩 신고됨':'🤖 자동 검사에 걸림'}</b> · 🎮 ${esc(it.game)} ${esc(it.motion_type)}</div>
+      <div class="chips">${(it.why||[]).map(w=>`<span class="tag">${esc(w)}</span>`).join('')}</div>
+      <div class="sub">${esc(it.name)}</div>
+      ${rvX===it.id?`<div class="sec" style="margin:12px 0 6px">❌ 왜 틀렸나요?</div><div class="chips">${FLAG_REASONS.map(r=>`<button class="chip" data-rvx="${esc(it.id)}" data-r="${esc(r)}">${esc(r)}</button>`).join('')}</div>`
+        :`<div class="opts"><button class="opt ok" data-rvo="${esc(it.id)}">⭕ 걷기 맞아요</button><button class="opt no" data-rvn="${esc(it.id)}">❌ 틀려요</button></div>`}</div>`).join('')
+      :`<div class="card"><div class="empty">✅ 검수할 것 없어요${R.done_n?' · 지금까지 '+R.done_n+'개 봤어요':''}</div></div>`);
+    Clip.apply();
+    return items.length;
   }
 
   // ---------- 진행도: 작업(hub\jobs) + 게임별 뽑기 카드 ----------
   const JORD={'막힘':0,'진행':1,'대기':2,'멈춤':3,'완료':4};
   const nowS=()=>Date.now()/1000;
-  const isOld=j=>j.status==='완료'&&nowS()-j.t>86400, isStale=j=>j.status==='진행'&&nowS()-j.t>1800;
+  const isOld=j=>j.status==='완료'&&nowS()-j.t>6*3600, isStale=j=>j.status==='진행'&&nowS()-j.t>1800;   // BUILD 7: 끝난 지 6시간 → '끝난 일' 접힘
+  const hm=t=>{const d=new Date(t*1000);return hh(d.getHours())+':'+hh(d.getMinutes())};
+  // BUILD 7 상태 점(동현 06:49): 🟢 일하는 중 / 🟡 조용함(30분 넘게 소식 없음) / ✅ 끝 HH:MM / ⏳ 대기 / 🔴 막힘 / ⏸️ 멈춤
+  const dot=j=>j.status==='완료'?['✅','g','끝 '+hm(j.t)]:j.status==='막힘'?['🔴','r','막혔어요']:j.status==='대기'?['⏳','n','대기 중']:j.status==='멈춤'?['⏸️','y','멈춤']:isStale(j)?['🟡','y','조용함']:['🟢','g','일하는 중'];
+  function justDone(st){   // 소식 탭 맨 위 '방금 끝난 일'(12시간 안)
+    const D=jobList(st).filter(j=>(j.status==='완료'||j.status==='막힘')&&nowS()-j.t<12*3600).sort((a,b)=>b.t-a.t).slice(0,5);
+    $('#noti-done-card').hidden=!D.length;
+    put('#noti-done',D.map(j=>{const [e,c,l]=dot(j);return `<div class="li" data-gojob="${esc(j.id)}" data-sel="job:${esc(j.id)}"><span class="ic ${c}">${e}</span><span class="t"><b>${esc(String(j.headline||j.name).replace(/^(✅|🔴)\s*/,''))}</b><s>${esc(l)} · ${ago(j.t)}</s></span><span class="v">›</span></div>`}).join(''));
+    return D.length;
+  }
   const stagesHtml=P=>P.stages.map(s=>`<div class="jsg ${esc(s.status)}"><div class="jl"><span>${stOf(s.status)[0]}</span><b>${esc(s.n)}. ${esc(s.name)}</b><span class="sp"></span><span class="sub">${Math.round(s.pct)}%${s.status!=='완료'&&s.eta_min!=null?' · ⏱️ '+fmtMin(s.eta_min):''}</span></div>
       ${bar(s.pct,stOf(s.status)[1])}${s.now?`<div class="sub">${esc(s.now)}</div>`:''}${s.done?`<div class="res">✅ ${esc((s.done.t||'').slice(5))} ${esc(s.done.summary||s.done.title)}</div>`:''}</div>`).join('');
   function jobList(st){const J=((st.jobs&&st.jobs.jobs)||[]).slice().sort((a,b)=>((JORD[a.status]??1)-(JORD[b.status]??1))||(b.t-a.t));return J}
@@ -515,8 +570,7 @@ const UI=(()=>{
       ${bar(g.pct,'g')}<div class="sub">캐릭터 ${g.done}/${g.total} · ${g.pct??0}%</div>
       ${live&&g.now?`<div class="dl">🔄 ${esc(g.now)}</div>${g.batch&&g.batch.n?bar(100*g.batch.i/g.batch.n,'b'):''}`:''}
       <div class="dl">🕒 마지막 움직임 ${ago(g.act_t)}</div>
-      ${(g.files||[]).length?`<div class="files">${g.files.map(f=>`<span>📁 ${esc(f)}</span>`).join('')}</div>`:''}
-      ${(g.log||[]).length?`<div class="log">${esc(g.log.join('\n'))}</div>`:''}
+      ${(g.files||[]).length||(g.log||[]).length?`<details class="more2"><summary>▸ 자세히 보기</summary>${(g.files||[]).length?`<div class="files">${g.files.map(f=>`<span>📁 ${esc(f)}</span>`).join('')}</div>`:''}${(g.log||[]).length?`<div class="log">${esc(g.log.join('\n'))}</div>`:''}</details>`:''}
       ${st.ext_games.stop?'<div class="sub">⏸️ 감시기 멈춤 표시(STOP) 있음</div>':''}`;
   }
   function jobs(st){
@@ -527,9 +581,9 @@ const UI=(()=>{
     put('#jobs-sum',`${ring(avg,'var(--b)',run.length+'개','bigring')}${hn(cnt['진행']||0,'🔄 하는 중','b')}${hn(cnt['막힘']||0,'🔴 막힘','r')}${hn(cnt['완료']||0,'✅ 끝','g')}`);
     $('#jobs-cnt').textContent=live.length;
     eff.pipe=run.length?'job:'+run[0].id:(live.length?'job:'+live[0].id:'');
-    const row=j=>{const [e,c]=stOf(j.status),stale=isStale(j),p=j.pct==null?null:Math.round(j.pct),key='job:'+j.id;
-      return `<div class="li job ${esc(j.status)}${stale?' stale':''}${isSel(key)?' sel':''}" data-sel="${esc(key)}" data-job="${esc(j.id)}"><span class="ic ${stale?'y':c}">${stale?'🟡':e}</span>
-        <span class="t"><b>${esc(j.name)}</b><s>${esc(jline(j))}</s></span><span class="v">${ring(p==null?null:p/100,COL[c],p!=null?p:'·','mini')}</span></div>${inl('pipe',key,st)}`};
+    const row=j=>{const c=stOf(j.status)[1],stale=isStale(j),p=j.pct==null?null:Math.round(j.pct),key='job:'+j.id,[de,dc,dl]=dot(j);
+      return `<div class="li job ${esc(j.status)}${stale?' stale':''}${isSel(key)?' sel':''}" data-sel="${esc(key)}" data-job="${esc(j.id)}"><span class="ic ${dc} dot">${de}</span>
+        <span class="t"><b>${esc(j.name)}</b><s>${esc(jline(j))}</s><s class="when"><span class="stl ${dc}">${esc(dl)}</span> · 마지막 소식 ${ago(j.t)}</s></span><span class="v">${ring(p==null?null:p/100,COL[c],p!=null?p:'·','mini')}</span></div>${inl('pipe',key,st)}`};
     put('#jobs',(live.map(row).join('')||'<div class="empty">⚙️ 등록된 작업 없음</div>')+(olds.length?`<button class="li" data-jold="1"><span class="ic g">✅</span><span class="t"><b>${jobOld?'접기':'끝난 '+olds.length+'개'}</b></span><span class="v">${jobOld?'▲':'▼'}</span></button>${jobOld?olds.map(row).join(''):''}`:''));
     // 게임별 뽑기 카드: 새 게임·재추출은 PC 지킴이가 상태 파일을 읽어 저절로 카드가 생김
     const G=(st.ext_games&&st.ext_games.games)||[];
@@ -586,10 +640,19 @@ const UI=(()=>{
   }
 
   // ---------- 할 일·선생님·피드백·자동 ----------
-  function teachDet(st){const t=(st.tasks&&st.tasks.teacher)||{};
-    return `<div class="dh"><span class="ic p">🎓</span><h3>선생님</h3></div><div class="kv"><div><b>${ago(t.t)}</b><span>🕒 마지막</span></div></div>
-      ${(t.lines||[]).map(l=>`<div class="dl">📌 ${esc(l)}</div>`).join('')}${t.now?`<div class="dl">🔄 ${esc(t.now)}</div>`:''}${t.done?`<div class="dl">✅ ${esc(t.done)}</div>`:''}${t.next?`<div class="dl">⏭️ ${esc(t.next)}</div>`:''}
-      <div class="sub">📁 ${esc(t.src||'—')} · 읽기만</div>`}
+  // BUILD 7 쉬운 말: 선생님 STATE 원문 대신 한 줄 제목(예 '📚 공부 끝! 걷기 판단 3개 기다리는 중'), 원문은 '자세히 보기' 안에 작게
+  const TRM=s=>String(s||'').replace(/\s*\(.*?\)\s*/g,' ').replace(/[`*_#]/g,'').replace(/\s+/g,' ').trim();
+  function teachLine(t){
+    if(!t||!t.t)return ['🎓 선생님 소식 없어요',''];
+    const first=s=>TRM(s).split(/[:：]|\.\s/)[0].replace(/\S*\\\S*/g,'').trim();   // 첫 마디만, 경로 빼기
+    const nx=first(t.next),dn=first(t.done),nw=first(t.now);
+    if(nw&&!/없음|대기/.test(nw))return ['🔄 공부하는 중이에요',short(nw,30)];
+    if(dn)return ['📚 공부 끝!',short(nx?'다음: '+nx:dn,30)];
+    return ['😴 쉬는 중',short(nx||'',30)];
+  }
+  function teachDet(st){const t=(st.tasks&&st.tasks.teacher)||{},[h1,h2]=teachLine(t);
+    return `<div class="dh"><span class="ic p">🎓</span><h3>${esc(h1)}</h3></div>${h2?`<div class="dl"><b>${esc(h2)}</b></div>`:''}<div class="kv"><div><b>${ago(t.t)}</b><span>🕒 마지막 소식</span></div></div>
+      <details class="more2"><summary>▸ 자세히 보기</summary><div class="log">${esc([...(t.lines||[]).map(l=>'📌 '+l),t.now?'🔄 '+t.now:'',t.done?'✅ '+t.done:'',t.next?'⏭️ '+t.next:''].filter(Boolean).join('\n'))}</div></details>`}
   function fbDet(st){const fb=(st.tasks&&st.tasks.feedback)||[];
     return `<div class="dh"><span class="ic g">🎯</span><h3>피드백</h3></div>`+(fb.length?fb.map(f=>`<div class="li" style="cursor:default;padding:10px 0"><span class="oxv ${f.ox||'n'}">${f.ox||'·'}</span><span class="t"><b>${esc(f.motion)} ${esc(f.frame)}f</b><s>${esc(f.issue)}${f.conf?' · 확신 '+esc(f.conf):''}</s></span></div>`).join(''):'<div class="empty">기록 없음</div>')}
   const aRow=a=>`<div class="li" style="cursor:default;padding:10px 0"><span class="ic ${a.kind==='pipe'?'b':'n'}">${a.kind==='pipe'?'🛠️':'🤖'}</span><span class="t"><b>${esc(a.title)}</b><s>${a.kind==='pipe'?Math.round(a.pct||0)+'% · '+esc(a.now||a.st):esc(a.from||'')+' · '+esc((a.date||'').slice(5))}</s></span></div>`;
@@ -631,7 +694,9 @@ const UI=(()=>{
     return `<div class="dh"><span class="ic b">📊</span><h3>지금 도는 것</h3></div>`+(run.map(j=>{const [e,c]=stOf(j.status);return `<div class="li" data-sel="job:${esc(j.id)}" data-gojob="${esc(j.id)}" style="padding:10px 0"><span class="ic ${c}">${e}</span><span class="t"><b>${esc(j.name)}</b><s>${esc(j.now||'')}</s></span><span class="v">${j.pct!=null?Math.round(j.pct)+'%':''}</span></div>`}).join('')||'<div class="empty">🛌 쉬는 중</div>')}
   function tasks(st){
     const T=st.tasks||{};const doneLocal=new Set(Q.of('task_done').filter(r=>r.st!=='fail').map(r=>r.data.key));
-    const mine=(T.mine||[]).filter(t=>!doneLocal.has(t.key)),failed=Q.of('task_done').filter(r=>r.st==='fail'),auto=T.auto||[];
+    // BUILD 7: 끝난 할 일 자동 정리 — '앱 v3 열어 보기'처럼 지금 판(BUILD)보다 옛 판을 가리키는 할 일은 숨김
+    const oldV=t=>{const m=String(t.text).match(/앱\s*v(\d+)/);return m&&+m[1]<BUILD};
+    const mine=(T.mine||[]).filter(t=>!doneLocal.has(t.key)&&!oldV(t)),failed=Q.of('task_done').filter(r=>r.st==='fail'),auto=T.auto||[];
     $('#home-mine-n').textContent=mine.length;
     put('#home-tasks',(mine.map(t=>`<div class="li" style="cursor:default"><span class="ic y">🙋</span><span class="t"><b style="white-space:normal">${esc(t.text)}</b></span><button class="chk" data-tdone="${esc(t.key)}" data-ttext="${esc(t.text)}">끝</button></div>`).join('')||'<div class="empty">🎉 할 일 없음</div>')
       +(failed.length?'<div class="li"><span class="ic r">⚠️</span><span class="t"><b>끝 표시 실패</b></span><button class="chk" data-retry="1">다시</button></div>':'')
@@ -639,7 +704,8 @@ const UI=(()=>{
     const t=T.teacher||{},fb=T.feedback||[],c={O:0,X:0,n:0};fb.forEach(f=>c[f.ox||'n']++);
     eff.work=eff.work||'teach:1';
     const tile=(key,ic,cl,big,lb)=>`<button class="tile${isSel(key)?' sel':''}" data-sel="${key}"><span class="ic ${cl}">${ic}</span><span class="big">${big}</span><span class="lb">${lb}</span></button>${inl('work',key,st)}`;
-    put('#work-tiles',tile('teach:1','🎓','p',ago(t.t),esc(t.now?'🔄 '+t.now:'선생님'))+tile('fb:1','🎯','g',`O ${c.O} · X ${c.X}`,'피드백'+(c.n?' · 아직 '+c.n:''))+tile('auto:1','🤖','b',auto.length+'개','자동 · 📨 '+((T.code_inbox||{}).req||0)));
+    const [tl1,tl2]=teachLine(t);
+    put('#work-tiles',tile('teach:1','🎓','p',esc(tl1),esc(tl2||ago(t.t)))+tile('fb:1','🎯','g',`O ${c.O} · X ${c.X}`,'피드백'+(c.n?' · 아직 '+c.n:''))+tile('auto:1','🤖','b',auto.length+'개','자동 · 📨 '+((T.code_inbox||{}).req||0)));
     return {mine:mine.length,c,auto:auto.length};
   }
 
@@ -652,7 +718,7 @@ const UI=(()=>{
   }
 
   function all(st){
-    header(st);const n=notices(st);board(st);const nm=progress(st);quiz(st);const J=jobs(st);const cur=plan(st);const tk=tasks(st);
+    header(st);const n=notices(st);board(st);const nm=progress(st);quiz(st);const rvn=review(st);const J=jobs(st);justDone(st);const cur=plan(st);const tk=tasks(st);
     const a=Ask.render(st);
     // 홈(BUILD 6): 급한 소식 1개 → 🧠 퀴즈 큰 버튼 → ☀️ 오늘 → 타일 4개(하는 일이 바로 보이는 말)
     const T=(go_,ic,cl,big,lb)=>`<button class="tile" ${go_}><span class="ic ${cl}">${ic}</span><span class="big">${big}</span><span class="lb">${lb}</span></button>`;
@@ -675,6 +741,8 @@ const UI=(()=>{
 
   function bind(){
     document.addEventListener('click',e=>{
+      const fb=e.target.closest('[data-flag]');   // 🚩 (영상 멈춤보다 먼저)
+      if(fb){flagId=fb.dataset.flag;$('#flag-rs').innerHTML=FLAG_REASONS.map(r=>`<button class="chip" data-fr="${esc(r)}">${esc(r)}</button>`).join('');$('#flag').hidden=false;return}
       const v=e.target.closest('.qc');
       if(v){const vid=v.querySelector('video');if(vid){if(vid.paused){vid.play().catch(()=>{});v.querySelector('.qp').hidden=true}else{vid.pause();v.querySelector('.qp').hidden=false}}return}
       const t=e.target.closest('button');
@@ -688,7 +756,15 @@ const UI=(()=>{
       else if(t.id==='n-more'){showAll=!showAll;notices(Sync.state)}
       else if(t.dataset.opt){quizSel=t.dataset.opt;quiz(Sync.state)}
       else if(t.dataset.rs){const r=t.dataset.rs;quizReasons.has(r)?quizReasons.delete(r):quizReasons.add(r);quiz(Sync.state)}
-      else if(t.dataset.qsend){const q=Sync.state.quiz_today;Q.add('quiz_answer',{key:q.date+'|'+q.motion_type,date:q.date,motion_type:q.motion_type,pick:quizSel,reasons:[...quizReasons],options:q.options.map(o=>o.id)});quiz(Sync.state);Sync.push();toast('✅ 보냈어요')}
+      else if(t.dataset.qsend){const q=Sync.state.quiz_today;Q.add('quiz_answer',{key:q.date+'|'+q.motion_type,date:q.date,motion_type:q.motion_type,pick:quizSel,reasons:[...quizReasons],options:quizOpts(q).map(o=>o.id)});quiz(Sync.state);Sync.push();toast('✅ 보냈어요')}
+      else if(t.dataset.fr){const q=Sync.state.quiz_today||{},o=(q.options||[]).find(x=>(x.clip_id||x.id)===flagId)||{};
+        Q.add('clip_flag',{key:flagId,clip_id:flagId,name:o.clip||'',game:o.game||'',motion_type:q.motion_type||'',reason:t.dataset.fr});
+        if(quizSel===o.id)quizSel=null;$('#flag').hidden=true;flagId=null;all(Sync.state);Sync.push();toast('🚩 퀴즈에서 뺐어요 · 팀장에게 넘겨요')}
+      else if(t.id==='flag-close'){$('#flag').hidden=true;flagId=null}
+      else if(t.dataset.rvo||t.dataset.rvx){const id=t.dataset.rvo||t.dataset.rvx,it=((Sync.state.review||{}).items||[]).find(x=>x.id===id)||{};
+        Q.add('review_result',{key:id,clip_id:id,verdict:t.dataset.rvo?'O':'X',reason:t.dataset.r||'',name:it.name||'',game:it.game||'',motion_type:it.motion_type||'',why:(it.why||[]).join(', ')});
+        rvX=null;all(Sync.state);Sync.push();toast(t.dataset.rvo?'⭕ 퀴즈 후보로 돌려요':'❌ 빼고 팀장에게 넘겨요')}
+      else if(t.dataset.rvn){rvX=t.dataset.rvn;review(Sync.state)}
       else if(t.dataset.retry){const l=Q.list();for(const r of l)if(r.st==='fail'&&r.kind!=='ask'){r.st='pend';if(r.rej){r.rej=false;r.id=r.id+'r'}}Q.save(l);all(Sync.state);Sync.push()}
       else if(t.dataset.pv){planView=t.dataset.pv;plan(Sync.state)}
       else if(t.dataset.pday){planDate=t.dataset.pday;planView='day';if(tab!=='plan')go('plan');plan(Sync.state)}
@@ -724,7 +800,8 @@ const UI=(()=>{
 const Clip={url:{},loading:{},
   async need(st){
     const q=st&&st.quiz_today;if(!q||!q.options)return;
-    const want=q.options.filter(o=>o.clip_state).map(o=>({n:o.clip_state,cid:o.clip_id||o.id}));
+    const want=q.options.filter(o=>o.clip_state).map(o=>({n:o.clip_state,cid:o.clip_id||o.id}))
+      .concat(((st.review||{}).items||[]).filter(it=>it.clip_state).map(it=>({n:it.clip_state,cid:it.id})));   // BUILD 7: 🔍 검수함 영상
     const keep=new Set(want.map(w=>'wc_cl_'+w.cid));
     try{for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith('wc_cl_')&&!keep.has(k))localStorage.removeItem(k)}}catch(e){}
     for(const w of want){
