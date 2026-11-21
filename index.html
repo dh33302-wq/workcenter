@@ -214,6 +214,17 @@ details.more2>summary::-webkit-details-marker{display:none}
 .li .ic.dot{font-size:22px}
 .li .t s.when{font-size:13px}
 .stl{font-weight:800}.stl.g{color:var(--g)}.stl.r{color:var(--r)}.stl.y{color:var(--y)}.stl.n{color:var(--mut)}
+
+/* BUILD 9: 📅 구글 캘린더 — 캘린더 = 테두리 블록, 계획 = 채운 칸 */
+.ic.cal{background:transparent;border:2px solid var(--b)}
+.calrow.cx b{text-decoration:line-through;color:var(--mut)}
+.cev{display:inline-block;margin-left:6px;padding:2px 8px;border:2px solid var(--b);border-radius:8px;font-size:13px;color:var(--tx);background:transparent;vertical-align:middle}
+.cev.cx{text-decoration:line-through;color:var(--mut);border-color:var(--mut)}
+.wk .c.ce{outline:2px solid var(--b);outline-offset:-2px}
+.calf{display:flex;gap:8px;align-items:center;margin:8px 0}
+.calf input[type=date],.calf input[type=time]{flex:1;min-height:44px;font-size:16px;border-radius:12px;border:1px solid var(--line,#ccc);padding:0 10px;background:var(--card);color:var(--tx)}
+.calall{display:flex;align-items:center;gap:6px;min-height:44px;font-size:15px}
+.calperm{padding:8px 0;color:var(--y)}
 </style>
 </head>
 <body>
@@ -232,6 +243,7 @@ details.more2>summary::-webkit-details-marker{display:none}
     <div id="home-urgent"></div>
     <div id="home-quiz"></div>
     <div id="home-today"></div>
+    <div id="home-cal"></div>
     <div class="tiles" id="home-tiles"></div>
     <div class="sec">🙋 내 할 일 <span id="home-mine-n" class="cnt"></span></div>
     <div class="group" id="home-tasks"></div>
@@ -249,6 +261,7 @@ details.more2>summary::-webkit-details-marker{display:none}
     <div class="hero"><h1>📅 일정</h1><p class="hsub">시간표를 짜고, 했는지 O·△·X로 체크해요</p><div class="hsum" id="plan-sum"></div></div>
     <div class="seg" id="plan-seg"><button data-pv="day" class="on">하루</button><button data-pv="week">주간</button></div>
     <div id="plan-head"></div>
+    <div class="group" id="plan-cal" style="margin-bottom:12px"></div>
     <div class="group" id="plan-body"></div>
   </section>
   <section id="p-work" class="pane">
@@ -266,9 +279,10 @@ details.more2>summary::-webkit-details-marker{display:none}
     <div class="hero"><h1>📬 소식</h1><p class="hsub">팀이 보낸 소식과 선생님 답이 여기 와요</p><div class="hsum" id="noti-sum"></div></div>
     <div id="noti-done-card" hidden><div class="sec">✅ 방금 끝난 일</div><div class="group" id="noti-done"></div></div>
     <div id="noti-ans-card" hidden><div class="sec">🎓 새 답</div><div class="group" id="noti-ans"></div></div>
-    <div class="sec">📬 소식 <span id="n-unread" class="badge"></span></div>
+    <div class="sec">🙋 동현이 볼 것 <span id="n-unread" class="badge"></span></div>
     <div class="group" id="notices"></div>
     <button id="n-more" class="more" hidden>더 보기</button>
+    <div class="group" id="team-log" style="margin-top:12px"></div>
   </section>
 </main>
 <aside id="side"><div id="side-body"></div></aside>
@@ -298,9 +312,17 @@ details.more2>summary::-webkit-details-marker{display:none}
   <div class="chips" id="edit-quick"></div>
   <button id="edit-save" class="send">저장</button>
 </div>
+<div id="cal" class="sheet mini" hidden>
+  <div class="ask-top"><b id="cal-ttl">📅 일정</b><span class="sp"></span><button id="cal-close" class="ib" aria-label="닫기">✕</button></div>
+  <input id="cal-sum" maxlength="100" placeholder="무슨 일정? 예: 면접 / 학원 환불 마감">
+  <div class="calf"><input id="cal-date" type="date"><label class="calall"><input id="cal-all" type="checkbox"> 종일</label></div>
+  <div class="calf"><input id="cal-s" type="time" value="14:00"><span>~</span><input id="cal-e" type="time" value="15:00"></div>
+  <button id="cal-save" class="send">구글 캘린더에 저장</button>
+  <button id="cal-cancel" class="more" hidden>✖ 취소로 표시 (지우지 않아요)</button>
+</div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=8;
+const BUILD=9;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -348,6 +370,11 @@ const api=(()=>{
   }
   const dev=()=>!BRIDGE_URL||BRIDGE_URL.startsWith('/*');
   return {
+    // BUILD 9: 구글 API(캘린더) 직접 호출 — 브리지 토큰 그대로. 개발 모드는 가짜 중계 dev/gcal/ 로
+    async gfetch(url,opt){
+      if(dev())return fetch(url.replace('https://www.googleapis.com/calendar/v3/calendars/primary/','dev/gcal/'),Object.assign({cache:'no-store'},opt));
+      return drive(url,opt);
+    },
     async get(names){
       if(dev()){const out={};for(const n of names){const r=await fetch('dev/state/'+n+'.json?v='+Date.now(),{cache:'no-store'});if(r.ok)out[n]=await r.json()}return {ok:true,state:out}}
       let b=await getBoot();
@@ -402,7 +429,7 @@ const Q={
 // BUILD 6: 탭 이름 = 하는 일(오늘·진행·일정·공부·소식), 화면마다 "여기는 ○○하는 곳" 한 줄, 작업 줄은 headline 먼저.
 // 글 최소: 아이콘·색·숫자·링·사진. 설명 문장은 펼쳤을 때만. 구역마다 HTML이 같으면 손대지 않는다(바뀐 구역만 교체).
 const UI=(()=>{
-  const last={};let showAll=false,quizSel=null,quizReasons=new Set(),quizKey=null,jobOld=false,flagId=null;
+  const last={};let showAll=false,teamOpen=false,quizSel=null,quizReasons=new Set(),quizKey=null,jobOld=false,flagId=null;
   let tab=TABS.includes(lsGet('wc_tab','home'))?lsGet('wc_tab','home'):'home',planView='day',planDate=null,editing=null;
   const sel=lsGet('wc_sel',{});const eff={};   // 탭마다 고른 것 'kind:id' / 옆 창 기본값
   const wide=()=>innerWidth>=700;
@@ -461,21 +488,26 @@ const UI=(()=>{
   }
 
   // ---------- 알림 ----------
+  // BUILD 9 P0: 기본 = '🙋 동현이 볼 것'(급함·결정·할 일·허용 등)만. 창끼리 편지(자율 점검·시안 등)는 접힌 '팀 기록'으로, 배지 숫자에서 뺌
+  const ME_RX=/동현|결정|고를|골라|고르기|선택|허용|눌러|확인\s*필요|직접|마감|면접|D-\d|🙋/;
+  const isMe=n=>n.me!=null?!!n.me:(!!n.urgent||ME_RX.test(String(n.text||'')));
   function notices(st){
     const items=(st.notices&&st.notices.items)||[];
     const readLocal=new Set(Q.list().filter(r=>r.kind==='notice_read').map(r=>r.data.key));
-    const rows=items.map(n=>({...n,isRead:n.read||readLocal.has(n.id)}))
+    const all_=items.map(n=>({...n,isRead:n.read||readLocal.has(n.id)}))
       .sort((a,b)=>(a.isRead-b.isRead)||(b.urgent-a.urgent)||String(b.date+b.time).localeCompare(a.date+a.time));
+    const rows=all_.filter(isMe),team=all_.filter(n=>!isMe(n));
     const unread=rows.filter(r=>!r.isRead).length,urgent=rows.filter(r=>!r.isRead&&r.urgent).length;
     $('#n-unread').textContent=unread||'';
     const shown=showAll?rows:rows.slice(0,8);
     eff.noti=shown.length?'noti:'+shown[0].id:'';
+    put('#team-log',team.length?`<button class="li" data-teamlog="1"><span class="ic n">🗂️</span><span class="t"><b>팀 기록 ${team.length}개</b><s>창끼리 주고받은 편지 · 배지 숫자에 안 들어가요</s></span><span class="v">${teamOpen?'▲':'▼'}</span></button>`+(teamOpen?team.slice(0,40).map(n=>`<div class="li read" data-sel="noti:${esc(n.id)}"><span class="ic n">📄</span><span class="t"><b>${esc(n.text)}</b><s>${esc(n.source)} · ${esc((n.date||'').slice(5))} ${esc(n.time||'')}</s></span></div>${inl('noti','noti:'+n.id,st)}`).join(''):''):'');
     put('#notices',shown.length?shown.map(n=>{
       const qs=Q.stateOf('notice_read',n.id),key='noti:'+n.id;
       const tag=qs==='pend'||qs==='sent'?'<span class="pend">⏳</span>':qs==='fail'?'<span class="fail">⚠️</span>':'';
       return `<div class="li${n.isRead?' read':''}${n.urgent?' urg':''}${isSel(key)?' sel':''}" data-sel="${esc(key)}" data-id="${esc(n.id)}"><span class="ic ${n.urgent?'r':n.isRead?'n':'b'}">${n.urgent?'🔴':n.isRead?'📭':'📬'}</span>
       <span class="t"><b>${esc(n.text)}</b><s>${esc(n.source)} · ${esc((n.date||'').slice(5))} ${esc(n.time||'')}</s></span>
-      ${n.isRead?tag:`<button class="chk" data-read="${esc(n.id)}">읽음</button>`}</div>${inl('noti',key,st)}`}).join(''):'<div class="empty">📭 새 알림 없음</div>');
+      ${n.isRead?tag:`<button class="chk" data-read="${esc(n.id)}">읽음</button>`}</div>${inl('noti',key,st)}`}).join(''):'<div class="empty">📭 동현이 볼 소식 없어요</div>');
     const more=$('#n-more');more.hidden=rows.length<=shown.length&&!showAll;more.textContent=showAll?'접기':`더 보기 ${rows.length-shown.length}`;
     return {unread,urgent,top:rows.filter(r=>!r.isRead).slice(0,2)};
   }
@@ -539,16 +571,17 @@ const UI=(()=>{
   // ---------- 진행도: 작업(hub\jobs) + 게임별 뽑기 카드 ----------
   const JORD={'막힘':0,'진행':1,'대기':2,'멈춤':3,'완료':4};
   const nowS=()=>Date.now()/1000;
-  const isOld=j=>j.status==='완료'&&nowS()-j.t>6*3600, isStale=j=>j.status==='진행'&&nowS()-j.t>1800;   // BUILD 7: 끝난 지 6시간 → '끝난 일' 접힘
+  // BUILD 9 P0(관제센터 14:07): 끝난 일은 24시간 뒤 '끝난 일 n개'로 접힘. 30분 무소식 = 🟡 확인 중, 빨강은 막힘 또는 2시간 무소식만
+  const isOld=j=>(j.status==='완료'||j.status==='멈춤')&&nowS()-j.t>24*3600, isStale=j=>j.status==='진행'&&nowS()-j.t>1800, isDead=j=>j.status==='진행'&&nowS()-j.t>7200;
   const hm=t=>{const d=new Date(t*1000);return hh(d.getHours())+':'+hh(d.getMinutes())};
-  // BUILD 7 상태 점(동현 06:49): 🟢 일하는 중 / 🟡 조용함(30분 넘게 소식 없음) / ✅ 끝 HH:MM / ⏳ 대기 / 🔴 막힘 / ⏸️ 멈춤
-  // BUILD 8 신호등(관제센터 08:46): 30분 넘게 소식 없음 → 🔴, 완료인데 결과 파일 못 찾음(res===0) → 🟡
+  // 상태 점: 🟢 일하는 중 / ⏸️ 확인 중(30분~2시간 무소식, 노랑) / 🔴 2시간 무소식 / ✅ 끝 HH:MM / 🟡 끝인데 결과 파일 없음 / ⏳ 대기 / 🔴 막힘
   const noRes=j=>j.status==='완료'&&j.res===0;
-  const dot=j=>j.status==='완료'?(noRes(j)?['🟡','y','끝 '+hm(j.t)+' · 결과 파일 못 찾음']:['✅','g','끝 '+hm(j.t)]):j.status==='막힘'?['🔴','r','막혔어요']:j.status==='대기'?['⏳','n','대기 중']:j.status==='멈춤'?['⏸️','y','멈춤']:isStale(j)?['🔴','r','30분 넘게 소식 없음']:['🟢','g','일하는 중'];
+  const dot=j=>j.status==='완료'?(noRes(j)?['🟡','y','끝 '+hm(j.t)+' · 결과 파일 못 찾음']:['✅','g','끝 '+hm(j.t)]):j.status==='막힘'?['🔴','r','막혔어요']:j.status==='대기'?['⏳','n','대기 중']:j.status==='멈춤'?['⏸️','n','멈춤']:isDead(j)?['🔴','r','2시간 넘게 소식 없음']:isStale(j)?['⏸️','y','확인 중 · 30분 넘게 조용해요']:['🟢','g','일하는 중'];
+  const jttl=j=>String(j.headline||j.name).trim();   // 카드 제목 = 쉬운 한 줄(headline). 내부 이름(BUILD·sw5 등)은 펼침 안에만
   function justDone(st){   // 소식 탭 맨 위 '방금 끝난 일'(12시간 안)
     const D=jobList(st).filter(j=>(j.status==='완료'||j.status==='막힘')&&nowS()-j.t<12*3600).sort((a,b)=>b.t-a.t).slice(0,5);
     $('#noti-done-card').hidden=!D.length;
-    put('#noti-done',D.map(j=>{const [e,c,l]=dot(j);return `<div class="li" data-gojob="${esc(j.id)}" data-sel="job:${esc(j.id)}"><span class="ic ${c}">${e}</span><span class="t"><b>${esc(String(j.headline||j.name).replace(/^(✅|🔴)\s*/,''))}</b><s>${esc(l)} · ${ago(j.t)}</s></span><span class="v">›</span></div>`}).join(''));
+    put('#noti-done',D.map(j=>{const [e,c,l]=dot(j);return `<div class="li" data-gojob="${esc(j.id)}" data-sel="job:${esc(j.id)}"><span class="ic ${c}">${e}</span><span class="t"><b>${esc(jttl(j).replace(/^(✅|🔴)\s*/,''))}</b><s>${esc(l)} · ${ago(j.t)}</s></span><span class="v">›</span></div>`}).join(''));
     return D.length;
   }
   const stagesHtml=P=>P.stages.map(s=>`<div class="jsg ${esc(s.status)}"><div class="jl"><span>${stOf(s.status)[0]}</span><b>${esc(s.n)}. ${esc(s.name)}</b><span class="sp"></span><span class="sub">${Math.round(s.pct)}%${s.status!=='완료'&&s.eta_min!=null?' · ⏱️ '+fmtMin(s.eta_min):''}</span></div>
@@ -556,11 +589,11 @@ const UI=(()=>{
   function jobList(st){const J=((st.jobs&&st.jobs.jobs)||[]).slice().sort((a,b)=>((JORD[a.status]??1)-(JORD[b.status]??1))||(b.t-a.t));return J}
   function jobDet(st,id){
     const j=jobList(st).find(x=>x.id===id);if(!j)return '';
-    const [e,c]=stOf(j.status),p=j.pct==null?null:Math.round(j.pct),P=st.pipeline,stale=isStale(j);
+    const [e,c]=stOf(j.status),p=j.pct==null?null:Math.round(j.pct),P=st.pipeline,stale=isStale(j),dead=isDead(j);
     const hasSt=j.kind==='pipeline'&&P&&P.stages&&P.stages.length;
-    return `<div class="dh"><span class="ic ${c}">${e}</span><h3>${esc(j.name)}</h3></div>
+    return `<div class="dh"><span class="ic ${c}">${e}</span><h3>${esc(jttl(j))}</h3></div>
       <div class="kv"><div><b>${p!=null?p+'%':'—'}</b><span>${e} ${esc(j.status)}</span></div><div><b>${j.eta_min!=null&&j.status!=='완료'?fmtMin(j.eta_min):'—'}</b><span>⏱️ 남은</span></div><div><b>${ago(j.t)}</b><span>🕒 갱신</span></div></div>
-      ${bar(p,c)}<div class="dl"><b>${esc(jline(j))}</b></div>${j.now&&j.now!==jline(j)?`<details class="more2"><summary>▸ 자세히 보기</summary><div class="log">${esc(j.now)}</div></details>`:''}${stale?'<div class="dl">🔴 30분 넘게 소식 없음 — 멈췄는지 확인해요</div>':''}${noRes(j)?'<div class="dl">🟡 끝났다는데 결과 파일을 못 찾았어요</div>':''}${j.started?`<div class="sub">▶️ 시작 ${esc(j.started.slice(5))}</div>`:''}
+      ${bar(p,c)}<details class="more2"><summary>▸ 자세히 보기</summary><div class="log">${esc(['🏷️ '+j.name+' ('+j.id+')',j.now?'🔄 '+j.now:''].filter(Boolean).join('\n'))}</div></details>${dead?'<div class="dl">🔴 2시간 넘게 소식 없음 — 멈췄는지 확인해요</div>':stale?'<div class="dl">⏸️ 30분 넘게 조용해요 — 확인 중이에요</div>':''}${noRes(j)?'<div class="dl">🟡 끝났다는데 결과 파일을 못 찾았어요</div>':''}${j.started?`<div class="sub">▶️ 시작 ${esc(j.started.slice(5))}</div>`:''}
       ${hasSt?`<div class="sec" style="margin:14px 0 4px">🛠️ 단계 ${P.stages.length}</div>${stagesHtml(P)}${(P.blocks||[]).length?`<div class="sec" style="margin:14px 0 4px">🔴 막힘</div>`+P.blocks.slice().reverse().map(b=>`<div class="blk"><div class="src">${b.n!=null?esc(b.n)+'단계 · ':''}${esc((b.date||'').slice(5))} ${esc(b.time||'')}</div>${esc(b.text)}</div>`).join(''):''}`:''}`;
   }
   function gameDet(st,key){
@@ -585,8 +618,8 @@ const UI=(()=>{
     eff.pipe=run.length?'job:'+run[0].id:(live.length?'job:'+live[0].id:'');
     const row=j=>{const c=stOf(j.status)[1],stale=isStale(j),p=j.pct==null?null:Math.round(j.pct),key='job:'+j.id,[de,dc,dl]=dot(j);
       return `<div class="li job ${esc(j.status)}${stale?' stale':''}${isSel(key)?' sel':''}" data-sel="${esc(key)}" data-job="${esc(j.id)}"><span class="ic ${dc} dot">${de}</span>
-        <span class="t"><b>${esc(j.name)}</b><s>${esc(jline(j))}</s><s class="when"><span class="stl ${dc}">${esc(dl)}</span> · 마지막 소식 ${ago(j.t)}</s></span><span class="v">${ring(p==null?null:p/100,COL[c],p!=null?p:'·','mini')}</span></div>${inl('pipe',key,st)}`};
-    put('#jobs',(live.map(row).join('')||'<div class="empty">⚙️ 등록된 작업 없음</div>')+(olds.length?`<button class="li" data-jold="1"><span class="ic g">✅</span><span class="t"><b>${jobOld?'접기':'끝난 '+olds.length+'개'}</b></span><span class="v">${jobOld?'▲':'▼'}</span></button>${jobOld?olds.map(row).join(''):''}`:''));
+        <span class="t"><b>${esc(jttl(j))}</b><s class="when"><span class="stl ${dc}">${esc(dl)}</span> · 마지막 소식 ${ago(j.t)}</s></span><span class="v">${ring(p==null?null:p/100,COL[c],p!=null?p:'·','mini')}</span></div>${inl('pipe',key,st)}`};
+    put('#jobs',(live.map(row).join('')||'<div class="empty">⚙️ 등록된 작업 없음</div>')+(olds.length?`<button class="li" data-jold="1"><span class="ic g">✅</span><span class="t"><b>${jobOld?'접기':'끝난 일 '+olds.length+'개'}</b></span><span class="v">${jobOld?'▲':'▼'}</span></button>${jobOld?olds.map(row).join(''):''}`:''));
     // 게임별 뽑기 카드: 새 게임·재추출은 PC 지킴이가 상태 파일을 읽어 저절로 카드가 생김
     const G=(st.ext_games&&st.ext_games.games)||[];
     const gl=G.filter(g=>g.status==='진행').length;
@@ -615,7 +648,7 @@ const UI=(()=>{
   function weekHtml(st){
     const W=st.plan_week;if(!W||!W.days)return '<div class="empty">주간 일정 없음</div>';
     let h='<div class="wk"><span></span>'+W.days.map(d=>`<span class="hd${d.date===W.today?' today':''}" data-pday="${esc(d.date)}">${esc(d.dow)}<br>${esc(d.date.slice(8))}</span>`).join('');
-    W.hours.forEach((hr,i)=>{h+=`<span class="hl">${hh(hr)}</span>`+W.days.map(d=>{const p=planOf(st,d.date);const s=p?p.slots[i]:{};return `<span class="c ${s.actual||(s.plan?'p':'')}" title="${esc(s.plan||'')}"></span>`}).join('')});
+    W.hours.forEach((hr,i)=>{h+=`<span class="hl">${hh(hr)}</span>`+W.days.map(d=>{const p=planOf(st,d.date);const s=p?p.slots[i]:{};const ce=(Cal.day(d.date).byH[hr]||[]).some(e=>!Cal.cancelled(e));return `<span class="c ${s.actual||(s.plan?'p':'')}${ce?' ce':''}" title="${esc(s.plan||'')}"></span>`}).join('')});
     return h+'</div>';
   }
   function plan(st){
@@ -623,12 +656,13 @@ const UI=(()=>{
     document.querySelectorAll('#plan-seg [data-pv]').forEach(b=>b.classList.toggle('on',b.dataset.pv===planView));
     const pt=td&&planOf(st,td),nh=new Date().getHours(),cur=pt&&pt.slots.find(s=>s.h===nh),c=pt?cntOX(pt.slots):{O:0,'△':0,X:0};
     put('#plan-sum',pt?`${hn(esc(cur&&cur.plan||'—'),'⏱️ '+hh(nh)+'시 지금','b')}${hn(c.O,'✅ O','g')}${hn(c['△'],'🟡 △','y')}${hn(c.X,'🔴 X','r')}`:'<div class="sub">📅 일정 없음</div>');
-    if(planView==='week'){put('#plan-head','');put('#plan-body',weekHtml(st));return}
+    if(planView==='week'){put('#plan-head','');put('#plan-cal','');put('#plan-body',weekHtml(st));return}
     const p=planDate&&planOf(st,planDate);
     if(!p){put('#plan-head','');put('#plan-body','<div class="empty">📅 일정 없음</div>');return}
+    put('#plan-cal',Cal.planHtml(planDate));const CD=Cal.day(planDate);
     put('#plan-head',`📅 <b>${esc(planDate.slice(5))}</b>${planDate===td?' 오늘':` <button class="chip" data-pday="${esc(td)}">오늘로</button>`}${p.dflt?' · 기본 양식':''}`);
     put('#plan-body',p.slots.map(s=>`<div class="slot${planDate===td&&s.h===nh?' now':''}"><span class="hh">${hh(s.h)}</span>
-      <button class="pl" data-pedit="${s.h}">${esc(s.plan)}</button>${s.q==='pend'||s.q==='sent'?'<span class="pd">⏳</span>':s.q==='fail'?'<span class="pd">⚠️</span>':''}
+      <button class="pl" data-pedit="${s.h}">${esc(s.plan)}${(CD.byH[s.h]||[]).map(e=>`<span class="cev${Cal.cancelled(e)?' cx':''}">${esc(e.summary)}</span>`).join('')}</button>${s.q==='pend'||s.q==='sent'?'<span class="pd">⏳</span>':s.q==='fail'?'<span class="pd">⚠️</span>':''}
       <span class="oxs">${['O','△','X'].map(v=>`<button class="ox ${v}${s.actual===v?' on':''}" data-pox="${s.h}" data-v="${v}">${v}</button>`).join('')}</span></div>`).join(''));
     return cur;
   }
@@ -685,15 +719,15 @@ const UI=(()=>{
     const slots=p?p.slots.filter(s=>s.plan||s.h===nh):[];
     return `<div class="dh"><span class="ic y">☀️</span><h3>${d?esc(d.slice(5).replace('-','/')):'오늘'} ${esc(T&&T.dow||'')}</h3></div>
       <div class="sec" style="margin:8px 0 4px">🙋 할 일 ${mine.length}</div>${mine.map(t=>`<div class="dl">• ${esc(t.text)}</div>`).join('')||'<div class="sub">🎉 없음</div>'}
-      <div class="sec" style="margin:12px 0 4px">📊 진행 ${run.length}</div>${run.map(j=>`<div class="dl">${dot(j)[0]} ${esc(j.name)} <b>${j.pct!=null?Math.round(j.pct)+'%':''}</b> · ${ago(j.t)}</div>`).join('')||'<div class="sub">🛌 쉬는 중</div>'}
+      <div class="sec" style="margin:12px 0 4px">📊 진행 ${run.length}</div>${run.map(j=>`<div class="dl">${dot(j)[0]} ${esc(jttl(j))} <b>${j.pct!=null?Math.round(j.pct)+'%':''}</b> · ${ago(j.t)}</div>`).join('')||'<div class="sub">🛌 쉬는 중</div>'}
       <div class="sec" style="margin:12px 0 4px">🗓️ 계획${p&&p.dflt?' (기본 13~21 작업)':''}</div>${p?slots.map(s=>`<div class="slot${s.h===nh?' now':''}" style="padding:6px 0"><span class="hh">${hh(s.h)}</span>
         <button class="pl" data-tpedit="${s.h}">${esc(s.plan)}</button>${s.q==='pend'||s.q==='sent'?'<span class="pd">⏳</span>':''}
         <span class="oxs">${['O','△','X'].map(v=>`<button class="ox ${v}${s.actual===v?' on':''}" data-tpox="${s.h}" data-v="${v}">${v}</button>`).join('')}</span></div>`).join(''):'<div class="sub">📅 없음</div>'}
-      <div class="sec" style="margin:12px 0 4px">✅ 어제 끝난 것</div>${yDone(st).map(j=>`<div class="dl">✅ ${esc(j.name)}</div>`).join('')||'<div class="sub">—</div>'}`;
+      <div class="sec" style="margin:12px 0 4px">✅ 어제 끝난 것</div>${yDone(st).map(j=>`<div class="dl">✅ ${esc(jttl(j))}</div>`).join('')||'<div class="sub">—</div>'}`;
   }
   function homeDet(st){
     const run=jobList(st).filter(j=>j.status==='진행'||j.status==='막힘');
-    return `<div class="dh"><span class="ic b">📊</span><h3>지금 도는 것</h3></div>`+(run.map(j=>{const [e,c,l]=dot(j);return `<div class="li" data-sel="job:${esc(j.id)}" data-gojob="${esc(j.id)}" style="padding:10px 0"><span class="ic ${c}">${e}</span><span class="t"><b>${esc(j.name)}</b><s>${esc(j.now||'')}</s><s class="when"><span class="stl ${c}">${esc(l)}</span> · 마지막 소식 ${ago(j.t)}</s></span><span class="v">${j.pct!=null?Math.round(j.pct)+'%':''}</span></div>`}).join('')||'<div class="empty">🛌 쉬는 중</div>')}
+    return `<div class="dh"><span class="ic b">📊</span><h3>지금 도는 것</h3></div>`+(run.map(j=>{const [e,c,l]=dot(j);return `<div class="li" data-sel="job:${esc(j.id)}" data-gojob="${esc(j.id)}" style="padding:10px 0"><span class="ic ${c}">${e}</span><span class="t"><b>${esc(jttl(j))}</b><s class="when"><span class="stl ${c}">${esc(l)}</span> · 마지막 소식 ${ago(j.t)}</s></span><span class="v">${j.pct!=null?Math.round(j.pct)+'%':''}</span></div>`}).join('')||'<div class="empty">🛌 쉬는 중</div>')}
   function tasks(st){
     const T=st.tasks||{};const doneLocal=new Set(Q.of('task_done').filter(r=>r.st!=='fail').map(r=>r.data.key));
     // BUILD 7: 끝난 할 일 자동 정리 — '앱 v3 열어 보기'처럼 지금 판(BUILD)보다 옛 판을 가리키는 할 일은 숨김
@@ -735,6 +769,7 @@ const UI=(()=>{
       T('data-askopen="1"','🎓','p',a.unseen?'새 답 '+a.unseen:'묻기','선생님에게 바로 물어봐요'));
     eff.home='today:1';
     put('#home-today',todayCard(st,J,tk.mine));
+    put('#home-cal',Cal.homeHtml(today(st)));
     put('#work-sum',`${hn(nm,'🎬 하는 모션','b')}${hn(tk.c.O,'✅ 맞음','g')}${hn(tk.c.X,'❌ 고칠 것','r')}`);
     put('#noti-sum',`${hn(n.unread,'📬 안 읽음','b')}${hn(n.urgent,'🔴 급함','r')}${hn(a.unseen,'🎓 새 답','g')}`);
     $('#tab-badge').textContent=(n.unread+a.unseen)||'';
@@ -756,6 +791,7 @@ const UI=(()=>{
       else if(t.dataset.askopen)Ask.open();
       else if(t.dataset.read){Q.add('notice_read',{key:t.dataset.read});all(Sync.state);Sync.push()}
       else if(t.id==='n-more'){showAll=!showAll;notices(Sync.state)}
+      else if(t.dataset.teamlog){teamOpen=!teamOpen;notices(Sync.state)}
       else if(t.dataset.opt){quizSel=t.dataset.opt;quiz(Sync.state)}
       else if(t.dataset.rs){const r=t.dataset.rs;quizReasons.has(r)?quizReasons.delete(r):quizReasons.add(r);quiz(Sync.state)}
       else if(t.dataset.qsend){const q=Sync.state.quiz_today;Q.add('quiz_answer',{key:q.date+'|'+q.motion_type,date:q.date,motion_type:q.motion_type,pick:quizSel,reasons:[...quizReasons],options:quizOpts(q).map(o=>o.id)});quiz(Sync.state);Sync.push();toast('✅ 보냈어요')}
@@ -780,8 +816,9 @@ const UI=(()=>{
       else if(t.dataset.tdone){Q.add('task_done',{key:t.dataset.tdone,text:t.dataset.ttext});all(Sync.state);Sync.push();toast('✅ 끝')}
       else if(t.dataset.jold){jobOld=!jobOld;jobs(Sync.state)}
       else if(t.id==='speak')speak(Sync.state);
-      else Ask.click(t);
+      else if(!Cal.click(t))Ask.click(t);
     });
+    $('#cal-sum').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('#cal-save').click()}});
     $('#edit-val').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();saveEdit()}});
     go(tab,true);
   }
@@ -921,6 +958,102 @@ const Ask=(()=>{
   return {render,click,bind,open,close,waiting,get isOpen(){return isOpen}};
 })();
 
+// BUILD 9 📅 구글 캘린더 양방향(SPEC_v2 11/21 13:56): 원본 = 동현 기본 캘린더. 오늘±30일 읽기, 앱 켤 때·5분마다 새로고침.
+// 추가·수정은 바로 캘린더에 반영. 삭제 버튼 없음 → '취소 표시'(제목 앞 ✖ + 알림 끔). 내용은 폰 캐시(localStorage)에만 — 저장소·PC·로그로 보내지 않는다.
+const Cal=(()=>{
+  const BASE='https://www.googleapis.com/calendar/v3/calendars/primary/events';
+  const REFRESH_MS=300000;
+  let c=lsGet('wc_cal',{t:0,items:[],err:''}),busy=false,editId=null;
+  const pad=n=>String(n).padStart(2,'0');
+  const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  const planDay=d=>ymd(new Date(d.getTime()-5*3600000));   // 일정 하루 = 05시 경계(새벽 2시 일정은 전날 칸)
+  const st=e=>e.start&&e.start.dateTime?new Date(e.start.dateTime):null;
+  const en=e=>e.end&&e.end.dateTime?new Date(e.end.dateTime):null;
+  const allDay=e=>!!(e.start&&e.start.date);
+  const cancelled=e=>/^✖/.test(e.summary||'')||e.status==='cancelled';
+  const hm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
+  async function load(force){
+    if(busy)return;if(!force&&Date.now()-c.t<REFRESH_MS)return;busy=true;
+    try{
+      const a=new Date(Date.now()-30*86400000),b=new Date(Date.now()+30*86400000);
+      const u=BASE+'?singleEvents=true&orderBy=startTime&maxResults=250&timeMin='+encodeURIComponent(a.toISOString())+'&timeMax='+encodeURIComponent(b.toISOString());
+      const r=await api.gfetch(u);
+      if(r.ok){const j=await r.json();c={t:Date.now(),items:(j.items||[]).filter(e=>e.status!=='cancelled').map(e=>({id:e.id,summary:e.summary||'(제목 없음)',start:e.start,end:e.end,status:e.status})),err:''}}
+      else c={...c,t:Date.now(),err:(r.status===401||r.status===403)?'perm':'HTTP '+r.status};
+    }catch(e){c={...c,t:Date.now(),err:e.message}}
+    lsSet('wc_cal',c);busy=false;UI.all(Sync.state);
+  }
+  // 하루(05시 경계) 일정: 종일 + 시간 일정. at(date) → {all:[], byH:{h:[e]}, list:[]}
+  function day(date){
+    const out={all:[],byH:{},list:[]};
+    for(const e of c.items){
+      if(allDay(e)){const s=e.start.date,x=e.end&&e.end.date||s;if(s<=date&&date<x||s===date){out.all.push(e);out.list.push(e)}continue}
+      const s=st(e);if(!s)continue;const t=en(e)||new Date(s.getTime()+3600000);
+      let hit=false;
+      for(let k=new Date(s.getFullYear(),s.getMonth(),s.getDate(),s.getHours());k<t&&k-s<86400000;k=new Date(k.getTime()+3600000)){
+        if(planDay(k)!==date)continue;hit=true;(out.byH[k.getHours()]=out.byH[k.getHours()]||[]).push(e)}
+      if(planDay(s)===date&&!hit){hit=true;(out.byH[s.getHours()]=out.byH[s.getHours()]||[]).push(e)}
+      if(hit)out.list.push(e);
+    }
+    return out;
+  }
+  const when=e=>allDay(e)?'종일':hm(st(e))+(en(e)?'~'+hm(en(e)):'');
+  const row=(e,btn)=>`<div class="li calrow${cancelled(e)?' cx':''}"><span class="ic cal">📅</span><span class="t"><b>${esc(e.summary)}</b><s>${esc(when(e))}</s></span>${btn?`<button class="chk" data-calopen="${esc(e.id)}">고치기</button>`:''}</div>`;
+  function status(){
+    if(c.err==='perm')return '<div class="sub calperm">🔐 캘린더 허용이 필요해요 — 관제센터가 허용 순서를 알려 줄 거예요</div>';
+    if(c.err)return `<div class="sub">⚠️ 캘린더 못 읽음 (${esc(c.err)}) · 저장본 보여 줘요</div>`;
+    return '';
+  }
+  function homeHtml(today){
+    if(!today)return '';
+    const d=day(today),L=d.list.filter(e=>!cancelled(e));
+    return `<div class="sec">📅 오늘 일정 <span class="cnt">${L.length||''}</span></div><div class="group" id="home-cal-g">${status()}${L.map(e=>row(e,false)).join('')||'<div class="empty">📅 오늘 캘린더 일정 없어요</div>'}<button class="li" data-calnew="${esc(today)}"><span class="ic b">＋</span><span class="t"><b>일정 추가</b></span></button></div>`;
+  }
+  function planHtml(date){
+    const d=day(date);
+    return `${status()}${d.list.map(e=>row(e,true)).join('')||'<div class="sub" style="padding:8px 0">📅 이날 캘린더 일정 없어요</div>'}<button class="li" data-calnew="${esc(date)}"><span class="ic b">＋</span><span class="t"><b>캘린더에 일정 추가</b><s>바로 구글 캘린더에 들어가요</s></span></button>`;
+  }
+  function open(id,date){
+    editId=id||null;const e=id&&c.items.find(x=>x.id===id);
+    const s=e&&st(e),t=e&&en(e);
+    $('#cal-ttl').textContent=e?'📅 일정 고치기':'📅 일정 추가';
+    $('#cal-sum').value=e?e.summary.replace(/^✖\s*/,''):'';
+    $('#cal-date').value=e?(allDay(e)?e.start.date:ymd(s)):(date||ymd(new Date()));
+    $('#cal-s').value=s?hm(s):'14:00';$('#cal-e').value=t?hm(t):'15:00';
+    $('#cal-all').checked=!!(e&&allDay(e));
+    $('#cal-cancel').hidden=!e||cancelled(e);
+    $('#cal').hidden=false;setTimeout(()=>$('#cal-sum').focus(),50);
+  }
+  function body(){
+    const sum=$('#cal-sum').value.trim().slice(0,100),dt=$('#cal-date').value,ad=$('#cal-all').checked;
+    if(!sum||!/^\d{4}-\d\d-\d\d$/.test(dt))return null;
+    if(ad){const n=new Date(dt+'T00:00:00');n.setDate(n.getDate()+1);return {summary:sum,start:{date:dt},end:{date:ymd(n)}}}
+    const tz='Asia/Seoul',s=$('#cal-s').value||'14:00';let e=$('#cal-e').value||s;
+    let ed=dt;if(e<=s){const n=new Date(dt+'T00:00:00');n.setDate(n.getDate()+1);ed=ymd(n)}   // 끝이 시작보다 이르면 다음 날(새벽 작업)
+    return {summary:sum,start:{dateTime:dt+'T'+s+':00',timeZone:tz},end:{dateTime:ed+'T'+e+':00',timeZone:tz}};
+  }
+  async function save(){
+    const b=body();if(!b){toast('제목과 날짜를 넣어 주세요');return}
+    const r=await api.gfetch(BASE+(editId?'/'+encodeURIComponent(editId):''),{method:editId?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).catch(e=>({ok:false,status:0}));
+    if(r.ok){$('#cal').hidden=true;toast(editId?'✅ 캘린더 고쳤어요':'✅ 캘린더에 넣었어요');editId=null;load(true)}
+    else toast(r.status===403||r.status===401?'🔐 캘린더 허용이 아직이에요':'⚠️ 못 넣었어요 ('+r.status+')');
+  }
+  async function cancel(){   // 삭제 대신 취소 표시(✖ + 알림 끔)
+    const e=editId&&c.items.find(x=>x.id===editId);if(!e)return;
+    const r=await api.gfetch(BASE+'/'+encodeURIComponent(editId),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({summary:'✖ '+e.summary.replace(/^✖\s*/,''),reminders:{useDefault:false,overrides:[]}})}).catch(()=>({ok:false,status:0}));
+    if(r.ok){$('#cal').hidden=true;toast('✖ 취소로 표시했어요(지우지 않아요)');editId=null;load(true)}else toast('⚠️ 못 바꿨어요 ('+r.status+')');
+  }
+  function click(t){
+    if(t.dataset.calnew!=null){open(null,t.dataset.calnew);return true}
+    if(t.dataset.calopen){open(t.dataset.calopen);return true}
+    if(t.id==='cal-save'){save();return true}
+    if(t.id==='cal-cancel'){cancel();return true}
+    if(t.id==='cal-close'){$('#cal').hidden=true;editId=null;return true}
+    return false;
+  }
+  return {load,day,homeHtml,planHtml,click,cancelled,get isOpen(){return !$('#cal').hidden},get data(){return c}};
+})();
+
 // 동기화: 저장본 즉시 표시 → 큐 보내기 → 상태 받기. 켤 때·돌아올 때·1분마다(묻기 답 기다리는 중엔 8초마다).
 const Sync={state:lsGet('wc_state',{}),err:'',busy:false,t:0,
   async run(){
@@ -941,21 +1074,21 @@ const Sync={state:lsGet('wc_state',{}),err:'',busy:false,t:0,
 async function checkBuild(){
   try{const r=await fetch('version.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;
     const v=await r.json();
-    if(v.build>BUILD){const busy=document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)||document.querySelector('.opt.on')||Ask.isOpen||!$('#edit').hidden;
+    if(v.build>BUILD){const busy=document.activeElement&&/INPUT|TEXTAREA/.test(document.activeElement.tagName)||document.querySelector('.opt.on')||Ask.isOpen||!$('#edit').hidden||Cal.isOpen;
       // 같은 새 번호로 2분 안에 다시 새로고침하지 않는다(Pages 캐시로 옛 index가 올 때 무한 새로고침 방지)
       const last=lsGet('wc_reload',{});if(last.b===v.build&&Date.now()-last.t<120000)return;
       if(!busy){lsSet('wc_reload',{b:v.build,t:Date.now()});location.reload()}else setTimeout(checkBuild,30000)}}catch(e){}
 }
 
-UI.bind();Ask.bind();UI.all(Sync.state);Sync.run();checkBuild();
+UI.bind();Ask.bind();UI.all(Sync.state);Sync.run();checkBuild();Cal.load(true);
 // 스크롤하면 큰 제목 대신 작은 제목이 위에 붙음(One UI)
 const onScroll=()=>{const h=document.querySelector('.pane.on .hero');document.body.classList.toggle('scrolled',!!h&&scrollY>h.offsetHeight-70)};
 addEventListener('scroll',onScroll,{passive:true});onScroll();
 // 좁은 화면 ↔ 넓은 화면(폴드 접기·펴기)이 바뀔 때만 다시 그림(키보드로 높이만 바뀔 때는 그대로)
 let wasWide=UI.wide;addEventListener('resize',()=>{if(UI.wide!==wasWide){wasWide=UI.wide;UI.all(Sync.state)}});
-setInterval(()=>{if(document.hidden)return;const gap=Ask.waiting()?SYNC_FAST_MS:SYNC_MS;if(Date.now()-Sync.t>=gap)Sync.run()},4000);
+setInterval(()=>{if(document.hidden)return;Cal.load();const gap=Ask.waiting()?SYNC_FAST_MS:SYNC_MS;if(Date.now()-Sync.t>=gap)Sync.run()},4000);
 setInterval(checkBuild,BUILD_CHECK_MS);
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){Sync.run();checkBuild()}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){Sync.run();checkBuild();Cal.load()}});
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
