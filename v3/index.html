@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B0B0C">
+<meta name="robots" content="noindex">
+<title>HONEY BADGER STUDIO (v3 시험)</title>
+<link rel="icon" href="../icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>:root{--bg:#0B0B0C;--bg-panel:#111113;--bg-row:#161618;--ivory:#E8DFC8;--dim:#968C78;--gold:#CEA85E;--blue:#7AA4D2;--green:#68B096;--red:#C46054;
+--rc:var(--gold);--line:color-mix(in srgb,var(--rc) 55%,#000);--s:1}
+@media(max-width:700px){:root{--s:.85}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ivory);font:500 calc(17px*var(--s))/1.55 "Noto Serif KR",ui-serif,Georgia,"Malgun Gothic",serif}
+body{min-height:100vh;padding:calc(64px*var(--s)) 0 calc(84px*var(--s));position:relative;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse 70% 40% at 50% -5%,color-mix(in srgb,var(--rc) 10%,transparent),transparent 70%),url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.05'/%3E%3C/svg%3E")}
+#fog{position:fixed;inset:-20%;pointer-events:none;z-index:0;background:radial-gradient(40% 30% at 30% 60%,rgba(232,223,200,.035),transparent 70%),radial-gradient(35% 30% at 75% 40%,rgba(232,223,200,.03),transparent 70%);animation:fog 30s linear infinite alternate}
+@keyframes fog{to{transform:translate3d(8%,-4%,0)}}
+.cin{font-family:Cinzel,"Noto Serif KR",serif;letter-spacing:.35em;text-transform:uppercase}
+.sub2{font-size:calc(13px*var(--s));color:var(--dim)}
+.tag{font-style:normal;font-size:11px;border:1px solid var(--dim);color:var(--dim);padding:0 6px;margin-left:6px;letter-spacing:.1em}
+#top{position:fixed;top:0;left:0;right:0;height:calc(60px*var(--s));z-index:5;display:flex;align-items:center;gap:12px;padding:0 20px;background:#0B0B0CF2;border-bottom:1px solid #2a2418}
+#top-med{width:42px;height:42px;flex:none}
+.brand{display:flex;flex-direction:column;line-height:1.25;min-width:0}.brand .cin{font-size:calc(14px*var(--s));color:var(--gold);font-weight:700;white-space:nowrap}
+.clock{margin-left:auto;text-align:right;font:600 calc(13px*var(--s)) system-ui,"Malgun Gothic",sans-serif;color:var(--dim);display:flex;gap:8px;align-items:center}.clock b{color:var(--ivory)}
+#sync{color:var(--green);font-size:10px}#sync.bad{color:var(--red)}
+#main{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 20px}
+@media(max-width:700px){#main{padding:0 12px}}
+.room{display:none}.room.on{display:block;animation:fadeDark .3s ease-out}
+@keyframes fadeDark{from{opacity:0;filter:brightness(.3)}to{opacity:1;filter:none}}
+.room h1{font-size:calc(56px*var(--s));font-weight:900;margin:28px 0 4px;letter-spacing:.02em;line-height:1.1}
+.room .lead{color:var(--dim);margin:0 0 4px;font-size:calc(17px*var(--s))}
+.hz{display:flex;align-items:center;gap:8px;margin:18px 0;color:var(--line)}.hz i{flex:1;height:1px;background:currentColor;animation:rule .23s ease-in-out both}.hz b{width:7px;height:7px;background:currentColor;transform:rotate(45deg)}.hz u{width:4px;height:4px;background:currentColor;transform:rotate(45deg)}
+@keyframes rule{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+h2.sec{font-size:calc(22px*var(--s));font-weight:700;margin:0 0 10px}
+.oct{--c:12px;background:var(--line);padding:1px;position:relative;clip-path:polygon(var(--c) 0,calc(100% - var(--c)) 0,100% var(--c),100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,var(--c) 100%,0 calc(100% - var(--c)),0 var(--c));transition:background .15s ease-out}
+.oct>.in{background:var(--bg-panel);padding:24px;height:100%;clip-path:polygon(calc(var(--c) - 1px) 0,calc(100% - var(--c) + 1px) 0,100% calc(var(--c) - 1px),100% calc(100% - var(--c) + 1px),calc(100% - var(--c) + 1px) 100%,calc(var(--c) - 1px) 100%,0 calc(100% - var(--c) + 1px),0 calc(var(--c) - 1px))}
+@media(max-width:700px){.oct>.in{padding:16px}}
+.oct.row>.in{background:var(--bg-row);padding:14px 16px}
+.oct.sel{background:var(--rc);box-shadow:0 0 18px color-mix(in srgb,var(--rc) 35%,transparent)}
+.grid{display:grid;gap:20px}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1.3fr 1fr}
+@media(max-width:700px){.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}.grid{gap:12px}}
+a.dept{display:block;color:inherit;text-decoration:none;cursor:pointer}
+a.dept:active .oct{transform:scale(.985);transition:transform .1s ease-out}
+a.dept:focus-visible .oct{outline:2px solid var(--ivory);outline-offset:3px}
+.dept .in{display:flex;gap:16px;align-items:center;min-height:128px}
+.dept .big{font:700 calc(34px*var(--s))/1 Cinzel,"Noto Serif KR",serif;color:var(--rc)}
+.dept .nm{font-weight:900;font-size:calc(22px*var(--s))}.dept .ds{color:var(--dim);font-size:calc(13px*var(--s))}
+.med{width:64px;height:64px;flex:none}
+.kv{font:600 calc(13px*var(--s)) system-ui,"Malgun Gothic",sans-serif;color:var(--dim)}
+.num{font-family:system-ui,"Malgun Gothic",sans-serif;font-weight:700}
+.chk{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid #222}.chk:first-of-type{border:0}
+.chk i{width:12px;height:12px;flex:none;margin-top:8px;border:1px solid var(--gold);transform:rotate(45deg)}.chk.done i{background:var(--gold)}.chk.done span{color:var(--dim);text-decoration:line-through}
+.prog{height:6px;background:#222;margin:8px 0;position:relative;overflow:hidden}.prog i{position:absolute;inset:0 auto 0 0;background:var(--gold)}
+.alert{color:#E08A7E;border-left:2px solid var(--red);padding:4px 10px;margin:6px 0;font-size:calc(15px*var(--s))}
+.ok{color:var(--green)}
+.empty{color:var(--dim);padding:8px 0}
+#r-director,#r-lobby,#r-out{--rc:var(--gold)}#r-studio{--rc:var(--blue)}#r-ops{--rc:var(--green)}
+.pri{display:inline-block;font:700 12px Cinzel,system-ui,sans-serif;letter-spacing:.2em;padding:2px 10px;border:1px solid var(--dim);color:var(--dim)}.pri.p0{color:#E08A7E;border-color:var(--red)}.pri.p1{color:var(--gold);border-color:var(--gold)}
+.q{font-size:calc(26px*var(--s));font-weight:900;line-height:1.4;margin:14px 0 8px;text-wrap:balance}
+.why{color:var(--dim);font-size:calc(15px*var(--s));margin:0 0 18px}
+.opts{display:grid;gap:12px}
+.optb{all:unset;display:block;cursor:pointer;width:100%}
+.optb .in{display:flex;gap:14px;align-items:flex-start}
+.optb:focus-visible .oct{outline:2px solid var(--ivory);outline-offset:3px}
+.optb b{display:block;font-size:calc(19px*var(--s));font-weight:700}.optb small{color:var(--dim);font-size:calc(14px*var(--s))}
+.optb .k{font:700 18px Cinzel,serif;color:var(--gold);width:26px;flex:none;margin-top:2px}
+.optb:active .oct{transform:scale(.985);transition:transform .1s ease-out}
+.btn{all:unset;cursor:pointer;display:inline-block;padding:10px 20px;border:1px solid var(--gold);color:var(--gold);font-weight:700;font-size:calc(15px*var(--s));min-height:44px;box-sizing:border-box;clip-path:polygon(8px 0,calc(100% - 8px) 0,100% 8px,100% calc(100% - 8px),calc(100% - 8px) 100%,8px 100%,0 calc(100% - 8px),0 8px)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.pri2{background:var(--gold);color:#18160C}.btn:active{transform:scale(.97)}.btn:focus-visible{outline:2px solid var(--ivory)}
+.state{display:inline-block;margin-top:14px;font-size:calc(14px*var(--s));color:var(--green)}
+.nav2{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap}
+.rule{display:flex;gap:10px;padding:8px 0;border-top:1px solid #222;font-size:calc(15px*var(--s))}.rule:first-of-type{border:0}
+.draft{font-size:11px;color:var(--dim);border:1px solid #3a3426;padding:0 6px;margin-left:6px;font-style:normal;white-space:nowrap;font-weight:500}
+.demo{background:#2a1d10;color:#E8C27A;padding:6px 12px;margin:10px 0;font-size:14px;border:1px dashed #6a5530}
+#nav{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;justify-content:center;background:#0B0B0CF2;border-top:1px solid #2a2418;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
+#nav a{flex:1;max-width:200px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--dim);text-decoration:none;font:600 calc(13px*var(--s)) system-ui,"Malgun Gothic",sans-serif;border-top:2px solid transparent}
+#nav a svg{width:22px;height:22px}#nav a.on{color:var(--c);border-top-color:var(--c)}
+#nav a:focus-visible{outline:2px solid var(--ivory)}
+#r-title{min-height:80vh;align-items:center;justify-content:center;flex-direction:column;text-align:center;cursor:pointer}
+#r-title.on{display:flex;animation:title .8s ease-out}@keyframes title{from{opacity:0;letter-spacing:.8em}to{opacity:1}}
+#r-title .cin{font-size:calc(34px*var(--s));color:var(--gold);font-weight:700}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#111113;border:1px solid var(--gold);padding:10px 18px;z-index:9;font-size:15px}
+.soon{padding:40px 0;text-align:center}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="fog"></div>
+<header id="top">
+  <div id="top-med"></div>
+  <div class="brand"><span class="cin">HONEY BADGER STUDIO</span><span class="sub2">작업센터 v3 · 시험 화면 <em class="tag">초안</em></span></div>
+  <div class="clock"><b id="clk-d"></b><span id="clk-t"></span><span id="sync" title="동기화">●</span></div>
+</header>
+<main id="main">
+  <section id="r-title" class="room"></section>
+  <section id="r-lobby" class="room"></section>
+  <section id="r-director" class="room"></section>
+  <section id="r-studio" class="room"></section>
+  <section id="r-ops" class="room"></section>
+  <section id="r-out" class="room"></section>
+</main>
+<nav id="nav"></nav>
+<div id="toast" hidden></div>
+<script>'use strict';
+const BUILD='v3';
+// 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
+const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
+// v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
+const STATE_NAMES=['quiz_ab','meta','board','notices','progress','quiz_today','pipeline','tasks','plan_today','plan_week','answers','jobs','ext_games','review'];
+// BUILD 7: 🚩 신고 이유(동현 06:37) — 누르면 그 클립은 퀴즈에서 바로 빠지고 관제센터로 감
+const FLAG_REASONS=['걷기 아님','루프 아님','계단·경사','잘림','캐릭터 작음','기타'];
+const SYNC_MS=60000, SYNC_FAST_MS=8000, BUILD_CHECK_MS=300000, NOTICE_SHOW=4;
+const TABS=['home','port','team','plan'];   // BUILD 10 P1: 주제별 4탭 (나·포폴·팀·일정)
+const TAB_ALIAS={pipe:'team',noti:'team',work:'port'};
+const JOB_DEADLINE='2027-06-01';   // 🎯 취업 목표(00_확정사항: 2027-06)
+const MONEY_URL='';   // 💰 자산관리 앱 주소(배포되면 넣음). 비면 안내만
+const ASK_TO=[['control','🛰️','팀장'],['anim_teacher','🎓','선생님'],['ref_factory','🏭','공장'],['job_prep','💼','취준실'],['code','🤖','일꾼']];   // BUILD 10: 기본 = 관제센터  // 용어집 v1 말
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2200)}
+
+// 데이터층: 브리지(postMessage) 또는 개발용 HTTP. 화면은 api.get / api.post만 쓴다.
+const api=(()=>{
+  // 브리지(Apps Script, 나만 접근)가 토큰·폴더 ID를 건네주면, 드라이브 REST로 직접 읽고 쓴다(이글 앱 방식).
+  let boot=lsGet('wc_boot',null),pending=null;
+  const DRV='https://www.googleapis.com/drive/v3/files';
+  function getBoot(force){
+    if(!force&&boot&&Date.now()-boot.time<45*60000)return Promise.resolve(boot);
+    if(pending)return pending;
+    pending=new Promise((res,rej)=>{
+      const fr=document.createElement('iframe');fr.style.display='none';
+      fr.src=BRIDGE_URL+(BRIDGE_URL.includes('?')?'&':'?')+'bridge=1';
+      const done=(fn,v)=>{clearTimeout(to);window.removeEventListener('message',on);fr.remove();pending=null;fn(v)};
+      const to=setTimeout(()=>done(rej,new Error('브리지 응답 없음(구글 로그인 확인)')),20000);
+      function on(ev){
+        let h='';try{h=new URL(ev.origin).hostname}catch(e){}
+        if(!/\.googleusercontent\.com$/.test(h))return; // 출처 검사
+        const m=ev.data||{};if(!m.wcBridge)return;
+        if(m.error)return done(rej,new Error(m.error));
+        boot=m.boot;lsSet('wc_boot',boot);done(res,boot);
+      }
+      window.addEventListener('message',on);document.body.appendChild(fr);
+    });
+    return pending;
+  }
+  async function drive(url,opt,retry){
+    const b=await getBoot(retry);
+    const r=await fetch(url,Object.assign({},opt,{headers:Object.assign({Authorization:'Bearer '+b.token},(opt||{}).headers||{})}));
+    if((r.status===401||r.status===403)&&!retry)return drive(url,opt,true); // 토큰 만료·권한 → 다시 받기
+    return r;
+  }
+  const dev=()=>!BRIDGE_URL||BRIDGE_URL.startsWith('/*');
+  return {
+    // BUILD 9: 구글 API(캘린더) 직접 호출 — 브리지 토큰 그대로. 개발 모드는 가짜 중계 dev/gcal/ 로
+    async gfetch(url,opt){
+      if(dev())return fetch(url.replace('https://www.googleapis.com/calendar/v3/calendars/primary/','../dev/gcal/'),Object.assign({cache:'no-store'},opt));
+      return drive(url,opt);
+    },
+    async get(names){
+      if(dev()){const out={};for(const n of names){const r=await fetch('../dev/state/'+n+'.json?v='+Date.now(),{cache:'no-store'});if(r.ok)out[n]=await r.json()}return {ok:true,state:out}}
+      let b=await getBoot();
+      // 새 파일이 생겼을 수 있음 — 다시 받기는 5분에 한 번만(없는 파일 때문에 매번 브리지를 부르지 않게)
+      if(names.some(n=>!b.files[n])&&Date.now()-(api._fb||0)>300000){api._fb=Date.now();b=await getBoot(true)}
+      const out={};
+      await Promise.all(names.map(async n=>{const id=b.files[n];if(!id)return;
+        const r=await drive(DRV+'/'+id+'?alt=media&v='+Date.now(),{cache:'no-store'});if(r.ok)out[n]=await r.json()}));
+      return {ok:true,state:out};
+    },
+    async post(req){
+      if(dev()){const r=await fetch('../dev/inbox',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(req)});return r.ok?{ok:true}:{ok:false,msg:'HTTP '+r.status}}
+      const b=await getBoot();
+      const meta={name:req.id+'.json',parents:[b.inbox],mimeType:'application/json'};
+      const bd='wc'+Date.now();
+      const body=`--${bd}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(meta)}\r\n--${bd}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(req)}\r\n--${bd}--`;
+      const r=await drive('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+bd},body});
+      return r.ok?{ok:true}:{ok:false,msg:'드라이브 쓰기 '+r.status+(r.status===403?' (쓰기 권한 없음)':'')};
+    }
+  };
+})();
+
+// 보낼 요청 큐: 오프라인이어도 입력은 저장 → 연결되면 보냄. 상태: pend(보내는 중)/sent(보냄, 처리 대기)/ok/fail
+const Q={
+  list:()=>lsGet('wc_q',[]),
+  save:l=>lsSet('wc_q',l.slice(-200)),
+  add(kind,data){const l=Q.list();const req={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),t:Math.floor(Date.now()/1000),kind,data,st:'pend'};l.push(req);Q.save(l);return req},
+  // 보내는 동안(await) 새로 들어온 입력을 덮어쓰지 않게: 하나 보낼 때마다 최신 목록을 다시 읽어 그 항목만 고친다.
+  // 보내기 실패(fail)는 다음 동기화 때 자동으로 다시 보냄. PC가 거절한 것(rej)은 자동으로 다시 보내지 않음.
+  async flush(){
+    const ids=Q.list().filter(r=>r.st==='pend'||(r.st==='fail'&&!r.rej)).map(r=>r.id);
+    for(const id of ids){
+      const r=Q.list().find(x=>x.id===id);if(!r)continue;
+      let st,msg='';
+      try{const res=await api.post({id:r.id,t:r.t,kind:r.kind,data:r.data});st=res.ok?'sent':'fail';msg=res.msg||''}catch(e){st='fail';msg=e.message}
+      const l=Q.list();const x=l.find(y=>y.id===id);
+      if(x&&(x.st==='pend'||x.st==='fail')){x.st=st;x.msg=msg;Q.save(l)}
+    }
+    return Q.list();
+  },
+  applyDone(done){ // meta.done = {id:{ok,msg}} — 에이전트가 처리한 결과
+    if(!done)return;const l=Q.list();let ch=false;
+    for(const r of l){const d=done[r.id];if(d&&r.st!=='ok'&&r.st!=='x'&&!(r.rej&&r.st==='fail')){r.st=d.ok?'ok':'fail';r.rej=!d.ok;r.msg=d.msg||'';ch=true}}
+    // 끝난 요청은 하루 뒤 정리. 묻기(ask)는 답이 answers에 들어가므로 7일 보관
+    if(ch)Q.save(l.filter(r=>!(r.st==='ok'&&Date.now()/1000-r.t>(r.kind==='ask'?7*86400:86400))));
+  },
+  stateOf(kind,key){const r=Q.list().filter(x=>x.kind===kind&&x.data&&x.data.key===key).pop();return r?r.st:null},
+  of(kind){return Q.list().filter(x=>x.kind===kind)}
+};
+
+// v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals'];
+const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['out','퇴근','moon','--gold']];
+const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',out:'#CEA85E'};
+const DEMO=/[?&]demo=1/.test(location.search);
+const S3={st:lsGet('v3_state',{}),room:'lobby',cur:0,answers:lsGet('v3_ans',{})};
+
+// ---- 그림(직접 그린 SVG) ----
+function icon(k){const p={hex:'<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/>',check:'<path d="M5 12.5l4.5 4.5L19 7"/>',keys:'<path d="M5 18V8M12 18V5M19 18v-7"/><circle cx="5" cy="8" r="1.6"/><circle cx="12" cy="5" r="1.6"/><circle cx="19" cy="11" r="1.6"/>',org:'<rect x="9" y="3" width="6" height="5"/><rect x="3" y="16" width="6" height="5"/><rect x="15" y="16" width="6" height="5"/><path d="M12 8v4M6 16v-4h12v4"/>',moon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>'}[k];
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`}
+function medallion(k,color,size){
+  let t='';for(let i=0;i<24;i++){const a=i*15*Math.PI/180,r1=44,r2=i%6?47:49;t+=`<line x1="${50+r1*Math.sin(a)}" y1="${50-r1*Math.cos(a)}" x2="${50+r2*Math.sin(a)}" y2="${50-r2*Math.cos(a)}"/>`}
+  const d=[[50,3],[97,50],[50,97],[3,50]].map(([x,y])=>`<rect x="${x-3}" y="${y-3}" width="6" height="6" transform="rotate(45 ${x} ${y})" fill="${color}" stroke="none"/>`).join('');
+  return `<svg class="med" viewBox="0 0 100 100" style="width:${size||64}px;height:${size||64}px;color:${color}" fill="none" stroke="${color}" stroke-width="1.2" aria-hidden="true"><circle cx="50" cy="50" r="40"/><circle cx="50" cy="50" r="35" opacity=".6"/>${t}${d}<g transform="translate(30 30) scale(1.67)" stroke-width="1.1">${icon(k).replace(/<svg[^>]*>|<\/svg>/g,'')}</g></svg>`}
+const hz=()=>'<div class="hz" aria-hidden="true"><u></u><i style="transform-origin:right"></i><b></b><i style="transform-origin:left"></i><u></u></div>';
+const oct=(inner,cls)=>`<div class="oct ${cls||''}"><div class="in">${inner}</div></div>`;
+
+// ---- 데이터 풀이 ----
+function jobs(){return ((S3.st.jobs||{}).jobs)||[]}
+function approvals(){const a=S3.st.hq_approvals;if(a&&Array.isArray(a.items)&&a.items.length)return a;
+  return DEMO?{demo:1,audit:{n:7,of:20},rules:[['돈 쓰기·결제','반드시 동현 컨펌'],['포폴 방향 바꾸기','반드시 동현 컨펌'],['삭제·공개','반드시 동현 컨펌']],items:[
+   {id:'demo1',prio:'P0',q:'이번 달 AI 도구 예산 상한을 어디로 정할까요?',why:'가격 확인 뒤 정하기로 한 항목이에요. 지금 무료 범위로 몇 주 더 버틸 수 있어요.',options:[{k:'A',label:'무료 범위만 쓰기',hint:'비용 0원, 느려질 수 있어요'},{k:'B',label:'월 약 1만 원까지',hint:'Google AI Plus 수준'},{k:'C',label:'월 약 3만 원까지',hint:'작업 속도 우선'}]},
+   {id:'demo2',prio:'P1',q:'포폴 릴 첫 컷은 어떤 느낌으로 갈까요?',why:'소울라이크 묵직함과 캐주얼 톤 중 비중을 정해야 해요.',options:[{k:'A',label:'묵직한 실사 위주',hint:'소울라이크 지원에 맞아요'},{k:'B',label:'반반',hint:'폭넓게 보여 줘요'}]}]}:{demo:0,items:[],audit:null,rules:[]}}
+const pending=()=>approvals().items.filter(x=>!S3.answers[x.id]&&!x.answered);
+
+// ---- 로비 ----
+function lobby(){
+  const A=approvals(),pn=pending().length,J=jobs();
+  const run=J.filter(j=>j.status==='진행'),stop=J.filter(j=>j.status==='멈춤'||j.status==='막힘'),wait=J.filter(j=>j.status==='대기');
+  const pcts=run.map(j=>j.pct).filter(x=>typeof x==='number'),avg=pcts.length?Math.round(pcts.reduce((a,b)=>a+b,0)/pcts.length):null;
+  const tk=((S3.st.tasks||{}).mine)||[],top=tk[0],three=tk.slice(0,3);
+  const doneN=0;
+  const bad=[...J.filter(j=>j.status==='막힘').map(j=>`${j.headline||j.name} — 막혔어요`),...(((S3.st.meta||{}).errors)||[]).map(e=>String(e).slice(0,80))];
+  if(S3.st.meta&&S3.st.meta.agent_alive===false)bad.unshift('PC 지킴이가 응답하지 않아요');
+  const ns=((S3.st.notices||{}).items)||[];const morning=ns.filter(n=>n.source!=='Code').slice(0,3);
+  const card=(h,k,color,big,name,ds)=>`<a class="dept" href="#${h}" style="--rc:${color}">${oct(`${medallion(k,color,64)}<div><div class="nm">${name}</div><div class="big num">${big}</div><div class="ds">${ds}</div></div>`)}</a>`;
+  $('#r-lobby').innerHTML=`<h1>로비</h1><p class="lead">오늘 회사 모습이에요 <em class="draft">초안</em></p>${hz()}
+  <div class="grid g3">
+   ${card('director','check','#CEA85E',pn,'대표실',pn?`컨펌 대기 ${pn}건`:'컨펌 대기 없음')}
+   ${card('studio','keys','#7AA4D2',avg===null?'–':avg+'%','작업실',run.length?`진행 ${run.length}개 · 평균 ${avg??'?'}%`:'진행 중인 작업 없음')}
+   ${card('ops','org','#68B096',`${run.length}<span class="kv"> / ${stop.length}</span>`,'운영실',`가동 ${run.length} · 정지 ${stop.length}${wait.length?` · 대기 ${wait.length}`:''}`)}
+  </div>${hz()}
+  <div class="grid g2">
+   <div>${oct(`<h2 class="sec">오늘 할 일</h2>${top?`<div style="font-weight:900;font-size:calc(20px*var(--s))">${esc(top.text)}</div><div class="kv">최우선 · ${esc(top.src||'')}</div>`:'<div class="empty">오늘 할 일이 아직 없어요</div>'}
+     ${three.map(t=>`<div class="chk"><i></i><span>${esc(t.text)}</span></div>`).join('')}
+     <div class="prog" aria-label="오늘 진행"><i style="width:${three.length?Math.round(doneN/three.length*100):0}%"></i></div><div class="kv">오늘 진행 ${doneN}/${three.length||3}</div>`)}</div>
+   <div style="display:grid;gap:20px">
+    ${oct(`<h2 class="sec">이상 징후</h2>${bad.length?bad.map(b=>`<div class="alert">${esc(b)}</div>`).join(''):'<div class="ok">급한 이상 없어요</div>'}`)}
+    ${oct(`<h2 class="sec">밤사이</h2>${morning.length?morning.map(n=>`<div class="chk"><i></i><span>${esc(n.text)}<br><span class="kv">${esc(n.time||'')} · ${esc(n.source||'')}</span></span></div>`).join(''):'<div class="empty">아침 보고가 아직 연결되지 않았어요 <em class="draft">노션 연결 전</em></div>'}`)}
+   </div></div>`;
+}
+
+// ---- 대표실 ----
+function director(){
+  const A=approvals(),list=pending();
+  if(S3.cur>=list.length)S3.cur=0;const it=list[S3.cur];
+  const rules=(A.rules&&A.rules.length?A.rules:[['돈 쓰기·결제','동현 컨펌'],['포폴 방향 바꾸기','동현 컨펌'],['삭제·공개','동현 컨펌']]);
+  let main;
+  if(it){
+    main=oct(`<span class="pri ${it.prio==='P0'?'p0':it.prio==='P1'?'p1':''}">${esc(it.prio||'P2')}</span><span class="kv" style="margin-left:10px">${S3.cur+1} / ${list.length}</span>
+      <div class="q">${esc(it.q)}</div><p class="why">${esc(it.why||'')}</p>
+      <div class="opts">${(it.options||[]).map((o,i)=>`<button class="optb" data-pick="${i}"><div class="oct"><div class="in"><span class="k">${esc(o.k||String.fromCharCode(65+i))}</span><div><b>${esc(o.label)}</b><small>${esc(o.hint||'')}</small></div></div></div></button>`).join('')}</div>
+      <div class="nav2"><button class="btn" data-skip="1" ${list.length<2?'disabled':''}>다음 건 ▸</button><span class="kv">고르면 결재함 '내 답'에 적히고, 확정은 관제센터가 해요</span></div>`);
+  }else{
+    const done=Object.keys(S3.answers).length;
+    main=oct(`<div class="q">지금 컨펌할 건이 없어요</div><p class="why">${done?`💬 동현 답함 ${done}건 — 관제센터가 확정할 거예요.`:'결재함이 비어 있거나 아직 연결 전이에요.'}${A.demo?'':' <em class="draft">노션 결재함 연결 대기</em>'}</p>`);
+  }
+  const answered=Object.entries(S3.answers).map(([id,a])=>`<div class="rule"><span>💬</span><span>${esc(a.q||id)} → <b>${esc(a.label)}</b><br><span class="kv">상태: 동현 답함 · 확정 전</span></span></div>`).join('');
+  $('#r-director').innerHTML=`<h1>대표실</h1><p class="lead">컨펌은 한 건씩, 대화하듯 고르면 돼요 <em class="draft">초안</em></p>${A.demo?'<div class="demo">예시 데이터예요 (?demo=1). 실제 결재함은 아직 연결 전이에요.</div>':''}${hz()}
+  <div class="grid g2"><div>${main}</div><div style="display:grid;gap:20px;align-content:start">
+   ${oct(`<h2 class="sec">컨펌 규칙 <em class="draft">초안</em></h2>${rules.map(r=>`<div class="rule"><span>◆</span><span><b>${esc(r[0])}</b><br><span class="kv">${esc(r[1])}</span></span></div>`).join('')}`)}
+   ${oct(`<h2 class="sec">표본 감사</h2><div class="num" style="font-size:28px">${A.audit?A.audit.n:'–'}<span class="kv"> / ${A.audit?A.audit.of:20}</span></div><div class="prog"><i style="width:${A.audit?Math.round(A.audit.n/A.audit.of*100):0}%"></i></div>`)}
+   ${answered?oct(`<h2 class="sec">내가 답한 것</h2>${answered}`):''}
+  </div></div>`;
+}
+document.addEventListener('click',e=>{
+  const p=e.target.closest('[data-pick]');
+  if(p){const list=pending(),it=list[S3.cur];if(!it)return;const o=it.options[+p.dataset.pick];
+    const a={choice:o.k,label:o.label,q:it.q,t:Date.now()};S3.answers[it.id]=a;lsSet('v3_ans',S3.answers);
+    if(!approvals().demo)Q.add('v3_answer',{id:it.id,choice:o.k,label:o.label,q:it.q,state:'💬 동현 답함'});Sync3.flush();
+    toast('💬 답했어요. 관제센터가 확정해요');render();return}
+  if(e.target.closest('[data-skip]')){S3.cur++;render()}
+});
+
+// ---- 아직 안 만든 방 ----
+function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="lead">다음 단계에서 만들어요 <em class="draft">초안</em></p>${hz()}<div class="soon">${medallion(k,color,120)}<p class="why" style="margin-top:16px">로비·대표실 검증이 끝나면 이어서 만들어요.</p></div>`}
+
+// ---- 틀 ----
+function nav(){$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" style="--c:${COLOR[id]}" class="${S3.room===id?'on':''}" ${S3.room===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span></a>`).join('')}
+function render(){
+  document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
+  document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
+  ({lobby,director})[S3.room]?.();
+  if(S3.room==='studio')soon('studio','작업실',COLOR.studio,'keys');
+  if(S3.room==='ops')soon('ops','운영실',COLOR.ops,'org');
+  if(S3.room==='out')soon('out','퇴근',COLOR.out,'moon');
+  nav();
+}
+function route(){
+  let h=(location.hash||'').slice(1);
+  const today=new Date().toISOString().slice(0,10);
+  if(!h){h='lobby'}
+  if(!ROOMS.some(r=>r[0]===h))h='lobby';
+  S3.room=h;render();window.scrollTo(0,0);
+}
+function clock(){const d=new Date(),z=n=>String(n).padStart(2,'0');$('#clk-d').textContent=`${d.getMonth()+1}/${d.getDate()}`;$('#clk-t').textContent=`${z(d.getHours())}:${z(d.getMinutes())}`}
+const Sync3={busy:false,
+  async run(){if(this.busy)return;this.busy=true;
+    try{await Q.flush();const res=await api.get(V3_STATES);if(!res.ok)throw new Error('상태 못 받음');
+      S3.st=Object.assign({},S3.st,res.state);lsSet('v3_state',S3.st);$('#sync').classList.remove('bad');
+      Q.applyDone(S3.st.meta&&S3.st.meta.done)}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
+    this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&a.closest('.optb')))render()},
+  flush(){Q.flush().catch(()=>{})}};
+$('#top-med').innerHTML=medallion('hex','#CEA85E',42);
+window.addEventListener('hashchange',route);clock();setInterval(clock,20000);
+route();Sync3.run();setInterval(()=>Sync3.run(),30000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)Sync3.run()});
+</script>
+</body>
+</html>
