@@ -113,7 +113,14 @@ a.dept:focus-visible .oct{outline:2px solid var(--ivory);outline-offset:3px}
 .sdet{padding:6px 12px 12px 74px;background:var(--bg-row)}
 .aud{display:flex;gap:14px;align-items:center;padding:8px 0}.amed{width:40px;height:40px;border:1px solid var(--green);border-radius:50%;display:grid;place-items:center;color:var(--green);font:700 14px Cinzel,serif;flex:none;box-shadow:0 0 0 3px var(--bg-panel),0 0 0 4px #2f5a4a}
 .lim{margin-top:8px}.pct{width:100%;box-sizing:border-box;min-height:44px;background:var(--bg-row);border:1px solid #333;color:var(--ivory);padding:8px 12px;font:600 15px system-ui,"Malgun Gothic",sans-serif}.pct:focus-visible{outline:2px solid var(--ivory)}
-@media(max-width:700px){.wk{grid-template-columns:6.5em 1fr 3.5em}.sdet{padding-left:12px}}</style>
+@media(max-width:700px){.wk{grid-template-columns:6.5em 1fr 3.5em}.sdet{padding-left:12px}}
+/* 퇴근·타이틀 */
+.stars{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+#r-out .oct,#r-out h1{position:relative;z-index:1}
+.btn.bl{background:var(--gold)}
+.tmed{animation:title .8s ease-out}
+#r-title{--rc:var(--gold)}
+</style>
 </head>
 <body>
 <div id="fog"></div>
@@ -388,23 +395,51 @@ function ops(){
   </div></div>`;
 }
 document.addEventListener('change',e=>{const i=e.target.closest('[data-use]');if(i){const v=i.value===''?null:Math.max(0,Math.min(100,+i.value));lsSet('v3_use_'+i.dataset.use,v);render()}});
+// ---- 퇴근 ----
+const today=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`};
+function stars(){let s='';for(let i=0;i<46;i++){const x=(i*73)%100,y=(i*41+i*i*3)%100,r=(i%5===0?1.6:.8);s+=`<circle cx="${x}" cy="${y}" r="${r*.35}" opacity="${.35+(i%4)*.15}"/>`}return `<svg class="stars" viewBox="0 0 100 100" preserveAspectRatio="none" fill="#E8DFC8" aria-hidden="true">${s}</svg>`}
+function out(){
+  const tk=((S3.st.tasks||{}).mine)||[],dn=lsx('qdone',{}),tr=lsx('trophy',{}),wk=lsx('work',{hand:0,prep:0,other:0});
+  const doneQ=tk.filter(t=>dn[t.key||t.text]),got=[].concat(...TROPHIES.map(([id,nm,L])=>L.map((x,i)=>tr[id+i]?x:null))).filter(Boolean);
+  const log=lsx('daily_'+today(),null),lg=lsx('daily_log',{}),prev=Object.keys(lg).sort().slice(-3).reverse();
+  const f=lg[today()]||{good:'',bad:'',next:['','','']};
+  $('#r-out').innerHTML=`${stars()}<h1>퇴근</h1><p class="lead">별을 보며 하루를 정리해요 <em class="draft">초안</em></p>${hz()}
+  <div class="grid g2"><div>${oct(`<h2 class="sec">오늘 기록 <span class="cin sm">Today</span></h2>
+     <div class="rule"><span>◆</span><span>손작업</span><b class="num" style="margin-left:auto">${wk.hand}분</b></div>
+     <div class="rule"><span>◆</span><span>끝낸 퀘스트</span><span class="kv" style="margin-left:auto">${doneQ.length?doneQ.map(t=>esc(t.text)).join(' · '):'없음'}</span></div>
+     <div class="rule"><span>◆</span><span>얻은 트로피</span><span class="kv" style="margin-left:auto">${got.length?got.map(esc).join(' · '):'없음'}</span></div>`)}
+    <div style="height:20px"></div>
+    ${oct(`<h2 class="sec">한 줄 돌아보기</h2>
+     <label class="kv">잘한 것</label><input class="pct" id="o-good" maxlength="120" value="${esc(f.good)}">
+     <label class="kv" style="display:block;margin-top:10px">아쉬운 것</label><input class="pct" id="o-bad" maxlength="120" value="${esc(f.bad)}">
+     <h2 class="sec" style="margin-top:18px">내일 할 일 (1~3개)</h2>
+     ${[0,1,2].map(i=>`<input class="pct o-next" style="margin-bottom:8px" maxlength="80" placeholder="${i+1}번" value="${esc(f.next[i]||'')}">`).join('')}
+     <div class="nav2"><button class="btn pri2 bl" id="o-save">오늘 기록 저장</button><span class="kv">${f.saved?`✅ ${f.saved}에 저장함 (이 기기)`:'노션 데일리 리포트 연결 전 · 이 기기에만 저장'}</span></div>`)}</div>
+   <div>${oct(`<h2 class="sec">지난 기록</h2>${prev.length?prev.map(d=>`<div class="rule"><span>◇</span><span><b>${d}</b><br><span class="kv">잘한 것: ${esc(lg[d].good||'—')}<br>내일: ${esc((lg[d].next||[]).filter(Boolean).join(' / ')||'—')}</span></span></div>`).join(''):'<div class="empty">아직 저장한 기록이 없어요</div>'}`)}</div></div>`;
+}
+document.addEventListener('click',e=>{
+  if(e.target.id==='o-save'){const lg=lsx('daily_log',{});lg[today()]={good:$('#o-good').value,bad:$('#o-bad').value,next:[...document.querySelectorAll('.o-next')].map(i=>i.value),saved:new Date().toTimeString().slice(0,5)};lsSet('v3_daily_log',lg);toast('🌙 오늘 기록을 저장했어요');render();return}
+  if(e.target.closest('#r-title')){lsSet('v3_title_day',today());location.hash='#lobby'}
+});
+
+// ---- 타이틀 (하루 첫 접속만) ----
+function title(){$('#r-title').innerHTML=`<div class="tmed">${medallion('hex','#CEA85E',120)}</div><div class="cin">HONEY BADGER STUDIO</div><p class="kv" style="margin-top:28px;letter-spacing:.3em">누르면 시작</p>`}
 // ---- 아직 안 만든 방 ----
 function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="lead">다음 단계에서 만들어요 <em class="draft">초안</em></p>${hz()}<div class="soon">${medallion(k,color,120)}<p class="why" style="margin-top:16px">로비·대표실 검증이 끝나면 이어서 만들어요.</p></div>`}
 
 // ---- 틀 ----
-function nav(){$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" style="--c:${COLOR[id]}" class="${S3.room===id?'on':''}" ${S3.room===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span></a>`).join('')}
+function nav(){$('#nav').style.display=S3.room==='title'?'none':'';$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" style="--c:${COLOR[id]}" class="${S3.room===id?'on':''}" ${S3.room===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span></a>`).join('')}
 function render(){
   document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
-  ({lobby,director,studio,ops})[S3.room]?.();
-  if(S3.room==='out')soon('out','퇴근',COLOR.out,'moon');
+  ({lobby,director,studio,ops,out,title})[S3.room]?.();
   nav();
 }
 function route(){
   let h=(location.hash||'').slice(1);
-  const today=new Date().toISOString().slice(0,10);
-  if(!h){h='lobby'}
-  if(!ROOMS.some(r=>r[0]===h))h='lobby';
+  let seen='';try{seen=lsGet('v3_title_day','')}catch(e){}
+  if(!h){h=seen===today()?'lobby':'title'}
+  if(h!=='title'&&!ROOMS.some(r=>r[0]===h))h='lobby';
   S3.room=h;render();window.scrollTo(0,0);
 }
 function clock(){const d=new Date(),z=n=>String(n).padStart(2,'0');$('#clk-d').textContent=`${d.getMonth()+1}/${d.getDate()}`;$('#clk-t').textContent=`${z(d.getHours())}:${z(d.getMinutes())}`}
