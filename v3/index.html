@@ -86,7 +86,34 @@ a.dept:focus-visible .oct{outline:2px solid var(--ivory);outline-offset:3px}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#111113;border:1px solid var(--gold);padding:10px 18px;z-index:9;font-size:15px}
 .soon{padding:40px 0;text-align:center}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-</style>
+
+/* 작업실·운영실 */
+.cin.sm{font-size:11px;color:var(--rc);letter-spacing:.3em;margin-left:8px;font-weight:500}
+.stages{display:grid;grid-template-columns:repeat(4,1fr);position:relative;padding:10px 0}
+.stages::before{content:"";position:absolute;left:12.5%;right:12.5%;top:27px;height:1px;background:var(--line)}
+.stg{all:unset;cursor:pointer;text-align:center;position:relative;display:block;min-height:44px}
+.stg i{display:block;width:16px;height:16px;border:1px solid var(--blue);transform:rotate(45deg);margin:0 auto 14px;background:var(--bg-panel)}
+.stg.cur i{background:var(--blue)}.stg.past i{background:#3a5470}
+.stg b{display:block;font-size:calc(19px*var(--s))}.stg small{color:var(--dim);font-size:calc(12px*var(--s))}.stg.cur small{color:var(--blue)}
+.qrow,.trow{all:unset;cursor:pointer;display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid #222;width:100%;box-sizing:border-box;min-height:44px}
+.qrow i,.trow i{width:12px;height:12px;flex:none;margin-top:8px;border:1px solid var(--blue);transform:rotate(45deg)}
+.qrow.done i,.trow.got i{background:var(--blue)}.qrow.done,.trow.got{color:var(--dim)}.qrow.done span{text-decoration:line-through}
+.qrow small{color:var(--dim)}.qrow:focus-visible,.trow:focus-visible,.stg:focus-visible,.staff:focus-visible{outline:2px solid var(--ivory)}
+.trow{padding:6px 0;font-size:calc(15px*var(--s))}.trow i{margin-top:6px}.tgrp{margin-top:10px}.tgrp>b{color:var(--blue)}
+.big2{font-size:30px;color:var(--blue)}
+.clk2{font-size:calc(64px*var(--s));color:var(--blue);text-align:center;line-height:1.1;margin:4px 0 8px;font-family:Cinzel,system-ui,serif}
+.wk{display:grid;grid-template-columns:8em 1fr 4em;gap:10px;align-items:center;font-size:calc(14px*var(--s))}.wk>span:last-child{text-align:right}
+#qc{position:fixed;left:0;right:0;top:40%;text-align:center;font:700 calc(34px*var(--s)) Cinzel,serif;letter-spacing:.4em;color:var(--blue);text-shadow:0 0 24px #7AA4D2aa;pointer-events:none;opacity:0;z-index:20}
+#qc.go{animation:qc 1s steps(12) both}@keyframes qc{0%{opacity:0;letter-spacing:.8em}20%,70%{opacity:1}100%{opacity:0;letter-spacing:.4em}}
+.staff{all:unset;cursor:pointer;display:flex;gap:14px;align-items:center;width:100%;box-sizing:border-box;padding:10px 12px;border-top:1px solid #222;min-height:64px}
+.staff:first-of-type{border:0}.staff.open{background:var(--bg-row)}
+.stp{width:48px;height:56px;flex:none}.npc{width:48px;height:56px}
+.stt{display:flex;flex-direction:column;min-width:0;flex:1}.stt b{font-size:calc(17px*var(--s))}.stt small{color:var(--dim);font-size:calc(13px*var(--s));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ss{font:700 calc(13px*var(--s)) system-ui,"Malgun Gothic",sans-serif;white-space:nowrap}
+.sdet{padding:6px 12px 12px 74px;background:var(--bg-row)}
+.aud{display:flex;gap:14px;align-items:center;padding:8px 0}.amed{width:40px;height:40px;border:1px solid var(--green);border-radius:50%;display:grid;place-items:center;color:var(--green);font:700 14px Cinzel,serif;flex:none;box-shadow:0 0 0 3px var(--bg-panel),0 0 0 4px #2f5a4a}
+.lim{margin-top:8px}.pct{width:100%;box-sizing:border-box;min-height:44px;background:var(--bg-row);border:1px solid #333;color:var(--ivory);padding:8px 12px;font:600 15px system-ui,"Malgun Gothic",sans-serif}.pct:focus-visible{outline:2px solid var(--ivory)}
+@media(max-width:700px){.wk{grid-template-columns:6.5em 1fr 3.5em}.sdet{padding-left:12px}}</style>
 </head>
 <body>
 <div id="fog"></div>
@@ -296,6 +323,71 @@ document.addEventListener('click',e=>{
   if(e.target.closest('[data-skip]')){S3.cur++;render()}
 });
 
+// ---- 작업실 ----
+const TROPHIES=[['bronze','🥉 동',['첫 블로킹 완료','하루 손작업 60분','레퍼런스 3개 고르기','연속 3일 작업']],['silver','🥈 은',['모션 1개 폴리싱 완료','피드백 반영 5회','연속 7일 작업','단계 건너뛰기 없이 모션 1개 완성']],['gold','🥇 금',['콤보 3타 디테일 완료','오리지널 캐릭터 바이패드 스킨 완료','한 달 손작업 40시간']],['plat','🏆 플래티넘',['포폴 릴 완성']]];
+const STAGES=[['기획','—'],['제작','11/30 캐릭터 시작'],['폴리싱','—'],['제출','2027. 6 입사 목표']];
+const lsx=(k,d)=>lsGet('v3_'+k,d);
+function studio(){
+  const tk=((S3.st.tasks||{}).mine)||[],dn=lsx('qdone',{}),tr=lsx('trophy',{}),fx=lsx('fx',true);
+  const tot=TROPHIES.reduce((a,t)=>a+t[2].length,0),got=Object.keys(tr).filter(k=>tr[k]).length,pc=Math.round(got/tot*100);
+  const doneN=tk.filter(t=>dn[t.key||t.text]).length;
+  const cur=lsx('stage',0),wk=lsx('work',{hand:0,prep:0,other:0});
+  const st=STAGES.map((s,i)=>`<div class="stg ${i===cur?'cur':i<cur?'past':''}" data-stage="${i}"><i></i><b>${s[0]}</b><small>${i===cur?'현재 단계':s[1]}</small></div>`).join('');
+  const fmt=m=>`${Math.floor(m/60)} : ${String(m%60).padStart(2,'0')}`;
+  const bar=(n,m)=>`<div class="wk"><span>${n}</span><div class="prog"><i style="width:${Math.min(100,Math.round(m/480*100))}%;background:var(--blue)"></i></div><span class="num">${m}분</span></div>`;
+  $('#r-studio').innerHTML=`<h1>작업실</h1><p class="lead">대표가 직접 만드는 곳 <em class="draft">초안</em></p>${hz()}
+  ${oct(`<h2 class="sec">마일스톤 · 포폴 릴 <span class="cin sm">Milestone</span></h2><div class="stages">${st}</div>`)}
+  <div class="grid g2" style="margin-top:20px">
+   <div>${oct(`<h2 class="sec">오늘 할 일 <span class="cin sm">Quest</span></h2>${tk.length?tk.map(t=>{const k=t.key||t.text,d=dn[k];return `<button class="qrow ${d?'done':''}" data-q="${esc(k)}"><i></i><span>${esc(t.text)}<br><small>${esc(t.src||'')}</small></span></button>`}).join(''):'<div class="empty">오늘 할 일이 아직 없어요</div>'}
+     <div class="prog"><i style="width:${tk.length?Math.round(doneN/tk.length*100):0}%;background:var(--blue)"></i></div><div class="kv">퀘스트 ${doneN}/${tk.length}</div>
+     <div class="nav2"><label class="kv"><input type="checkbox" id="fxbox" ${fx?'checked':''}> QUEST CLEAR 연출</label></div>`)}
+    ${oct(`<h2 class="sec">트로피 <span class="cin sm">Trophy</span> <em class="draft">초안 · 동현 확인 전</em></h2><div class="num big2">${pc}%<span class="kv"> ${got}/${tot}</span></div><div class="prog"><i style="width:${pc}%;background:var(--blue)"></i></div>
+      ${TROPHIES.map(([id,nm,L])=>`<div class="tgrp"><b>${nm}</b>${L.map((x,i)=>{const k=id+i;return `<button class="trow ${tr[k]?'got':''}" data-t="${k}"><i></i>${esc(x)}</button>`}).join('')}</div>`).join('')}
+      <div class="kv">눌러서 달성 표시(이 기기에만 저장). 레벨·경험치는 없어요.</div>`)}</div>
+   <div style="display:grid;gap:20px;align-content:start">
+    ${oct(`<h2 class="sec">오늘 작업 시간 <span class="cin sm">Session</span></h2><div class="kv" style="text-align:center">손작업</div><div class="clk2 num">${fmt(wk.hand)}</div>
+      ${bar('손작업',wk.hand)}${bar('준비 (AI 대화)',wk.prep)}${bar('작업 외',wk.other)}
+      <div class="nav2"><button class="btn" data-add="hand">손작업 +10분</button><button class="btn" data-add="prep">준비 +10</button><button class="btn" data-add="other">작업 외 +10</button></div>
+      <div class="kv" style="margin-top:8px">자동 기록(worklog)은 연결 전이라 직접 눌러 적어요. 점수 없음.</div>`)}
+    ${oct(`<h2 class="sec">릴 구성 <span class="cin sm">Reel</span></h2>${[['구성','애니 릴 + 파이프라인'],['실사 : 카툰','반반'],['캐릭터 수 · 모션','조사 뒤 결정']].map(r=>`<div class="rule"><span>◆</span><span>${r[0]}</span><span class="kv" style="margin-left:auto">${r[1]}</span></div>`).join('')}`)}
+   </div></div>`;
+}
+let clearT;
+function questClear(){if(!lsx('fx',true)||matchMedia('(prefers-reduced-motion:reduce)').matches)return;let e=document.getElementById('qc');if(!e){e=document.createElement('div');e.id='qc';e.textContent='QUEST CLEAR';document.body.appendChild(e)}e.classList.remove('go');void e.offsetWidth;e.classList.add('go');clearTimeout(clearT);clearT=setTimeout(()=>e.classList.remove('go'),1000)}
+document.addEventListener('click',e=>{
+  let b;
+  if(b=e.target.closest('[data-q]')){const d=lsx('qdone',{}),k=b.dataset.q;d[k]=!d[k];lsSet('v3_qdone',d);if(d[k])questClear();render();return}
+  if(b=e.target.closest('[data-t]')){const d=lsx('trophy',{});d[b.dataset.t]=!d[b.dataset.t];lsSet('v3_trophy',d);render();return}
+  if(b=e.target.closest('[data-add]')){const w=lsx('work',{hand:0,prep:0,other:0});w[b.dataset.add]+=10;lsSet('v3_work',w);render();return}
+  if(b=e.target.closest('[data-stage]')){lsSet('v3_stage',+b.dataset.stage);render();return}
+  if(e.target.id==='fxbox'){lsSet('v3_fx',e.target.checked);return}
+  if(b=e.target.closest('[data-staff]')){S3.staff=S3.staff===b.dataset.staff?null:b.dataset.staff;render()}
+});
+
+// ---- 운영실 ----
+const STAFF=[['운영실','프로듀서 · 관제센터','#CEA85E',['control']],['파이프라인','툴 프로그래머 · Code','#68B096',['code','code-worker']],['파이프라인','에셋 · 추출기','#68B096',['pipeline','pipeline_stage2','pipeline_stage4']],['파이프라인','레퍼런스 공장','#68B096',['ref_factory']],['작업실','애니메이션 리드 · 선생님','#7AA4D2',['anim_teacher','anim_teacher_explain','teacher_study']],['BD','취업 준비실','#B58AC8',['job_prep']],['재무팀','자산관리실','#D2A27A',['finance','finance-plan3','money-app']],['IT','통합관리 앱 · Eagle 앱','#68B096',['wc_app','app_v3','eagle_app']]];
+function mask(c){return `<svg class="npc" viewBox="0 0 60 70" aria-hidden="true"><defs><clipPath id="cp"><rect width="60" height="70"/></clipPath></defs><g fill="#161618" stroke="${c}" stroke-width="1.3" stroke-linejoin="round"><path d="M6 70c0-16 10-24 24-24s24 8 24 24z"/><path d="M30 46v-6"/><path d="M18 22c0-9 5-15 12-15s12 6 12 15c0 9-5 17-12 17s-12-8-12-17z"/></g><g fill="${c}" opacity=".9"><path d="M21 21q4-3 7 0q-3 3-7 0zM32 21q4-3 7 0q-3 3-7 0z"/><path d="M30 24l-2 7h4z" opacity=".5"/></g><path d="M30 7v-4M26 8l-3-3M34 8l3-3" stroke="${c}" stroke-width="1" fill="none"/></svg>`}
+function ops(){
+  const J=jobs();
+  const rows=STAFF.map(([dept,name,c,ids])=>{const js=J.filter(j=>ids.includes(j.id)),run=js.find(j=>j.status==='진행'),bad=js.find(j=>j.status==='멈춤'||j.status==='막힘'),wait=js.find(j=>j.status==='대기');
+    const state=run?'가동':bad?'정지':wait?'대기':js.length?'대기':'기록 없음';const now=(run||bad||wait||js.sort((a,b)=>(b.t||0)-(a.t||0))[0]||{});
+    return {dept,name,c,ids,js,state,now:now.headline||now.now||'',upd:now.started||''}});
+  const on=rows.filter(r=>r.state==='가동').length,off=rows.filter(r=>r.state==='정지').length;
+  const stc={가동:'var(--green)',정지:'#E08A7E',대기:'var(--gold)','기록 없음':'var(--dim)'};
+  $('#r-ops').innerHTML=`<h1>운영실</h1><p class="lead">프로듀서(관제센터)가 운영하는 곳 <em class="draft">초안</em></p>${hz()}
+  <div class="grid g2"><div>${oct(`<h2 class="sec">팀 구성 <span class="cin sm">Team</span> <span class="kv" style="float:right">가동 ${on} · 정지 ${off}</span></h2>
+    ${rows.map(r=>`<button class="staff ${S3.staff===r.name?'open':''}" data-staff="${esc(r.name)}" style="--sc:${r.c}"><div class="stp">${mask(r.c)}</div><div class="stt"><span class="kv">${r.dept}</span><b>${r.name}</b><small>${esc(r.now)}</small></div><span class="ss" style="color:${stc[r.state]}">◆ ${r.state}</span></button>
+      ${S3.staff===r.name?`<div class="sdet">${r.js.length?r.js.slice(0,3).map(j=>`<div class="rule"><span>◇</span><span>${esc(j.headline||j.name)}<br><span class="kv">${esc(j.status)}${typeof j.pct==='number'?' · '+Math.round(j.pct)+'%':''} · ${esc(j.now||'')}</span></span></div>`).join(''):'<div class="empty">연결된 작업 기록이 없어요</div>'}<div class="kv">최근 편지 보기는 연결 전이에요 <em class="draft">초안</em></div></div>`:''}`).join('')}`)}
+   ${oct(`<h2 class="sec">아침 보고 <span class="cin sm">Daily Stand-up</span></h2>${(((S3.st.notices||{}).items)||[]).filter(n=>n.source!=='Code').slice(0,3).map(n=>`<div class="rule"><span>◆</span><span>${esc(n.text)}</span><span class="kv" style="margin-left:auto">${esc(n.time||'')}</span></div>`).join('')||'<div class="empty">아침 보고가 아직 연결되지 않았어요 <em class="draft">노션 연결 전</em></div>'}`)}</div>
+  <div style="display:grid;gap:20px;align-content:start">
+   ${oct(`<h2 class="sec">감사 <span class="cin sm">Quality Assurance</span></h2>${[['I','자동 검사','링크 · 결정 충돌 · 유료 가격'],['II','교차 점검','Gemini 대량 대조 → 표본 2차'],['III','대표 표본 감사','대표실에서 주 1회']].map(a=>`<div class="aud"><div class="amed">${a[0]}</div><div><b>${a[1]}</b><br><span class="kv">${a[2]}</span></div></div>`).join('')}`)}
+   ${oct(`<h2 class="sec">비용 · 한도 <span class="cin sm">Budget</span></h2>
+    <div class="rule"><span>월 예산 상한</span><b style="margin-left:auto;color:var(--gold)">결재 대기</b></div>
+    ${[['Claude 주간 사용량','claude'],['Gemini 무료 한도','gemini']].map(([n,k])=>{const v=lsx('use_'+k,null);return `<div class="lim"><div class="rule" style="border:0"><span>${n}</span><span class="kv" style="margin-left:auto">${v===null?'확인 필요':v+'%'}</span></div><div class="prog"><i style="width:${v||0}%;background:${v>=80?'var(--red)':'var(--green)'}"></i></div><input class="pct" type="number" min="0" max="100" inputmode="numeric" placeholder="동현이 본 % 입력" data-use="${k}" value="${v===null?'':v}" aria-label="${n} 퍼센트"></div>`}).join('')}
+    <div class="kv" style="margin-top:10px">퍼센트는 동현이 직접 보고 입력해요(이 기기에만 저장). 퍼플렉시티 구독 만료 11/23 <em class="draft">확인 필요</em></div>`)}
+  </div></div>`;
+}
+document.addEventListener('change',e=>{const i=e.target.closest('[data-use]');if(i){const v=i.value===''?null:Math.max(0,Math.min(100,+i.value));lsSet('v3_use_'+i.dataset.use,v);render()}});
 // ---- 아직 안 만든 방 ----
 function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="lead">다음 단계에서 만들어요 <em class="draft">초안</em></p>${hz()}<div class="soon">${medallion(k,color,120)}<p class="why" style="margin-top:16px">로비·대표실 검증이 끝나면 이어서 만들어요.</p></div>`}
 
@@ -304,9 +396,7 @@ function nav(){$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" styl
 function render(){
   document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
-  ({lobby,director})[S3.room]?.();
-  if(S3.room==='studio')soon('studio','작업실',COLOR.studio,'keys');
-  if(S3.room==='ops')soon('ops','운영실',COLOR.ops,'org');
+  ({lobby,director,studio,ops})[S3.room]?.();
   if(S3.room==='out')soon('out','퇴근',COLOR.out,'moon');
   nav();
 }
@@ -323,7 +413,7 @@ const Sync3={busy:false,
     try{await Q.flush();const res=await api.get(V3_STATES);if(!res.ok)throw new Error('상태 못 받음');
       S3.st=Object.assign({},S3.st,res.state);lsSet('v3_state',S3.st);$('#sync').classList.remove('bad');
       Q.applyDone(S3.st.meta&&S3.st.meta.done)}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
-    this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&a.closest('.optb')))render()},
+    this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('input'))))render()},
   flush(){Q.flush().catch(()=>{})}};
 $('#top-med').innerHTML=medallion('hex','#CEA85E',42);
 window.addEventListener('hashchange',route);clock();setInterval(clock,20000);
