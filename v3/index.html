@@ -177,6 +177,8 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
 .cxs{margin:12px 0;line-height:1.6}.cxs>b{display:block;margin-bottom:6px;color:var(--gold)}.cxcs{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cxc{background:var(--bg-row);padding:10px 12px}.cxin{width:100%;box-sizing:border-box;background:#0f0f11;color:var(--ivory);border:1px solid #2a2418;border-radius:6px;padding:8px 10px;font:inherit;margin:6px 0}.cxt{overflow-x:auto}.cxt table{border-collapse:collapse;width:100%;font-size:calc(13px*var(--s))}.cxt th,.cxt td{border:1px solid #2a2a2e;padding:4px 8px;white-space:nowrap;text-align:left}.cxt td.num{text-align:right}.cxe{padding:6px 10px;margin:6px 0;background:var(--bg-row);border-left:3px solid #666}.cxe.tf{border-color:#68B096}.cxe.ti{border-color:#7AA4D2}.cxe.tp{border-color:#CEA85E}.cxd{padding:6px 10px;background:#15151a;margin:4px 0}.cxv{display:flex;gap:8px;margin:6px 0}.cxv .btn.on{background:var(--gold);color:#111}.cxcard{border-top:1px solid #222;padding:10px 0}
 
 .ttnow{background:rgba(206,168,94,.16);border-left:3px solid var(--gold)}
+.rvbox{position:relative;margin:12px 0;background:#000;max-width:100%}.rvbox video{display:block;width:100%;max-height:70vh;background:#000}.rvtap{position:absolute;inset:0;cursor:pointer}
+.rvbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}a.rvrow{text-decoration:none;color:inherit}
 </style>
 </head>
 <body>
@@ -194,6 +196,7 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
   <section id="r-ops" class="room"></section>
   <section id="r-world" class="room"></section>
   <section id="r-out" class="room"></section>
+  <section id="r-review" class="room"></section>
 </main>
 <nav id="nav"></nav>
 <div id="toast" hidden></div>
@@ -304,10 +307,81 @@ const Q={
   of(kind){return Q.list().filter(x=>x.kind===kind)}
 };
 
+// ---- 검토 영상 (#review, #review/<이름>) — 드라이브 비공개 폴더 HBS_비공개\review 의 mp4·json·png를 동현 로그인(브리지 토큰)으로만 재생 ----
+// 영상 파일은 이 저장소에 없음. 같은 이름(biped5_261122.mp4/.json/.png)을 이름 앞부분(biped5)으로 찾는다.
+var RV={files:null,err:'',busy:false,url:{},meta:{},cur:null,fps:30};
+function rvDev(){return !BRIDGE_URL||BRIDGE_URL.startsWith('/*')}
+async function rvFx(u,o){return api.gfetch(u,o)}
+async function rvList(){
+  if(rvDev()){const r=await fetch('../dev/review/index.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)return [];return (await r.json()).files||[]}
+  const Q=q=>'https://www.googleapis.com/drive/v3/files?pageSize=200&fields=files(id,name,mimeType,size,modifiedTime)&q='+encodeURIComponent(q);
+  const FOLD="mimeType='application/vnd.google-apps.folder' and trashed=false";
+  let r=await rvFx(Q("name='HBS_비공개' and "+FOLD));if(!r.ok)throw new Error('드라이브 '+r.status);
+  const a=(await r.json()).files||[];if(!a.length)return [];
+  r=await rvFx(Q("name='review' and '"+a[0].id+"' in parents and "+FOLD));if(!r.ok)throw new Error('드라이브 '+r.status);
+  const b=(await r.json()).files||[];if(!b.length)return [];
+  r=await rvFx(Q("'"+b[0].id+"' in parents and trashed=false"));if(!r.ok)throw new Error('드라이브 '+r.status);
+  return (await r.json()).files||[];
+}
+function rvItems(){  // 이름 앞부분(첫 '_' 앞)이 같은 파일끼리 묶음
+  const g={};(RV.files||[]).forEach(f=>{const m=/^(.+)\.(mp4|json|png)$/i.exec(f.name);if(!m)return;const base=m[1],key=base.split('_')[0];
+    const x=g[key]=g[key]||{key,base,mp4:null,json:null,png:null};const e=m[2].toLowerCase();if(!x[e]||base>x.base){x[e]=f;if(e==='mp4')x.base=base}});
+  return Object.values(g).sort((p,q)=>q.base.localeCompare(p.base));
+}
+async function rvBlob(f){
+  if(RV.url[f.id])return RV.url[f.id];
+  const r=rvDev()?await fetch('../dev/review/'+encodeURIComponent(f.name)):await rvFx('https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media');
+  if(!r.ok)throw new Error('파일 '+r.status);
+  return RV.url[f.id]=URL.createObjectURL(await r.blob());
+}
+async function rvJson(f){
+  if(!f)return {};if(RV.meta[f.id])return RV.meta[f.id];
+  const r=rvDev()?await fetch('../dev/review/'+encodeURIComponent(f.name)):await rvFx('https://www.googleapis.com/drive/v3/files/'+f.id+'?alt=media');
+  return RV.meta[f.id]=r.ok?await r.json().catch(()=>({})):{};
+}
+async function rvLoad(force){
+  if(RV.busy)return;if(RV.files&&!force)return;RV.busy=true;RV.err='';
+  try{RV.files=await rvList()}catch(e){RV.err=e.message||'연결 실패';RV.files=null}
+  RV.busy=false;if(S3.room==='review')review();
+}
+function review(){
+  const el=$('#r-review');const key=S3.rv||'';
+  const head=`<h1>검토 영상</h1><p class="lead">🔒 비공개 — 내 구글 로그인으로만 열려요 <em class="draft">초안</em></p>${hz()}`;
+  if(RV.files===null&&!RV.err){el.innerHTML=head+oct(`<div class="empty">⏳ 드라이브에서 찾는 중…</div>`);rvLoad();return}
+  if(RV.err){el.innerHTML=head+oct(`<div class="empty">🔐 드라이브에 연결하지 못했어요 (${esc(RV.err)})<br>구글 로그인·브리지 허용을 확인한 뒤 다시 눌러 주세요.</div><button class="btn" id="rv-retry">다시 시도</button>`);return}
+  const items=rvItems();
+  if(!key){el.innerHTML=head+oct(items.length?`<h2 class="sec">영상 목록</h2>`+items.map(x=>`<a class="rule rvrow" href="#review/${esc(x.key)}"><span>▶</span><span><b>${esc(x.base)}</b></span><span class="kv" style="margin-left:auto">${x.mp4?'':'영상 없음'}</span></a>`).join(''):`<div class="empty">🛠 준비 중이에요 — 영상이 아직 올라오지 않았어요 (HBS_비공개\review)</div>`);return}
+  const it=items.find(x=>x.key===key);
+  if(!it||!it.mp4){el.innerHTML=head+oct(`<div class="empty">🛠 '${esc(key)}' 영상은 준비 중이에요. 올라오면 이 주소로 바로 열려요.</div><a class="btn" href="#review">목록</a>`);return}
+  el.innerHTML=head+oct(`<h2 class="sec" id="rv-title">${esc(it.base)}</h2><div class="kv" id="rv-desc"></div>
+   <div class="rvbox"><video id="rv-v" playsinline muted loop preload="auto"></video><div class="rvtap" id="rv-tap" title="탭 = 일시정지/재생"></div></div>
+   <div class="rvbar"><button class="btn" id="rv-b" aria-label="1프레임 뒤로">◀ 1f</button><button class="btn pri2" id="rv-p">⏸</button><button class="btn" id="rv-f" aria-label="1프레임 앞으로">1f ▶</button><span class="kv num" id="rv-t"></span></div>
+   <div id="rv-png"></div><a class="kv" href="#review">← 목록</a>`);
+  rvOpen(it);
+}
+async function rvOpen(it){
+  const v=$('#rv-v');if(!v)return;
+  try{
+    const [src,j]=await Promise.all([rvBlob(it.mp4),rvJson(it.json)]);if(!$('#rv-v'))return;
+    RV.fps=+j.fps||30;if(j.title)$('#rv-title').textContent=j.title;$('#rv-desc').textContent=j.description||j.desc||j.summary||'';
+    v.src=src;v.play().catch(()=>{});
+    if(it.png){rvBlob(it.png).then(u=>{const p=$('#rv-png');if(p)p.innerHTML=`<img src="${u}" alt="요약 표" style="max-width:100%;margin-top:12px">`}).catch(()=>{})}
+    const upd=()=>{const t=$('#rv-t');if(t)t.textContent=`${Math.round(v.currentTime*RV.fps)}f / ${Math.round((v.duration||0)*RV.fps)}f`};
+    v.ontimeupdate=upd;v.onloadedmetadata=upd;
+  }catch(e){$('#rv-desc').textContent='⚠ 영상을 못 열었어요: '+e.message}
+}
+document.addEventListener('click',e=>{
+  if(e.target.id==='rv-retry'){RV.err='';RV.files=null;review();return}
+  const v=$('#rv-v');if(!v)return;
+  if(e.target.id==='rv-tap'||e.target.id==='rv-p'){if(v.paused)v.play();else v.pause();$('#rv-p').textContent=v.paused?'▶':'⏸';return}
+  const st=e.target.id==='rv-b'?-1:e.target.id==='rv-f'?1:0;
+  if(st){v.pause();$('#rv-p').textContent='▶';v.currentTime=Math.max(0,Math.min(v.duration||0,v.currentTime+st/RV.fps))}
+});
+
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
 const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','codex_today','unlock','later_list','audit_sample','timetable','croquis'];
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
-const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E'};
+const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2'};
 const DEMO=/[?&]demo=1/.test(location.search);
 const S3={st:lsGet('v3_state',{}),room:'lobby',cur:0,answers:lsGet('v3_ans',{})};
 
@@ -602,14 +676,15 @@ function render(){
   document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
   if(S3.room!=='world'&&window.World&&World.on)World.stop();
-  ({lobby,director,studio,ops,out,title,world})[S3.room]?.();
+  ({lobby,director,studio,ops,out,title,world,review})[S3.room]?.();
   nav();
 }
 function route(){
   let h=(location.hash||'').slice(1);
   let seen='';try{seen=lsGet('v3_title_day','')}catch(e){}
   if(!h){h=seen===today()?'lobby':'title'}
-  if(h!=='title'&&!ROOMS.some(r=>r[0]===h))h='lobby';
+  S3.rv='';if(/^review(\/|$)/.test(h)){S3.rv=decodeURIComponent(h.slice(7));h='review'}
+  if(h!=='title'&&h!=='review'&&!ROOMS.some(r=>r[0]===h))h='lobby';
   S3.room=h;render();window.scrollTo(0,0);
 }
 function clock(){const d=new Date(),z=n=>String(n).padStart(2,'0');$('#clk-d').textContent=`${d.getMonth()+1}/${d.getDate()}`;$('#clk-t').textContent=`${z(d.getHours())}:${z(d.getMinutes())}`}
