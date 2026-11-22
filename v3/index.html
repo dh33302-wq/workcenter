@@ -303,7 +303,7 @@ const Q={
 };
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','codex_today'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','codex_today','unlock','later_list'];
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
@@ -408,6 +408,7 @@ function studio(){
       ${TROPHIES.map(([id,nm,L])=>`<div class="tgrp"><b>${nm}</b>${L.map((x,i)=>{const k=id+i;return `<button class="trow ${tr[k]?'got':''}" data-t="${k}"><i></i>${esc(x)}</button>`}).join('')}</div>`).join('')}
       <div class="kv">눌러서 달성 표시(이 기기에만 저장). 레벨·경험치는 없어요.</div>`)}</div>
    <div style="display:grid;gap:20px;align-content:start">
+    ${lockCard()}${laterCard()}
     ${oct(`<h2 class="sec">오늘 작업 시간 <span class="cin sm">Session</span></h2><div class="kv" style="text-align:center">손작업</div><div class="clk2 num">${fmt(wk.hand)}</div>
       ${bar('손작업',wk.hand)}${bar('준비 (AI 대화)',wk.prep)}${bar('작업 외',wk.other)}
       <div class="nav2"><button class="btn" data-add="hand">손작업 +10분</button><button class="btn" data-add="prep">준비 +10</button><button class="btn" data-add="other">작업 외 +10</button></div>
@@ -502,6 +503,23 @@ function ops(){
   </div></div>`;
 }
 document.addEventListener('change',e=>{const i=e.target.closest('[data-use]');if(i){const v=i.value===''?null:Math.max(0,Math.min(100,+i.value));lsSet('v3_use_'+i.dataset.use,v);render()}});
+// ---- 시스템 구축 잠금 (11/22 control clockout_lock): 퇴근 전 = 항상 🔒, 퇴근 집계 뒤 🖐️ 6시간 또는 진도 100%면 🔓 ----
+function lockCard(){
+  const u=S3.st.unlock||{locked:true,clocked_out:false,hand_min:0,need_min:360,progress_pct:null},h=Math.floor((u.hand_min||0)/60),m=(u.hand_min||0)%60,pc=u.progress_pct==null?'미집계':u.progress_pct+'%';
+  return oct(`<h2 class="sec">시스템 작업 <span class="cin sm">Lock</span></h2><div class="num big2">${u.locked?'🔒 잠김':'🔓 풀림'}</div>
+   <div class="kv">오늘 🖐️ ${h}시간 ${m}분 / ${Math.round((u.need_min||360)/60)}시간 · 진도 ${pc}${u.clocked_out?'':' · 퇴근 전'}</div>
+   <div class="prog"><i style="width:${Math.min(100,Math.round((u.hand_min||0)/(u.need_min||360)*100))}%;background:var(--blue)"></i></div>
+   <div class="kv">${esc(u.reason||'')}${u.locked?' · 고장 수리(작업을 막는 것)만 예외':''}</div>`)}
+function laterCard(){
+  const L=((S3.st.later_list||{}).items||[]).slice(-5).reverse();
+  return oct(`<h2 class="sec">나중 목록 <span class="cin sm">Later</span></h2>
+   <div class="nav2"><input class="pct cxin" id="later-in" maxlength="120" placeholder="아이디어 한 줄 (지금 말고 나중에)"><button class="btn" id="later-add">적기</button></div>
+   ${L.length?L.map(x=>`<div class="rule"><span>◇</span><span class="kv">${esc(x.text||'')}</span></div>`).join(''):'<div class="empty">비어 있어요</div>'}`)}
+document.addEventListener('click',e=>{
+  if(e.target.id==='later-add'){const el=$('#later-in'),v=el&&el.value.trim();if(!v)return;Q.add('later_note',{text:v});Sync3.flush();el.value='';toast('📝 나중 목록에 적었어요');return}
+  if(e.target.id==='o-clock'){Q.add('clockout',{date:today()});Sync3.flush();toast('🌙 퇴근 집계를 시작했어요');return}
+});
+
 // ---- 퇴근 ----
 const today=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`};
 function stars(){let s='';for(let i=0;i<46;i++){const x=(i*73)%100,y=(i*41+i*i*3)%100,r=(i%5===0?1.6:.8);s+=`<circle cx="${x}" cy="${y}" r="${r*.35}" opacity="${.35+(i%4)*.15}"/>`}return `<svg class="stars" viewBox="0 0 100 100" preserveAspectRatio="none" fill="#E8DFC8" aria-hidden="true">${s}</svg>`}
@@ -511,6 +529,7 @@ function out(){
   const log=lsx('daily_'+today(),null),lg=lsx('daily_log',{}),prev=Object.keys(lg).sort().slice(-3).reverse();
   const f=lg[today()]||{good:'',bad:'',next:['','','']};
   $('#r-out').innerHTML=`${stars()}<h1>퇴근</h1><p class="lead">별을 보며 하루를 정리해요 <em class="draft">초안</em></p>${hz()}
+  ${oct(`<h2 class="sec">퇴근 <span class="cin sm">Clock out</span></h2><button class="btn pri2 bl" id="o-clock" ${(S3.st.unlock||{}).clocked_out?"disabled":""}>🌙 퇴근하기 (오늘 집계)</button><div class="kv">${(S3.st.unlock||{}).clocked_out?((S3.st.unlock.locked?"🔒":"🔓")+" 🖐️ "+S3.st.unlock.hand_min+"분 · "+esc(S3.st.unlock.reason||"")):"누르면 PC가 오늘 손 작업을 집계해요 · 누르기 전엔 🔒"}</div>`)}<div style="height:20px"></div>
   <div class="grid g2"><div>${oct(`<h2 class="sec">오늘 기록 <span class="cin sm">Today</span></h2>
      <div class="rule"><span>◆</span><span>손작업</span><b class="num" style="margin-left:auto">${wk.hand}분</b></div>
      <div class="rule"><span>◆</span><span>끝낸 퀘스트</span><span class="kv" style="margin-left:auto">${doneQ.length?doneQ.map(t=>esc(t.text)).join(' · '):'없음'}</span></div>
