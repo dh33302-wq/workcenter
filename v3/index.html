@@ -141,6 +141,19 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
 }
 @media(min-width:800px) and (max-width:1100px){#main{max-width:100%}#nav{padding-left:8px;padding-right:8px}.g3{gap:14px}.dept .in{gap:12px;padding:16px}.dept .nm{font-size:calc(20px*var(--s))}}
 @media(min-width:1400px){#main{max-width:1180px}#nav{padding-left:calc((100% - 1180px)/2);padding-right:calc((100% - 1180px)/2)}}
+
+/* 3D 탭 */
+#r-world{--rc:var(--gold)}
+#r-world.on{display:block}
+#w-host{position:relative;width:100%;height:calc(100vh - 150px);min-height:360px;max-height:760px;background:#07070a;border:1px solid #2a2418;border-radius:10px;overflow:hidden;touch-action:none;user-select:none}
+#w-cv{width:100%;height:100%;display:block}
+#w-hud{position:absolute;left:10px;top:8px;right:10px;display:flex;justify-content:space-between;color:var(--ivory);font:600 13px system-ui,"Malgun Gothic",sans-serif;pointer-events:none}
+#w-lab{color:var(--gold)}
+#w-joy{position:absolute;left:22px;bottom:26px;width:112px;height:112px;border-radius:50%;background:#ffffff14;border:1px solid #ffffff30;display:flex;align-items:center;justify-content:center;touch-action:none}
+#w-joy i{width:48px;height:48px;border-radius:50%;background:#CEA85Ecc;display:block}
+#w-go{position:absolute;right:22px;bottom:34px;min-width:96px;min-height:52px;border-radius:26px;border:1px solid var(--gold);background:#0B0B0C;color:var(--gold);font:700 15px system-ui,"Malgun Gothic",sans-serif;opacity:.35;transition:opacity .15s}
+#w-host.near #w-go{opacity:1;box-shadow:0 0 14px #CEA85E88}
+#w-hint{position:absolute;left:0;right:0;bottom:4px;text-align:center;margin:0;font-size:11px;color:var(--dim);pointer-events:none}
 </style>
 </head>
 <body>
@@ -156,6 +169,7 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
   <section id="r-director" class="room"></section>
   <section id="r-studio" class="room"></section>
   <section id="r-ops" class="room"></section>
+  <section id="r-world" class="room"></section>
   <section id="r-out" class="room"></section>
 </main>
 <nav id="nav"></nav>
@@ -269,13 +283,13 @@ const Q={
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
 const V3_STATES=['jobs','meta','notices','tasks','hq_approvals'];
-const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['out','퇴근','moon','--gold']];
-const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',out:'#CEA85E'};
+const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
+const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
 const S3={st:lsGet('v3_state',{}),room:'lobby',cur:0,answers:lsGet('v3_ans',{})};
 
 // ---- 그림(직접 그린 SVG) ----
-function icon(k){const p={hex:'<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/>',check:'<path d="M5 12.5l4.5 4.5L19 7"/>',keys:'<path d="M5 18V8M12 18V5M19 18v-7"/><circle cx="5" cy="8" r="1.6"/><circle cx="12" cy="5" r="1.6"/><circle cx="19" cy="11" r="1.6"/>',org:'<rect x="9" y="3" width="6" height="5"/><rect x="3" y="16" width="6" height="5"/><rect x="15" y="16" width="6" height="5"/><path d="M12 8v4M6 16v-4h12v4"/>',moon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>'}[k];
+function icon(k){const p={hex:'<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/>',check:'<path d="M5 12.5l4.5 4.5L19 7"/>',keys:'<path d="M5 18V8M12 18V5M19 18v-7"/><circle cx="5" cy="8" r="1.6"/><circle cx="12" cy="5" r="1.6"/><circle cx="19" cy="11" r="1.6"/>',org:'<rect x="9" y="3" width="6" height="5"/><rect x="3" y="16" width="6" height="5"/><rect x="15" y="16" width="6" height="5"/><path d="M12 8v4M6 16v-4h12v4"/>',cube:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5"/>',moon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>'}[k];
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`}
 function medallion(k,color,size){
   let t='';for(let i=0;i<24;i++){const a=i*15*Math.PI/180,r1=44,r2=i%6?47:49;t+=`<line x1="${50+r1*Math.sin(a)}" y1="${50-r1*Math.cos(a)}" x2="${50+r2*Math.sin(a)}" y2="${50-r2*Math.cos(a)}"/>`}
@@ -453,7 +467,8 @@ function nav(){$('#nav').style.display=S3.room==='title'?'none':'';$('#nav').inn
 function render(){
   document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
-  ({lobby,director,studio,ops,out,title})[S3.room]?.();
+  if(S3.room!=='world'&&window.World&&World.on)World.stop();
+  ({lobby,director,studio,ops,out,title,world})[S3.room]?.();
   nav();
 }
 function route(){
@@ -505,6 +520,20 @@ function giveErgo(key,amt){const given=lsx('ergo_given',{}),dk=today()+'|'+key;i
 function sndBtn(){const b=$('#snd');if(b)b.textContent=lsx('snd',true)?'🔊':'🔇'}
 document.addEventListener('click',e=>{if(e.target.id==='snd'){lsSet('v3_snd',!lsx('snd',true));sndBtn();sfx('tick')}});
 ergoShow(ergoGet());sndBtn();
+
+// ---- game2: 3D 키우기 탭 (열 때만 three.js 로딩) ----
+let worldLoad=null;
+function loadScript(u){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=()=>no(new Error(u));document.head.appendChild(e)})}
+function staffStates(){const J=jobs();return STAFF.map(([d,n,c,ids])=>{const js=J.filter(j=>ids.includes(j.id));return js.find(j=>j.status==='멈춤'||j.status==='막힘')?'block':js.find(j=>j.status==='진행')?'work':'rest'})}
+function world(){
+  const el=$('#r-world');
+  if(window.World&&World.on){World.setStaff(staffStates());return}
+  el.innerHTML='<div id="w-host"><p class="why" style="padding:40px;text-align:center">3D 공간 불러오는 중…</p></div>';
+  const go=()=>{const h=$('#w-host');if(!h||S3.room!=='world')return;World.start(h);World.setStaff(staffStates())};
+  if(window.THREE&&window.World)return go();
+  worldLoad=worldLoad||loadScript('world/three.min.js').then(()=>loadScript('world/world.js'));
+  worldLoad.then(go).catch(e=>{worldLoad=null;el.innerHTML='<p class="why" style="padding:40px">3D를 못 불러왔어요 ('+e.message+'). 아래 메뉴로 모두 쓸 수 있어요.</p>'});
+}
 </script>
 </body>
 </html>
