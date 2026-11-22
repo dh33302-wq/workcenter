@@ -303,7 +303,7 @@ const Q={
 };
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','codex_today','unlock','later_list'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','codex_today','unlock','later_list','audit_sample'];
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
@@ -373,10 +373,20 @@ function director(){
   $('#r-director').innerHTML=`<h1>대표실</h1><p class="lead">컨펌은 한 건씩, 대화하듯 고르면 돼요 <em class="draft">초안</em></p>${A.demo?'<div class="demo">예시 데이터예요 (?demo=1). 실제 결재함은 아직 연결 전이에요.</div>':''}${hz()}
   <div class="grid g2"><div>${main}</div><div style="display:grid;gap:20px;align-content:start">
    ${oct(`<h2 class="sec">컨펌 규칙 <em class="draft">초안</em></h2>${rules.map(r=>`<div class="rule"><span>◆</span><span><b>${esc(r[0])}</b><br><span class="kv">${esc(r[1])}</span></span></div>`).join('')}`)}
-   ${oct(`<h2 class="sec">표본 감사</h2><div class="num" style="font-size:28px">${A.audit?A.audit.n:'–'}<span class="kv"> / ${A.audit?A.audit.of:20}</span></div><div class="prog"><i style="width:${A.audit?Math.round(A.audit.n/A.audit.of*100):0}%"></i></div>`)}
+   ${auditCard()}
    ${answered?oct(`<h2 class="sec">내가 답한 것</h2>${answered}`):''}
   </div></div>`;
 }
+function auditData(){const a=S3.st.audit_sample||{};const wk=a.week,items=a.items||[],loc=lsGet('v3_aud',{}),mine=loc.week===wk?loc.a||{}:{},srv=a.answers||{};const ans=Object.assign({},srv,mine);return {wk,items,ans}}
+function auditCard(){
+  const {wk,items,ans}=auditData();
+  if(!items.length)return oct(`<h2 class="sec">표본 감사 <span class="cin sm">Audit</span></h2><div class="empty">이번 주 표본이 아직 없어요</div>`);
+  const n=items.filter(x=>ans[x.id]).length,nx=items.find(x=>!ans[x.id]),bad=items.filter(x=>ans[x.id]==='X').length;
+  const src=nx&&/^https?:/.test(nx.source||'')?`<a class="kv" href="${esc(nx.source)}" target="_blank" rel="noopener">원문 링크 열기</a>`:`<span class="kv">${nx?esc(nx.source||''):''}</span>`;
+  return oct(`<h2 class="sec">표본 감사 <span class="cin sm">${esc(wk||'')}</span></h2><div class="num" style="font-size:28px">${n}<span class="kv"> / ${items.length}${bad?' · X '+bad:''}</span></div><div class="prog"><i style="width:${Math.round(n/items.length*100)}%"></i></div>
+   ${nx?`<div class="rule" style="border:0"><span>◇</span><span><b>${esc(nx.title)}</b><br>${esc(nx.claim)}<br>${src}<br><span class="kv">${esc(nx.where||'')}</span></span></div>
+   <div class="nav2"><button class="btn pri2" data-aud="${esc(nx.id)}" data-c="O">⭕ 맞아요</button><button class="btn" data-aud="${esc(nx.id)}" data-c="X">❌ 이상해요</button></div>`:'<div class="kv">✅ 이번 주 20개 감사 끝! 관제센터가 X 항목을 다시 확인해요</div>'}`)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-aud]');if(!b)return;const a=S3.st.audit_sample||{},loc=lsGet('v3_aud',{});const cur=loc.week===a.week?loc:{week:a.week,a:{}};cur.a[b.dataset.aud]=b.dataset.c;lsSet('v3_aud',cur);Q.add('audit_answer',{week:a.week,id:b.dataset.aud,choice:b.dataset.c});Sync3.flush();toast(b.dataset.c==='O'?'⭕ 기록했어요':'❌ 다시 확인 목록에 올렸어요');render()});
 document.addEventListener('click',e=>{
   const p=e.target.closest('[data-pick]');
   if(p){const list=pending(),it=list[S3.cur];if(!it)return;const o=it.options[+p.dataset.pick];
