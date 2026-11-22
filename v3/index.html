@@ -158,6 +158,12 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
 #w-atk,#w-dod{position:absolute;border-radius:50%;border:1px solid #ffffff40;background:#CEA85Ecc;color:#111;font-size:30px;touch-action:none;user-select:none;-webkit-user-select:none}
 #w-atk{right:26px;bottom:34px;width:84px;height:84px}
 #w-dod{right:124px;bottom:26px;width:56px;height:56px;font-size:22px;background:#7AA4D2cc}
+
+.qzv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.qzc video{width:100%;aspect-ratio:16/9;background:#0b0b0c;display:block}
+.qzc .btn{width:100%;margin-top:6px}
+.qzc.pk{outline:2px solid var(--gold)}
+.qze{background:var(--bg-row);padding:10px 12px;margin:8px 0;line-height:1.6;font-size:calc(14px*var(--s))}
 </style>
 </head>
 <body>
@@ -286,7 +292,7 @@ const Q={
 };
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','quiz_ab'];
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
@@ -384,7 +390,7 @@ function studio(){
   $('#r-studio').innerHTML=`<h1>작업실</h1><p class="lead">대표가 직접 만드는 곳 <em class="draft">초안</em></p>${hz()}
   ${oct(`<h2 class="sec">마일스톤 · 포폴 릴 <span class="cin sm">Milestone</span></h2><div class="stages">${st}</div>`)}
   <div class="grid g2" style="margin-top:20px">
-   <div>${oct(`<h2 class="sec">오늘 할 일 <span class="cin sm">Quest</span></h2>${tk.length?tk.map(t=>{const k=t.key||t.text,d=dn[k];return `<button class="qrow ${d?'done':''}" data-q="${esc(k)}"><i></i><span>${esc(t.text)}<br><small>${esc(t.src||'')}</small></span></button>`}).join(''):'<div class="empty">오늘 할 일이 아직 없어요</div>'}
+   <div>${quizCard()}<div style="height:20px"></div>${oct(`<h2 class="sec">오늘 할 일 <span class="cin sm">Quest</span></h2>${tk.length?tk.map(t=>{const k=t.key||t.text,d=dn[k];return `<button class="qrow ${d?'done':''}" data-q="${esc(k)}"><i></i><span>${esc(t.text)}<br><small>${esc(t.src||'')}</small></span></button>`}).join(''):'<div class="empty">오늘 할 일이 아직 없어요</div>'}
      <div class="prog"><i style="width:${tk.length?Math.round(doneN/tk.length*100):0}%;background:var(--blue)"></i></div><div class="kv">퀘스트 ${doneN}/${tk.length}</div>
      <div class="nav2"><label class="kv"><input type="checkbox" id="fxbox" ${fx?'checked':''}> QUEST CLEAR 연출</label></div>`)}
     ${oct(`<h2 class="sec">트로피 <span class="cin sm">Trophy</span> <em class="draft">초안 · 동현 확인 전</em></h2><div class="num big2">${pc}%<span class="kv"> ${got}/${tot}</span></div><div class="prog"><i style="width:${pc}%;background:var(--blue)"></i></div>
@@ -408,6 +414,48 @@ document.addEventListener('click',e=>{
   if(b=e.target.closest('[data-stage]')){lsSet('v3_stage',+b.dataset.stage);render();return}
   if(e.target.id==='fxbox'){lsSet('v3_fx',e.target.checked);return}
   if(b=e.target.closest('[data-staff]')){S3.staff=S3.staff===b.dataset.staff?null:b.dataset.staff;render()}
+});
+
+// ---- 일일 퀘스트: 모션 고르기 (A vs B, 하루 3문제, 정답 없음) ----
+const QZU={};
+function quizData(){const q=S3.st.quiz_ab;return q&&Array.isArray(q.questions)&&q.questions.length?q:null}
+function quizAns(q){const l=lsx('qz_ans',{});return Object.assign({},q.answered||{},l[q.date]||{})}
+async function quizClips(q){
+  for(const x of q.questions)for(const o of (x.options||[])){
+    const cid='v2_'+o.id;if(!o.clip_state||QZU[cid])continue;QZU[cid]='wait';
+    try{let c=lsGet('wc_cl_'+cid,null);
+      if(!c){const r=await api.get([o.clip_state]);c=r.state&&r.state[o.clip_state];if(c&&c.id===cid){try{localStorage.setItem('wc_cl_'+cid,JSON.stringify(c))}catch(e){}}else c=null}
+      if(c){const bin=atob(c.b64),u8=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u8[i]=bin.charCodeAt(i);QZU[cid]=URL.createObjectURL(new Blob([u8],{type:c.mime||'video/mp4'}));
+        document.querySelectorAll(`video[data-cid="${cid}"]`).forEach(v=>{v.src=QZU[cid];v.play().catch(()=>{})})}else delete QZU[cid]
+    }catch(e){delete QZU[cid]}
+  }
+}
+function quizCard(){
+  const q=quizData();
+  if(!q)return oct(`<h2 class="sec">일일 퀘스트 <span class="cin sm">Daily</span></h2><div class="empty">오늘 문제를 아직 못 받았어요(PC 지킴이가 가져오면 나타나요)</div>`);
+  setTimeout(()=>quizClips(q),0);
+  const ans=quizAns(q),n=q.questions.length,got=q.questions.filter(x=>ans[x.qid]).length,open=lsx('qz_open',null);
+  const old=q.date!==today();
+  const rows=q.questions.map((x,i)=>{
+    const pk=ans[x.qid],ab=pk?(pk==='A'||pk==='B'?pk:(x.options[0].id===pk?'A':'B')):null,isOpen=open===x.qid||(open===null&&!pk&&q.questions.findIndex(z=>!ans[z.qid])===i);
+    const vids=`<div class="qzv">${(x.options||[]).map((o,k)=>`<div class="qzc ${ab==='AB'[k]?'pk':''}"><video data-cid="v2_${esc(o.id)}" muted loop playsinline autoplay preload="auto"${QZU['v2_'+o.id]&&QZU['v2_'+o.id]!=='wait'?` src="${QZU['v2_'+o.id]}"`:''}></video><button class="btn" data-qza="${esc(x.qid)}|${'AB'[k]}" ${pk?'disabled':''}>${'AB'[k]} 쪽</button></div>`).join('')}</div>`;
+    const exp=ab&&x.card_lines&&x.card_lines[ab]?`<div class="qze">${x.card_lines[ab].map(l=>`<div>${esc(l)}</div>`).join('')}<div class="kv">해설 대본(인강식)은 선생님 대본이 오면 이어서 붙어요 <em class="draft">초안</em></div></div>`:'';
+    return `<div class="qzr ${pk?'done':''}"><button class="qrow ${pk?'done':''}" data-qzo="${esc(x.qid)}"><i></i><span>${i+1}. ${esc(x.motion_type||x.type||'')} — ${esc((x.question||'').replace(/\(.*\)/,''))}</span></button>${isOpen?vids+exp:''}</div>`}).join('');
+  let sum='';
+  if(got===n){const key=q.questions.map(x=>{const p=ans[x.qid];return p==='A'||p==='B'?p:(x.options[0].id===p?'A':'B')}).join(''),sm=(q.summary||{})[key];
+    if(sm)sum=`<div class="qze"><b>🦡 오늘 종합</b>${(sm.lines||[]).map(l=>`<div>${esc(l)}</div>`).join('')}</div>`}
+  return oct(`<h2 class="sec">일일 퀘스트 <span class="cin sm">Daily</span></h2><div class="kv">${esc(q.criterion||'')}${old?` · ${esc(String(q.date).slice(5))} 문제(오늘 새 문제 전)`:''}</div>${rows}${sum}
+    <div class="prog"><i style="width:${Math.round(got/n*100)}%;background:var(--blue)"></i></div><div class="kv">${got}/${n} ${got===n?'· QUEST CLEAR':''}</div>`);
+}
+document.addEventListener('click',e=>{
+  let b;
+  if(b=e.target.closest('[data-qzo]')){const k=b.dataset.qzo;lsSet('v3_qz_open',lsx('qz_open',null)===k?'':k);render();return}
+  if(b=e.target.closest('[data-qza]')){const [qid,ab]=b.dataset.qza.split('|'),q=quizData();if(!q)return;const x=q.questions.find(z=>z.qid===qid);if(!x)return;
+    const l=lsx('qz_ans',{});l[q.date]=l[q.date]||{};if(l[q.date][qid]||(q.answered||{})[qid])return;l[q.date][qid]=ab;lsSet('v3_qz_ans',l);
+    Q.add('quiz_v2_answer',{key:qid,qid,date:q.date,type:x.type,options:x.options.map(z=>z.id),pick:x.options['AB'.indexOf(ab)].id,reasons:[],blind:false,watch_s:0,speed:1,narration_played:false});Sync3.flush();
+    giveErgo('qz|'+q.date+'|'+qid,10);const nx=q.questions.find(z=>!quizAns(q)[z.qid]);lsSet('v3_qz_open',nx?nx.qid:qid);
+    if(q.questions.every(z=>quizAns(q)[z.qid]))setTimeout(questClear,900);
+    render();return}
 });
 
 // ---- 운영실 ----
