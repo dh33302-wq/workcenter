@@ -175,6 +175,8 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
 .qze{background:var(--bg-row);padding:10px 12px;margin:8px 0;line-height:1.6;font-size:calc(14px*var(--s))}
 
 .cxs{margin:12px 0;line-height:1.6}.cxs>b{display:block;margin-bottom:6px;color:var(--gold)}.cxcs{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cxc{background:var(--bg-row);padding:10px 12px}.cxin{width:100%;box-sizing:border-box;background:#0f0f11;color:var(--ivory);border:1px solid #2a2418;border-radius:6px;padding:8px 10px;font:inherit;margin:6px 0}.cxt{overflow-x:auto}.cxt table{border-collapse:collapse;width:100%;font-size:calc(13px*var(--s))}.cxt th,.cxt td{border:1px solid #2a2a2e;padding:4px 8px;white-space:nowrap;text-align:left}.cxt td.num{text-align:right}.cxe{padding:6px 10px;margin:6px 0;background:var(--bg-row);border-left:3px solid #666}.cxe.tf{border-color:#68B096}.cxe.ti{border-color:#7AA4D2}.cxe.tp{border-color:#CEA85E}.cxd{padding:6px 10px;background:#15151a;margin:4px 0}.cxv{display:flex;gap:8px;margin:6px 0}.cxv .btn.on{background:var(--gold);color:#111}.cxcard{border-top:1px solid #222;padding:10px 0}
+
+.ttnow{background:rgba(206,168,94,.16);border-left:3px solid var(--gold)}
 </style>
 </head>
 <body>
@@ -303,7 +305,7 @@ const Q={
 };
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','codex_today','unlock','later_list','audit_sample'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','codex_today','unlock','later_list','audit_sample','timetable','croquis'];
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
@@ -418,7 +420,7 @@ function studio(){
       ${TROPHIES.map(([id,nm,L])=>`<div class="tgrp"><b>${nm}</b>${L.map((x,i)=>{const k=id+i;return `<button class="trow ${tr[k]?'got':''}" data-t="${k}"><i></i>${esc(x)}</button>`}).join('')}</div>`).join('')}
       <div class="kv">눌러서 달성 표시(이 기기에만 저장). 레벨·경험치는 없어요.</div>`)}</div>
    <div style="display:grid;gap:20px;align-content:start">
-    ${lockCard()}${laterCard()}
+    ${ttCard()}${croquisCard()}${lockCard()}${laterCard()}
     ${oct(`<h2 class="sec">오늘 작업 시간 <span class="cin sm">Session</span></h2><div class="kv" style="text-align:center">손작업</div><div class="clk2 num">${fmt(wk.hand)}</div>
       ${bar('손작업',wk.hand)}${bar('준비 (AI 대화)',wk.prep)}${bar('작업 외',wk.other)}
       <div class="nav2"><button class="btn" data-add="hand">손작업 +10분</button><button class="btn" data-add="prep">준비 +10</button><button class="btn" data-add="other">작업 외 +10</button></div>
@@ -513,6 +515,32 @@ function ops(){
   </div></div>`;
 }
 document.addEventListener('change',e=>{const i=e.target.closest('[data-use]');if(i){const v=i.value===''?null:Math.max(0,Math.min(100,+i.value));lsSet('v3_use_'+i.dataset.use,v);render()}});
+// ---- 시간표 v2 (11/22 control timetable_v2): 출근 버튼 시각 T0 기준, 지금 교시 강조 ----
+function ttCard(){
+  const t=S3.st.timetable;
+  if(!t)return oct(`<h2 class="sec">오늘 시간표 <span class="cin sm">Timetable</span></h2><div class="empty">PC 지킴이 응답을 기다려요</div>`);
+  if(t.kind==='sun')return oct(`<h2 class="sec">오늘 시간표 <span class="cin sm">Timetable</span></h2><div class="num big2">😴 쉬는 날</div><div class="kv">일요일은 쉬어요 · 벌점 없음</div>`);
+  const ph={before:'출근 전',work:'수업 중',lunch:'점심',break:'쉬는 시간',done:'오늘 끝'}[t.phase]||'';
+  return oct(`<h2 class="sec">오늘 시간표 <span class="cin sm">Timetable</span></h2>
+   <button class="btn pri2 bl" id="tt-in" ${t.clocked_in?'disabled':''}>${t.clocked_in?'🌅 출근 '+esc(t.t0):'🌅 출근하기 (지금이 기준)'}</button>
+   <div class="kv">${ph}${t.clocked_in?' · 퇴근 '+esc(t.end):''}${t.note?' · '+esc(t.note):''}</div>
+   ${(t.rows||[]).map((r,i)=>`<div class="rule${i===t.cur?' ttnow':''}" ${t.preview?'style="opacity:.6"':''}><span class="num">${esc(r.start)}</span><span><b>${esc(r.n)}</b> <small>${esc(r.name)}</small></span>${i===t.cur?'<b style="margin-left:auto;color:var(--gold)">◀ 지금</b>':''}</div>`).join('')}`);
+}
+// ---- 오늘 크로키 카드: 키포즈 프레임 번호 · 타이머 15분 · 맥스에서 열기 · O/X (사진 업로드·웹 3D는 안 함) ----
+function croquisCard(){
+  const c=S3.st.croquis||{},h=`<h2 class="sec">오늘 크로키 <span class="cin sm">Croquis</span></h2>`;
+  if(!c.ready)return oct(h+`<div class="empty">오늘 키포즈가 아직 안 왔어요 (선생님이 정하면 나타나요)</div>`);
+  const left=c.timer_start?Math.max(0,(c.timer_min||15)*60-(Math.floor(Date.now()/1000)-c.timer_start)):null,mm=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
+  const r=c.result;
+  return oct(h+`<div class="kv">${esc(c.char||'')} · ${esc(c.clip||'')}</div>
+   <div class="kv">키포즈 프레임 <b class="num">${(c.frames||[]).map(f=>f+'f').join(' · ')||'–'}</b>${c.fps?' · '+c.fps+'fps':''} <small>(내 캐릭터에도 같은 프레임에 T/A포즈 키가 미리 찍혀 있어요)</small></div>
+   ${(c.why||[]).map(w=>`<div class="kv">◇ ${esc(w)}</div>`).join('')}
+   <div class="num big2" id="cq-t">${left===null?'15:00':(left>0?mm(left):'⏰ 끝')}</div>
+   <div class="nav2"><button class="btn" id="cq-start" ${left!==null?'disabled':''}>🎨 크로키 15분 시작</button><button class="btn" id="cq-open" ${c.max_ready?'':'disabled'}>🧊 맥스에서 열기</button></div>
+   ${c.max_ready?'':'<div class="kv">맥스 크로키 파일은 PC 준비 후 열려요</div>'}
+   ${r?`<div class="kv">채점 ${(r.top||[]).map(esc).join(' · ')||'–'} ${esc(r.score_note||'')}</div><div class="nav2"><button class="btn" data-cqox="O" ${r.ox?'disabled':''}>⭕ 맞게 채점</button><button class="btn" data-cqox="X" ${r.ox?'disabled':''}>❌ 내 의도였음</button></div>${r.ox?`<div class="kv">기록: ${esc(r.ox)}</div>`:''}`:''}`);
+}
+setInterval(()=>{const c=(S3.st||{}).croquis,el=document.getElementById('cq-t');if(!c||!el||!c.timer_start)return;const l=Math.max(0,(c.timer_min||15)*60-(Math.floor(Date.now()/1000)-c.timer_start));el.textContent=l>0?String(Math.floor(l/60)).padStart(2,'0')+':'+String(l%60).padStart(2,'0'):'⏰ 끝'},1000);
 // ---- 시스템 구축 잠금 (11/22 control clockout_lock): 퇴근 전 = 항상 🔒, 퇴근 집계 뒤 🖐️ 6시간 또는 진도 100%면 🔓 ----
 function lockCard(){
   const u=S3.st.unlock||{locked:true,clocked_out:false,hand_min:0,need_min:360,progress_pct:null},h=Math.floor((u.hand_min||0)/60),m=(u.hand_min||0)%60,pc=u.progress_pct==null?'미집계':u.progress_pct+'%';
@@ -527,6 +555,10 @@ function laterCard(){
    ${L.length?L.map(x=>`<div class="rule"><span>◇</span><span class="kv">${esc(x.text||'')}</span></div>`).join(''):'<div class="empty">비어 있어요</div>'}`)}
 document.addEventListener('click',e=>{
   if(e.target.id==='later-add'){const el=$('#later-in'),v=el&&el.value.trim();if(!v)return;Q.add('later_note',{text:v});Sync3.flush();el.value='';toast('📝 나중 목록에 적었어요');return}
+  if(e.target.id==='tt-in'){Q.add('clockin',{date:today()});Sync3.flush();toast('🌅 출근했어요 · 지금부터 시간표 시작');return}
+  if(e.target.id==='cq-start'){Q.add('croquis_start',{date:today()});Sync3.flush();toast('🎨 크로키 15분 시작');return}
+  if(e.target.id==='cq-open'){Q.add('croquis_open',{date:today()});Sync3.flush();toast('🧊 맥스를 여는 중…');return}
+  const ox=e.target.closest&&e.target.closest('[data-cqox]');if(ox){Q.add('croquis_ox',{ox:ox.dataset.cqox});Sync3.flush();toast('기록했어요');return}
   if(e.target.id==='o-clock'){Q.add('clockout',{date:today()});Sync3.flush();toast('🌙 퇴근 집계를 시작했어요');return}
 });
 
