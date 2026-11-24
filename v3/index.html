@@ -179,6 +179,15 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
 .ttnow{background:rgba(206,168,94,.16);border-left:3px solid var(--gold)}
 .rvbox{position:relative;margin:12px 0;background:#000;max-width:100%}.rvbox video{display:block;width:100%;max-height:70vh;background:#000}.rvtap{position:absolute;inset:0;cursor:pointer}
 .rvbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:8px}a.rvrow{text-decoration:none;color:inherit}
+/* 편집 모드 (11/25) */
+.oct>.in{padding:calc(24px*var(--cs,1))}
+@media(max-width:700px){.oct>.in{padding:calc(16px*var(--cs,1))}}
+#editp{position:fixed;left:8px;right:8px;bottom:calc(76px*var(--s));z-index:60;background:var(--bg-panel);border:1px solid var(--gold);padding:12px 14px;display:grid;gap:8px;font-size:15px;max-height:60vh;overflow:auto;box-shadow:0 -6px 30px #000a}
+#editp .ep-h,#editp .ep-f{display:flex;gap:8px;align-items:center;flex-wrap:wrap}#editp .ep-h .btn{margin-left:auto}
+#editp label{display:grid;gap:4px;font-size:14px}#editp input[type=range]{width:100%}
+#editp textarea{width:100%;background:var(--bg-row);color:var(--ivory);border:1px solid var(--line);padding:8px;font:inherit}
+#editp .ep-f .pri2{margin-left:auto}
+@media(min-width:800px){#editp{left:auto;width:420px;right:16px}}
 </style>
 </head>
 <body>
@@ -743,6 +752,59 @@ function world(){
   worldLoad=worldLoad||loadScript('world/three.min.js').then(()=>loadScript('world/world.js'));
   worldLoad.then(go).catch(e=>{worldLoad=null;el.innerHTML='<p class="why" style="padding:40px">3D를 못 불러왔어요 ('+e.message+'). 아래 메뉴로 모두 쓸 수 있어요.</p>'});
 }
+
+// 편집 모드 (11/25 wc_app-1): ①화면 비율(글씨·카드 슬라이더, 기기별=커버/펼침 따로, 바로 적용·저장) ②탭마다 요청 메모 → '업데이트 요청 보내기' 한 번에 control로.
+// 켜는 법: 상단 로고를 길게 누르기(0.8초). 끄기: 패널의 '닫기'.
+const UI_K='v3_ui',MEMO_K='v3_memos',SENT_K='v3_memo_sent';
+const EDIT={on:false};
+function uiDev(){return innerWidth<600?'cover':'open'}
+function uiPrefs(){const p=lsGet(UI_K,{});return {cover:Object.assign({font:1,card:1},p.cover),open:Object.assign({font:1,card:1},p.open)}}
+function uiApply(){
+  const v=uiPrefs()[uiDev()],base=innerWidth<=700?.85:1,r=document.documentElement.style;
+  r.setProperty('--s',(base*v.font).toFixed(3));r.setProperty('--cs',v.card.toFixed(2));
+}
+function uiSet(k,val){const p=uiPrefs();p[uiDev()][k]=Math.min(1.6,Math.max(.7,+val||1));lsSet(UI_K,p);uiApply()}
+function memoHash(m){let h=0;const s=JSON.stringify(m);for(let i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return String(h)}
+function memoList(){const m=lsGet(MEMO_K,{});return ROOMS.filter(r=>(m[r[0]]||'').trim()).map(r=>({tab:r[0],name:r[1],memo:m[r[0]].trim()}))}
+function editPanel(){
+  let el=$('#editp');
+  if(!EDIT.on){if(el)el.remove();document.body.classList.remove('editing');return}
+  document.body.classList.add('editing');
+  if(!el){el=document.createElement('div');el.id='editp';document.body.appendChild(el)}
+  const v=uiPrefs()[uiDev()],room=S3.room,m=lsGet(MEMO_K,{}),list=memoList(),sent=lsGet(SENT_K,{}),same=list.length&&sent.h===memoHash(list);
+  const nm=(ROOMS.find(r=>r[0]===room)||[room,room])[1];
+  el.innerHTML=`<div class="ep-h"><b>✏ 편집 모드</b><span class="kv">${uiDev()==='cover'?'커버 화면':'펼친 화면'}용 설정이에요</span><button class="btn" id="ep-x">닫기</button></div>
+  <label>글씨 크기 <b id="ep-fv">${Math.round(v.font*100)}%</b><input type="range" id="ep-f" min="70" max="160" step="5" value="${Math.round(v.font*100)}"></label>
+  <label>카드 크기 <b id="ep-cv">${Math.round(v.card*100)}%</b><input type="range" id="ep-c" min="70" max="160" step="5" value="${Math.round(v.card*100)}"></label>
+  <label>‘${esc(nm)}’ 탭에 바라는 것<textarea id="ep-m" rows="2" placeholder="예: 이 화면에서 ○○이 더 컸으면 좋겠어요">${esc(m[room]||'')}</textarea></label>
+  <div class="ep-f"><span class="kv">적어 둔 탭 ${list.length}개</span><button class="btn" id="ep-r">비율 되돌리기</button><button class="btn pri2" id="ep-s" ${!list.length||same?'disabled':''}>${same?'✅ 보냄':'업데이트 요청 보내기'}</button></div>`;
+}
+function editToggle(on){EDIT.on=on===undefined?!EDIT.on:on;editPanel();toast(EDIT.on?'✏ 편집 모드 켬':'편집 모드 끔')}
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='ep-f'){uiSet('font',t.value/100);$('#ep-fv').textContent=t.value+'%'}
+  else if(t.id==='ep-c'){uiSet('card',t.value/100);$('#ep-cv').textContent=t.value+'%'}
+  else if(t.id==='ep-m'){const m=lsGet(MEMO_K,{});m[S3.room]=t.value;lsSet(MEMO_K,m)}
+});
+document.addEventListener('change',e=>{if(e.target.id==='ep-m')editPanel()});
+document.addEventListener('click',e=>{
+  const id=e.target.closest('button')?.id;
+  if(id==='ep-x')editToggle(false);
+  else if(id==='ep-r'){const p=uiPrefs();p[uiDev()]={font:1,card:1};lsSet(UI_K,p);uiApply();editPanel()}
+  else if(id==='ep-s'){
+    const list=memoList();if(!list.length)return;const h=memoHash(list);
+    Q.add('ui_request',{build:BUILD,device:uiDev(),viewport:innerWidth+'x'+innerHeight,ui:uiPrefs()[uiDev()],memos:list,h});
+    lsSet(SENT_K,{h,t:Date.now()});Sync3.flush();toast('📨 관제센터로 보냈어요');editPanel();
+  }
+});
+(function(){ // 로고 길게 누르기
+  let t=null;const stop=()=>{clearTimeout(t);t=null};
+  document.addEventListener('pointerdown',e=>{if(e.target.closest('.brand')){stop();t=setTimeout(()=>{t=null;editToggle()},800)}});
+  ['pointerup','pointercancel','pointerleave','pointermove'].forEach(ev=>document.addEventListener(ev,e=>{if(ev==='pointermove'&&Math.abs(e.movementX)+Math.abs(e.movementY)<4)return;stop()}));
+})();
+window.addEventListener('hashchange',()=>{if(EDIT.on)editPanel()});
+window.addEventListener('resize',()=>{uiApply();if(EDIT.on)editPanel()});
+uiApply();
 </script>
 </body>
 </html>
