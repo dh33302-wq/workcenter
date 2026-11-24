@@ -389,7 +389,7 @@ document.addEventListener('click',e=>{
 });
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','codex_today','unlock','later_list','audit_sample','timetable','croquis','hqv_a','hqv_b','hqv_c','hqv_d'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','hqv_a','hqv_b','hqv_c','hqv_d'];
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',hb:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
@@ -684,6 +684,33 @@ function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="
 // ---- Honey Badger HQ 현황판 (11/25): hb\state\gates.json 22칸 = 제품 5묶음 + E2E ----
 const HBG=[['library','HBL 자료실'],['model','HBM 모델'],['animation','HBA 애니메이션'],['render','HBR 렌더'],['hq','HQ 본부 앱'],['e2e','E2E 전체']];
 function gState(g){return g.pass===true?['✅','통과','ok']:(g.value!=null&&g.value!==''?['🟡','재는 중','mid']:['⚪','아직','no'])}
+
+// ---- 리모컨 (11/25): 폰 → inbox kind=remote → PC 지킴이 → state remote_result. 4가지만(상황판·출근·비상정지·유튜브) ----
+const RM_NM={status:'📋 상황판',clockin:'🌅 출근',stop:'🛑 비상정지',youtube:'▶ 유튜브'};
+function rmPend(){return lsGet('v3_rm',[])}
+function rmSend(cmd,extra){
+  const dry=!!S3.rmDry;
+  const d=Object.assign({cmd,t:Date.now()},extra||{});if(dry)d.dry=true;
+  const r=Q.add('remote',d);const L=rmPend().filter(x=>Date.now()-x.at<900000);L.push({id:r.id,cmd,at:Date.now(),dry});lsSet('v3_rm',L);
+  Sync3.flush();toast('📡 보냈어요 → 답 기다리는 중(약 30초)');if(S3.room==='hb')hbBoard()}
+function rmCard(){
+  const R=S3.st.remote_result||{},items=R.items||[],B=R.board||{},L=rmPend();
+  const rows=L.slice().reverse().slice(0,4).map(p=>{const it=items.find(i=>i.id===p.id);
+    const wait=Math.round((Date.now()-p.at)/1000);
+    return `<div class="kv">${RM_NM[p.cmd]||esc(p.cmd)}${p.dry?' (연습)':''} · ${it?(it.ok?'✅ ':'❌ ')+esc(it.msg||''):(wait>180?'⚠️ 답 없음 ('+wait+'초 지남, PC 지킴이 확인)':'⏳ 답 기다리는 중 '+wait+'초')}</div>`}).join('');
+  const lines=(B.lines||[]).map(x=>`<div class="kv">${esc(x)}</div>`).join('');
+  return oct(`<h2 class="sec">📡 리모컨</h2>
+  <div class="grid g2"><button class="btn bl" data-rm="status">📋 상황판</button><button class="btn bl" data-rm="clockin">🌅 출근</button>
+  <button class="btn bl" data-rm="stop" id="rm-stop">${S3.rmArm&&Date.now()-S3.rmArm<5000?'🛑 한 번 더 누르면 정지':'🛑 비상정지'}</button></div>
+  <div style="display:flex;gap:6px;margin-top:8px"><input id="rm-yt" type="url" inputmode="url" placeholder="유튜브 주소" style="flex:1;min-width:0"><button class="btn bl" data-rm="youtube">▶</button></div>
+  <label class="kv"><input type="checkbox" id="rm-dry" ${S3.rmDry?'checked':''}> 연습(PC에서 실제로 안 함)</label>
+  ${rows||'<div class="kv">아직 보낸 명령 없어요</div>'}
+  ${lines?`<div style="margin-top:8px">${B.t?`<div class="kv">상황판 ${esc(String(B.t).slice(5,16).replace('T',' '))}</div>`:''}${lines}</div>`:''}`)}
+document.addEventListener('change',e=>{if(e.target.id==='rm-dry')S3.rmDry=e.target.checked});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(!b)return;const c=b.dataset.rm;
+  if(c==='stop'){if(S3.rmArm&&Date.now()-S3.rmArm<5000){S3.rmArm=0;rmSend('stop',{confirm:true})}else{S3.rmArm=Date.now();toast('한 번 더 누르면 정지 표시를 만들어요');hbBoard();setTimeout(()=>{if(S3.room==='hb')hbBoard()},5200)}return}
+  if(c==='youtube'){const u=(document.getElementById('rm-yt').value||'').trim();if(!/^https?:\/\//.test(u)){toast('유튜브 주소를 붙여 넣어 주세요');return}rmSend('youtube',{url:u});return}
+  rmSend(c)});
 function hbBoard(){
   const H=S3.st.hb_gates||{},G=H.gates||[];
   const n=G.filter(g=>g.pass===true).length;
@@ -694,7 +721,7 @@ function hbBoard(){
   const clips=H.clips||[];
   $('#r-hb').innerHTML=`<h1>현황판</h1><p class="lead">통과 ${n} / ${G.length||22}${H.updated?` · 갱신 ${esc(String(H.updated).slice(5,16).replace('T',' '))}`:''}</p>${hz()}
   ${G.length?`<div class="prog" aria-label="통과 진행"><i style="width:${Math.round(n/G.length*100)}%"></i></div>`:'<div class="empty">현황 파일을 아직 못 받았어요</div>'}
-  <div class="grid g2">${grp}</div>
+  ${rmCard()}<div class="grid g2">${grp}</div>
   ${clips.length?oct(`<h2 class="sec">클립 ${clips.length}</h2>${clips.map(c=>`<details class="gt"><summary>🎞 <b>${esc(c.name||c.id)}</b> <span class="kv">${esc(c.stage||'')}${c.frames?' · '+esc(c.frames)+'f':''}</span></summary><div class="kv">${esc(c.id||'')}${c.updated?' · 갱신 '+esc(String(c.updated).slice(5,16).replace('T',' ')):''}<br>${(c.checks||[]).map(k=>`${k.pass===true?'✅':k.pass===false?'❌':'🟡'} ${esc(k.id)} ${esc(k.value)} ${esc(k.unit)}`).join('<br>')||'검사 기록 없음'}<br>${(()=>{const q=c.vs&&S3.st[c.vs];if(q&&q.b64)return `<video class="hqvid" controls muted loop playsinline preload="metadata" style="width:100%;max-width:480px;border-radius:8px;margin-top:6px" src="data:${esc(q.mime||'video/mp4')};base64,${q.b64}"></video>`;return c.rv?`<a class="btn" href="#review/${esc(c.rv)}">▶ 영상 보기</a>`:'영상 아직 없어요(준비 중)'})()}</div></details>`).join('')}`):''}`;
 }
 function nav(){$('#nav').style.display=S3.room==='title'?'none':'';$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" style="--c:${COLOR[id]}" class="${S3.room===id?'on':''}" ${S3.room===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span></a>`).join('')}
