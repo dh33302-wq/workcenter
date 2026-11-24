@@ -682,7 +682,7 @@ function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="
 // ---- 틀 ----
 
 // ---- Honey Badger HQ 현황판 (11/25): hb\state\gates.json 22칸 = 제품 5묶음 + E2E ----
-const HBG=[['ref','Ref'],['model','Model'],['motion','Motion'],['render','Render'],['hq','HQ'],['e2e','E2E']];
+const HBG=[['library','HBL 자료실'],['model','HBM 모델'],['animation','HBA 애니메이션'],['render','HBR 렌더'],['hq','HQ 본부 앱'],['e2e','E2E 전체']];
 function gState(g){return g.pass===true?['✅','통과','ok']:(g.value!=null&&g.value!==''?['🟡','재는 중','mid']:['⚪','아직','no'])}
 function hbBoard(){
   const H=S3.st.hb_gates||{},G=H.gates||[];
@@ -695,7 +695,7 @@ function hbBoard(){
   $('#r-hb').innerHTML=`<h1>현황판</h1><p class="lead">통과 ${n} / ${G.length||22}${H.updated?` · 갱신 ${esc(String(H.updated).slice(5,16).replace('T',' '))}`:''}</p>${hz()}
   ${G.length?`<div class="prog" aria-label="통과 진행"><i style="width:${Math.round(n/G.length*100)}%"></i></div>`:'<div class="empty">현황 파일을 아직 못 받았어요</div>'}
   <div class="grid g2">${grp}</div>
-  ${clips.length?oct(`<h2 class="sec">클립 ${clips.length}</h2>${clips.map(c=>`<div class="chk"><i></i><span>${esc(c.name||c.id)} <span class="kv">${esc(c.status||'')}</span></span></div>`).join('')}`):''}`;
+  ${clips.length?oct(`<h2 class="sec">클립 ${clips.length}</h2>${clips.map(c=>`<details class="gt"><summary>🎞 <b>${esc(c.name||c.id)}</b> <span class="kv">${esc(c.stage||'')}${c.frames?' · '+esc(c.frames)+'f':''}</span></summary><div class="kv">${esc(c.id||'')}${c.updated?' · 갱신 '+esc(String(c.updated).slice(5,16).replace('T',' ')):''}<br>${(c.checks||[]).map(k=>`${k.pass===true?'✅':k.pass===false?'❌':'🟡'} ${esc(k.id)} ${esc(k.value)} ${esc(k.unit)}`).join('<br>')||'검사 기록 없음'}<br>${c.rv?`<a class="btn" href="#review/${esc(c.rv)}">▶ 영상 보기</a>`:'영상 아직 없어요(준비 중)'}</div></details>`).join('')}`):''}`;
 }
 function nav(){$('#nav').style.display=S3.room==='title'?'none':'';$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" style="--c:${COLOR[id]}" class="${S3.room===id?'on':''}" ${S3.room===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span></a>`).join('')}
 function render(){
