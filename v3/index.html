@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0B0B0C">
 <meta name="robots" content="noindex">
-<title>Honey Badger HQ (v3 시험)</title>
+<title>HB HQ (v3 시험)</title>
 <link rel="icon" href="../icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -682,7 +682,7 @@ function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="
 // ---- 틀 ----
 
 // ---- Honey Badger HQ 현황판 (11/25): hb\state\gates.json 22칸 = 제품 5묶음 + E2E ----
-const HBG=[['library','HBL 자료실'],['model','HBM 모델'],['animation','HBA 애니메이션'],['render','HBR 렌더'],['hq','HQ 본부 앱'],['e2e','E2E 전체']];
+const HBG=[['library','HB Library(자료실)'],['model','HB Model(모델)'],['animation','HB Animation(애니)'],['render','HB Render(렌더)'],['hq','HB HQ(본부 앱)'],['e2e','E2E 전체']];
 function gState(g){return g.pass===true?['✅','통과','ok']:(g.value!=null&&g.value!==''?['🟡','재는 중','mid']:['⚪','아직','no'])}
 
 // ---- 리모컨 (11/25): 폰 → inbox kind=remote → PC 지킴이 → state remote_result. 4가지만(상황판·출근·비상정지·유튜브) ----
