@@ -389,7 +389,7 @@ document.addEventListener('click',e=>{
 });
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','codex_today','unlock','later_list','audit_sample','timetable','croquis'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','codex_today','unlock','later_list','audit_sample','timetable','croquis','hqv_a','hqv_b','hqv_c','hqv_d'];
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',hb:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
@@ -695,7 +695,7 @@ function hbBoard(){
   $('#r-hb').innerHTML=`<h1>현황판</h1><p class="lead">통과 ${n} / ${G.length||22}${H.updated?` · 갱신 ${esc(String(H.updated).slice(5,16).replace('T',' '))}`:''}</p>${hz()}
   ${G.length?`<div class="prog" aria-label="통과 진행"><i style="width:${Math.round(n/G.length*100)}%"></i></div>`:'<div class="empty">현황 파일을 아직 못 받았어요</div>'}
   <div class="grid g2">${grp}</div>
-  ${clips.length?oct(`<h2 class="sec">클립 ${clips.length}</h2>${clips.map(c=>`<details class="gt"><summary>🎞 <b>${esc(c.name||c.id)}</b> <span class="kv">${esc(c.stage||'')}${c.frames?' · '+esc(c.frames)+'f':''}</span></summary><div class="kv">${esc(c.id||'')}${c.updated?' · 갱신 '+esc(String(c.updated).slice(5,16).replace('T',' ')):''}<br>${(c.checks||[]).map(k=>`${k.pass===true?'✅':k.pass===false?'❌':'🟡'} ${esc(k.id)} ${esc(k.value)} ${esc(k.unit)}`).join('<br>')||'검사 기록 없음'}<br>${c.rv?`<a class="btn" href="#review/${esc(c.rv)}">▶ 영상 보기</a>`:'영상 아직 없어요(준비 중)'}</div></details>`).join('')}`):''}`;
+  ${clips.length?oct(`<h2 class="sec">클립 ${clips.length}</h2>${clips.map(c=>`<details class="gt"><summary>🎞 <b>${esc(c.name||c.id)}</b> <span class="kv">${esc(c.stage||'')}${c.frames?' · '+esc(c.frames)+'f':''}</span></summary><div class="kv">${esc(c.id||'')}${c.updated?' · 갱신 '+esc(String(c.updated).slice(5,16).replace('T',' ')):''}<br>${(c.checks||[]).map(k=>`${k.pass===true?'✅':k.pass===false?'❌':'🟡'} ${esc(k.id)} ${esc(k.value)} ${esc(k.unit)}`).join('<br>')||'검사 기록 없음'}<br>${(()=>{const q=c.vs&&S3.st[c.vs];if(q&&q.b64)return `<video class="hqvid" controls muted loop playsinline preload="metadata" style="width:100%;max-width:480px;border-radius:8px;margin-top:6px" src="data:${esc(q.mime||'video/mp4')};base64,${q.b64}"></video>`;return c.rv?`<a class="btn" href="#review/${esc(c.rv)}">▶ 영상 보기</a>`:'영상 아직 없어요(준비 중)'})()}</div></details>`).join('')}`):''}`;
 }
 function nav(){$('#nav').style.display=S3.room==='title'?'none':'';$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" style="--c:${COLOR[id]}" class="${S3.room===id?'on':''}" ${S3.room===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span></a>`).join('')}
 function render(){
