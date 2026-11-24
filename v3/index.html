@@ -223,7 +223,7 @@ const TABS=['home','port','team','plan'];   // BUILD 10 P1: 주제별 4탭 (나�
 const TAB_ALIAS={pipe:'team',noti:'team',work:'port'};
 const JOB_DEADLINE='2027-06-01';   // 🎯 취업 목표(00_확정사항: 2027-06)
 const MONEY_URL='';   // 💰 자산관리 앱 주소(배포되면 넣음). 비면 안내만
-const ASK_TO=[['control','🛰️','팀장'],['anim_teacher','🎓','선생님'],['ref_factory','🏭','공장'],['job_prep','💼','취준실'],['code','🤖','일꾼']];   // BUILD 10: 기본 = 관제센터  // 용어집 v1 말
+const ASK_TO=[['control','🛰️','부대표'],['anim_teacher','🎓','코칭팀'],['ref_factory','📚','자료팀'],['job_prep','💼','취업팀'],['code','💻','개발팀']];   // BUILD 10: 기본 = 관제센터  // 용어집 v1 말
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
@@ -450,10 +450,10 @@ function director(){
     main=oct(`<span class="pri ${it.prio==='P0'?'p0':it.prio==='P1'?'p1':''}">${esc(it.prio||'P2')}</span><span class="kv" style="margin-left:10px">${S3.cur+1} / ${list.length}</span>
       <div class="q">${esc(it.q)}</div><p class="why">${esc(it.why||'')}</p>
       <div class="opts">${(it.options||[]).map((o,i)=>`<button class="optb" data-pick="${i}"><div class="oct"><div class="in"><span class="k">${esc(o.k||String.fromCharCode(65+i))}</span><div><b>${esc(o.label)}</b><small>${esc(o.hint||'')}</small></div></div></div></button>`).join('')}</div>
-      <div class="nav2"><button class="btn" data-skip="1" ${list.length<2?'disabled':''}>다음 건 ▸</button><span class="kv">고르면 결재함 '내 답'에 적히고, 확정은 관제센터가 해요</span></div>`);
+      <div class="nav2"><button class="btn" data-skip="1" ${list.length<2?'disabled':''}>다음 건 ▸</button><span class="kv">고르면 결재함 '내 답'에 적히고, 확정은 부대표가 해요</span></div>`);
   }else{
     const done=Object.keys(S3.answers).length;
-    main=oct(`<div class="q">지금 컨펌할 건이 없어요</div><p class="why">${done?`💬 동현 답함 ${done}건 — 관제센터가 확정할 거예요.`:'결재함이 비어 있거나 아직 연결 전이에요.'}${A.demo?'':' <em class="draft">노션 결재함 연결 대기</em>'}</p>`);
+    main=oct(`<div class="q">지금 컨펌할 건이 없어요</div><p class="why">${done?`💬 동현 답함 ${done}건 — 부대표가 확정할 거예요.`:'결재함이 비어 있거나 아직 연결 전이에요.'}${A.demo?'':' <em class="draft">노션 결재함 연결 대기</em>'}</p>`);
   }
   const answered=Object.entries(S3.answers).map(([id,a])=>`<div class="rule"><span>💬</span><span>${esc(a.q||id)} → <b>${esc(a.label)}</b><br><span class="kv">상태: 동현 답함 · 확정 전</span></span></div>`).join('');
   $('#r-director').innerHTML=`<h1>대표실</h1><p class="lead">컨펌은 한 건씩, 대화하듯 고르면 돼요 <em class="draft">초안</em></p>${A.demo?'<div class="demo">예시 데이터예요 (?demo=1). 실제 결재함은 아직 연결 전이에요.</div>':''}${hz()}
@@ -471,14 +471,14 @@ function auditCard(){
   const src=nx&&/^https?:/.test(nx.source||'')?`<a class="kv" href="${esc(nx.source)}" target="_blank" rel="noopener">원문 링크 열기</a>`:`<span class="kv">${nx?esc(nx.source||''):''}</span>`;
   return oct(`<h2 class="sec">표본 감사 <span class="cin sm">${esc(wk||'')}</span></h2><div class="num" style="font-size:28px">${n}<span class="kv"> / ${items.length}${bad?' · X '+bad:''}</span></div><div class="prog"><i style="width:${Math.round(n/items.length*100)}%"></i></div>
    ${nx?`<div class="rule" style="border:0"><span>◇</span><span><b>${esc(nx.title)}</b><br>${esc(nx.claim)}<br>${src}<br><span class="kv">${esc(nx.where||'')}</span></span></div>
-   <div class="nav2"><button class="btn pri2" data-aud="${esc(nx.id)}" data-c="O">⭕ 맞아요</button><button class="btn" data-aud="${esc(nx.id)}" data-c="X">❌ 이상해요</button></div>`:'<div class="kv">✅ 이번 주 20개 감사 끝! 관제센터가 X 항목을 다시 확인해요</div>'}`)}
+   <div class="nav2"><button class="btn pri2" data-aud="${esc(nx.id)}" data-c="O">⭕ 맞아요</button><button class="btn" data-aud="${esc(nx.id)}" data-c="X">❌ 이상해요</button></div>`:'<div class="kv">✅ 이번 주 20개 감사 끝! 부대표가 X 항목을 다시 확인해요</div>'}`)}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-aud]');if(!b)return;const a=S3.st.audit_sample||{},loc=lsGet('v3_aud',{});const cur=loc.week===a.week?loc:{week:a.week,a:{}};cur.a[b.dataset.aud]=b.dataset.c;lsSet('v3_aud',cur);Q.add('audit_answer',{week:a.week,id:b.dataset.aud,choice:b.dataset.c});Sync3.flush();toast(b.dataset.c==='O'?'⭕ 기록했어요':'❌ 다시 확인 목록에 올렸어요');render()});
 document.addEventListener('click',e=>{
   const p=e.target.closest('[data-pick]');
   if(p){const list=pending(),it=list[S3.cur];if(!it)return;const o=it.options[+p.dataset.pick];
     const a={choice:o.k,label:o.label,q:it.q,t:Date.now()};S3.answers[it.id]=a;lsSet('v3_ans',S3.answers);
     if(!approvals().demo)Q.add('v3_answer',{id:it.id,choice:o.k,label:o.label,q:it.q,state:'💬 동현 답함'});Sync3.flush();
-    toast('💬 답했어요. 관제센터가 확정해요');render();return}
+    toast('💬 답했어요. 부대표가 확정해요');render();return}
   if(e.target.closest('[data-skip]')){S3.cur++;render()}
 });
 
@@ -532,14 +532,14 @@ function cxSet(c,patch){const a=cxStore(),k=c.date+'|'+c.day;a[k]=Object.assign(
 function cxTable(t){return `<div class="cxt"><table><thead><tr>${t.cols.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${t.rows.map(r=>`<tr>${r.map((x,i)=>i?`<td class="num">${esc(x)}</td>`:`<th>${esc(x)}</th>`).join('')}</tr>`).join('')}</tbody></table><div class="kv">단위 ${esc(t.unit||'')}</div></div>`}
 function codexCard(){
   const c=cxData();
-  if(!c)return oct(`<h2 class="sec">일일 퀘스트 · 도감 분석 <span class="cin sm">Codex</span></h2><div class="empty">오늘의 캐릭터를 아직 못 받았어요(선생님이 올리면 나타나요)</div>`);
+  if(!c)return oct(`<h2 class="sec">일일 퀘스트 · 도감 분석 <span class="cin sm">Codex</span></h2><div class="empty">오늘의 캐릭터를 아직 못 받았어요(코칭팀이 올리면 나타나요)</div>`);
   const r=cxRec(c),first=r.first||'',deb=r.debate||[],max=c.debate_max||2,done=!!r.done;
   const chars=c.chars.map(x=>`<div class="cxc"><b>${esc(x.role)}</b> ${esc(x.name)}<br><small>${esc(x.note||'')}</small></div>`).join('');
   const hasFirst=!!r.firstSaved;
-  const ev=hasFirst?`<div class="cxs"><b>③ 선생님 근거</b>${cxTable(c.table)}${(c.evidence||[]).map(e=>`<div class="cxe t${e.tag==='📏'?'f':e.tag==='🔍'?'i':'p'}"><span>${esc(e.tag)}</span> ${esc(e.text)}</div>`).join('')}<div class="kv">📏 사실(토론 대상 아님) · 🔍 해석(반박 가능) · 🎨 취향(동현 결정)</div></div>`:'';
+  const ev=hasFirst?`<div class="cxs"><b>③ 코칭팀 근거</b>${cxTable(c.table)}${(c.evidence||[]).map(e=>`<div class="cxe t${e.tag==='📏'?'f':e.tag==='🔍'?'i':'p'}"><span>${esc(e.tag)}</span> ${esc(e.text)}</div>`).join('')}<div class="kv">📏 사실(토론 대상 아님) · 🔍 해석(반박 가능) · 🎨 취향(동현 결정)</div></div>`:'';
   const debHtml=hasFirst?`<div class="cxs"><b>④ 토론 <small>(반박 ${deb.length}/${max})</small></b>${deb.map(d=>`<div class="cxd">나: ${esc(d)}</div>`).join('')}
-     ${deb.length<max&&!done?`<textarea class="cxin" id="cx-deb" rows="2" placeholder="선생님 해석에 반박하거나 질문 (선택)"></textarea><button class="btn" data-cx="deb">반박 보내기</button>`:''}
-     ${deb.length?'<div class="kv">선생님 답은 PC 선생님 창이 읽고 다음 도감 카드에 붙여요(실시간 아님)</div>':''}</div>`:'';
+     ${deb.length<max&&!done?`<textarea class="cxin" id="cx-deb" rows="2" placeholder="코칭팀 해석에 반박하거나 질문 (선택)"></textarea><button class="btn" data-cx="deb">반박 보내기</button>`:''}
+     ${deb.length?'<div class="kv">코칭팀 답은 PC 코칭팀 창이 읽고 다음 도감 카드에 붙여요(실시간 아님)</div>':''}</div>`:'';
   const vs=['고침','유지','보류'];
   const concl=hasFirst?`<div class="cxs"><b>⑤ 결론 (동현)</b><div class="cxv">${vs.map(v=>`<button class="btn ${r.verdict===v?'on':''}" data-cx="v" data-v="${v}" ${done?'disabled':''}>${v}</button>`).join('')}</div>
      <textarea class="cxin" id="cx-why" rows="2" placeholder="이유 한 줄" ${done?'disabled':''}>${esc(r.why||'')}</textarea>
@@ -576,7 +576,7 @@ document.addEventListener('click',e=>{
     giveErgo('cx|'+c.date+'|'+c.day,20);setTimeout(questClear,300);cxRender()}
 });
 // ---- 운영실 ----
-const STAFF=[['운영실','프로듀서 · 관제센터','#CEA85E',['control']],['파이프라인','툴 프로그래머 · Code','#68B096',['code','code-worker']],['파이프라인','에셋 · 추출기','#68B096',['pipeline','pipeline_stage2','pipeline_stage4']],['파이프라인','레퍼런스 공장','#68B096',['ref_factory']],['작업실','애니메이션 리드 · 선생님','#7AA4D2',['anim_teacher','anim_teacher_explain','teacher_study']],['BD','취업 준비실','#B58AC8',['job_prep']],['재무팀','자산관리실','#D2A27A',['finance','finance-plan3','money-app']],['IT','통합관리 앱 · Eagle 앱','#68B096',['wc_app','app_v3','eagle_app']]];
+const STAFF=[['부대표','🛰️ 부대표 · 판단·설계·팀 지휘','#CEA85E',['control']],['팀','💻 개발팀','#68B096',['code','code-worker']],['자동설비','⚙️ 자동설비 · 추출기','#68B096',['pipeline','pipeline_stage2','pipeline_stage4']],['팀','📚 자료팀','#68B096',['ref_factory']],['팀','🎓 코칭팀','#7AA4D2',['anim_teacher','anim_teacher_explain','teacher_study']],['팀','💼 취업팀','#B58AC8',['job_prep']],['재무','자산관리실','#D2A27A',['finance','finance-plan3','money-app']],['팀','📱 앱팀','#68B096',['wc_app','app_v3','eagle_app']]];
 function mask(c){return `<svg class="npc" viewBox="0 0 60 70" aria-hidden="true"><defs><clipPath id="cp"><rect width="60" height="70"/></clipPath></defs><g fill="#161618" stroke="${c}" stroke-width="1.3" stroke-linejoin="round"><path d="M6 70c0-16 10-24 24-24s24 8 24 24z"/><path d="M30 46v-6"/><path d="M18 22c0-9 5-15 12-15s12 6 12 15c0 9-5 17-12 17s-12-8-12-17z"/></g><g fill="${c}" opacity=".9"><path d="M21 21q4-3 7 0q-3 3-7 0zM32 21q4-3 7 0q-3 3-7 0z"/><path d="M30 24l-2 7h4z" opacity=".5"/></g><path d="M30 7v-4M26 8l-3-3M34 8l3-3" stroke="${c}" stroke-width="1" fill="none"/></svg>`}
 function ops(){
   const J=jobs();
@@ -585,7 +585,7 @@ function ops(){
     return {dept,name,c,ids,js,state,now:now.headline||now.now||'',upd:now.started||''}});
   const on=rows.filter(r=>r.state==='가동').length,off=rows.filter(r=>r.state==='정지').length;
   const stc={가동:'var(--green)',정지:'#E08A7E',대기:'var(--gold)','기록 없음':'var(--dim)'};
-  $('#r-ops').innerHTML=`<h1>운영실</h1><p class="lead">프로듀서(관제센터)가 운영하는 곳 <em class="draft">초안</em></p>${hz()}
+  $('#r-ops').innerHTML=`<h1>운영실</h1><p class="lead">부대표가 운영하는 곳 <em class="draft">초안</em></p>${hz()}
   <div class="grid g2"><div>${oct(`<h2 class="sec">팀 구성 <span class="cin sm">Team</span> <span class="kv" style="float:right">가동 ${on} · 정지 ${off}</span></h2>
     ${rows.map(r=>`<button class="staff ${S3.staff===r.name?'open':''}" data-staff="${esc(r.name)}" style="--sc:${r.c}"><div class="stp">${mask(r.c)}</div><div class="stt"><span class="kv">${r.dept}</span><b>${r.name}</b><small>${esc(r.now)}</small></div><span class="ss" style="color:${stc[r.state]}">◆ ${r.state}</span></button>
       ${S3.staff===r.name?`<div class="sdet">${r.js.length?r.js.slice(0,3).map(j=>`<div class="rule"><span>◇</span><span>${esc(j.headline||j.name)}<br><span class="kv">${esc(j.status)}${typeof j.pct==='number'?' · '+Math.round(j.pct)+'%':''} · ${esc(j.now||'')}</span></span></div>`).join(''):'<div class="empty">연결된 작업 기록이 없어요</div>'}<div class="kv">최근 편지 보기는 연결 전이에요 <em class="draft">초안</em></div></div>`:''}`).join('')}`)}
@@ -613,7 +613,7 @@ function ttCard(){
 // ---- 오늘 크로키 카드: 키포즈 프레임 번호 · 타이머 15분 · 맥스에서 열기 · O/X (사진 업로드·웹 3D는 안 함) ----
 function croquisCard(){
   const c=S3.st.croquis||{},h=`<h2 class="sec">오늘 크로키 <span class="cin sm">Croquis</span></h2>`;
-  if(!c.ready)return oct(h+`<div class="empty">오늘 키포즈가 아직 안 왔어요 (선생님이 정하면 나타나요)</div>`);
+  if(!c.ready)return oct(h+`<div class="empty">오늘 키포즈가 아직 안 왔어요 (코칭팀이 정하면 나타나요)</div>`);
   const left=c.timer_start?Math.max(0,(c.timer_min||15)*60-(Math.floor(Date.now()/1000)-c.timer_start)):null,mm=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
   const r=c.result;
   return oct(h+`<div class="kv">${esc(c.char||'')} · ${esc(c.clip||'')}</div>
@@ -812,7 +812,7 @@ document.addEventListener('click',e=>{
   else if(id==='ep-s'){
     const list=memoList();if(!list.length)return;const h=memoHash(list);
     Q.add('ui_request',{build:BUILD,device:uiDev(),viewport:innerWidth+'x'+innerHeight,ui:uiPrefs()[uiDev()],memos:list,h});
-    lsSet(SENT_K,{h,t:Date.now()});Sync3.flush();toast('📨 관제센터로 보냈어요');editPanel();
+    lsSet(SENT_K,{h,t:Date.now()});Sync3.flush();toast('📨 부대표로 보냈어요');editPanel();
   }
 });
 (function(){ // 로고 길게 누르기
