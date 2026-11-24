@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0B0B0C">
 <meta name="robots" content="noindex">
-<title>HONEY BADGER STUDIO (v3 시험)</title>
+<title>Honey Badger HQ (v3 시험)</title>
 <link rel="icon" href="../icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Noto+Serif+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -194,13 +194,14 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
 <div id="fog"></div>
 <header id="top">
   <div id="top-med"></div>
-  <div class="brand"><span class="cin">HONEY BADGER STUDIO</span><span class="sub2">작업센터 v3 · 시험 화면 <em class="tag">초안</em></span></div>
+  <div class="brand"><span class="cin">HONEY BADGER HQ</span><span class="sub2">본부 앱 v3 · 시험 화면 <em class="tag">초안</em></span></div>
   <div class="clock"><b id="clk-d"></b><span id="clk-t"></span><span id="ergo" title="에르고">◈ <b id="ergo-n">0</b></span><button id="snd" title="효과음 켜기/끄기" aria-label="효과음">🔊</button><span id="sync" title="동기화">●</span></div>
 </header>
 <main id="main">
   <section id="r-title" class="room"></section>
   <section id="r-lobby" class="room"></section>
   <section id="r-director" class="room"></section>
+  <section id="r-hb" class="room"></section>
   <section id="r-studio" class="room"></section>
   <section id="r-ops" class="room"></section>
   <section id="r-world" class="room"></section>
@@ -388,9 +389,9 @@ document.addEventListener('click',e=>{
 });
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','codex_today','unlock','later_list','audit_sample','timetable','croquis'];
-const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
-const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2'};
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','codex_today','unlock','later_list','audit_sample','timetable','croquis'];
+const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
+const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',hb:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
 const S3={st:lsGet('v3_state',{}),room:'lobby',cur:0,answers:lsGet('v3_ans',{})};
 
@@ -674,18 +675,35 @@ document.addEventListener('click',e=>{
 });
 
 // ---- 타이틀 (하루 첫 접속만) ----
-function title(){$('#r-title').innerHTML=`<div class="tmed">${medallion('hex','#CEA85E',120)}</div><div class="cin">HONEY BADGER STUDIO</div><p class="kv tap" style="margin-top:28px;letter-spacing:.3em">누르면 시작</p>`}
+function title(){$('#r-title').innerHTML=`<div class="tmed">${medallion('hex','#CEA85E',120)}</div><div class="cin">HONEY BADGER HQ</div><p class="kv tap" style="margin-top:28px;letter-spacing:.3em">누르면 시작</p>`}
 // ---- 아직 안 만든 방 ----
 function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="lead">다음 단계에서 만들어요 <em class="draft">초안</em></p>${hz()}<div class="soon">${medallion(k,color,120)}<p class="why" style="margin-top:16px">로비·대표실 검증이 끝나면 이어서 만들어요.</p></div>`}
 
 // ---- 틀 ----
+
+// ---- Honey Badger HQ 현황판 (11/25): hb\state\gates.json 22칸 = 제품 5묶음 + E2E ----
+const HBG=[['ref','Ref'],['model','Model'],['motion','Motion'],['render','Render'],['hq','HQ'],['e2e','E2E']];
+function gState(g){return g.pass===true?['✅','통과','ok']:(g.value!=null&&g.value!==''?['🟡','재는 중','mid']:['⚪','아직','no'])}
+function hbBoard(){
+  const H=S3.st.hb_gates||{},G=H.gates||[];
+  const n=G.filter(g=>g.pass===true).length;
+  const grp=HBG.map(([k,nm])=>{const a=G.filter(g=>g.product===k);if(!a.length)return '';
+    const ok=a.filter(g=>g.pass===true).length;
+    return oct(`<h2 class="sec">${nm} <span class="kv">${ok}/${a.length}</span></h2>${a.map(g=>{const [ic,tx]=gState(g);
+      return `<details class="gt"><summary>${ic} <b>${esc(g.id)}</b> ${esc(g.name||'')} <span class="kv">${tx}</span></summary><div class="kv">값: ${g.value!=null&&g.value!==''?esc(g.value):'아직 못 쟀어요'}<br>근거 파일: ${g.evidence?esc(g.evidence):'없음'}<br>잰 시각: ${g.measured_at?esc(g.measured_at):'–'} · 담당 ${esc(g.owner||'')}</div></details>`}).join('')}`)}).join('');
+  const clips=H.clips||[];
+  $('#r-hb').innerHTML=`<h1>현황판</h1><p class="lead">통과 ${n} / ${G.length||22}${H.updated?` · 갱신 ${esc(String(H.updated).slice(5,16).replace('T',' '))}`:''}</p>${hz()}
+  ${G.length?`<div class="prog" aria-label="통과 진행"><i style="width:${Math.round(n/G.length*100)}%"></i></div>`:'<div class="empty">현황 파일을 아직 못 받았어요</div>'}
+  <div class="grid g2">${grp}</div>
+  ${clips.length?oct(`<h2 class="sec">클립 ${clips.length}</h2>${clips.map(c=>`<div class="chk"><i></i><span>${esc(c.name||c.id)} <span class="kv">${esc(c.status||'')}</span></span></div>`).join('')}`):''}`;
+}
 function nav(){$('#nav').style.display=S3.room==='title'?'none':'';$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" style="--c:${COLOR[id]}" class="${S3.room===id?'on':''}" ${S3.room===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span></a>`).join('')}
 function render(){
   {const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('cxin')&&ae.value&&S3.room==='studio')return}
   document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
   if(S3.room!=='world'&&window.World&&World.on)World.stop();
-  ({lobby,director,studio,ops,out,title,world,review})[S3.room]?.();
+  ({lobby,director,studio,ops,out,title,world,review,hb:hbBoard})[S3.room]?.();
   nav();
 }
 function route(){
