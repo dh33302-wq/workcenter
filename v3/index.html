@@ -204,6 +204,18 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
 #rm-yt{background:#0f0f11;color:var(--ivory);border:1px solid #2a2418;border-radius:6px;padding:8px 10px;font:inherit;font-size:16px}
 @media(max-width:480px){#top .brand{min-width:0;overflow:hidden}#top .brand .cin{display:block;font-size:12px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#top{gap:8px;padding:0 12px}#top .brand .tag{display:none}#top .brand .sub2{font-size:11px;white-space:nowrap}#top .clock{flex:none}}
 @media(max-width:380px){#top .brand .sub2{display:none}#top .brand .cin{font-size:10.5px!important}}
+
+/* 기록 방 (11/25) */
+.rect{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.rect .btn{text-align:center;padding:10px 4px;white-space:nowrap}#r-log .btn.on{background:var(--gold);color:#18160C}
+.recnow{font-size:calc(24px*var(--s));font-weight:900}.recnow.off{font-size:calc(17px*var(--s));font-weight:500;color:var(--dim)}
+.recr{align-items:flex-start}.recr>span:nth-child(2){flex:1;min-width:0;overflow-wrap:anywhere}.recr>.num:last-child{white-space:nowrap}.recw{overflow-wrap:anywhere;min-width:0}
+.recday{color:var(--gold);font-weight:700;margin:14px 0 2px}.recq{border-left:3px solid var(--blue);padding:6px 10px;margin:8px 0;overflow-wrap:anywhere}.recg{border-left:3px solid var(--green);padding:6px 10px;margin:8px 0;overflow-wrap:anywhere}
+.dexg{display:grid;grid-template-columns:repeat(auto-fill,minmax(calc(132px*var(--s)),1fr));gap:12px}
+.dexc{all:unset;cursor:pointer;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 8px 12px;background:var(--bg-panel);border:1px solid #2a2a2e;min-width:0;text-align:center;position:relative;transition:transform .15s}
+.dexc svg{width:72%;max-width:110px}.dexc small,.dexc span{color:var(--dim);font-size:calc(13px*var(--s));overflow-wrap:anywhere;max-width:100%}.dexc b{font-size:calc(16px*var(--s));overflow-wrap:anywhere;max-width:100%}.dexc i{font-style:normal;font-size:calc(13px*var(--s));color:var(--dim)}
+.dexc.got{border-color:var(--gold);background:linear-gradient(#1d1a12,#111113)}.dexc.got i,.dexc.td i{color:var(--gold)}.dexc.td{border-color:var(--blue)}.dexc.lock{opacity:.55}.dexc:active{transform:scale(.97)}.dexc:focus-visible{outline:2px solid var(--ivory)}
+#r-log .in,#r-log .kv,#r-log .rule{overflow-wrap:anywhere;min-width:0}
+.rmg{grid-template-columns:1fr 1fr;gap:10px}.rmg .btn{padding:10px 12px;text-align:center}
 </style>
 </head>
 <body>
@@ -219,6 +231,7 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
   <section id="r-director" class="room"></section>
   <section id="r-hb" class="room"></section>
   <section id="r-studio" class="room"></section>
+  <section id="r-log" class="room"></section>
   <section id="r-ops" class="room"></section>
   <section id="r-world" class="room"></section>
   <section id="r-out" class="room"></section>
@@ -404,15 +417,82 @@ document.addEventListener('click',e=>{
   if(st){v.pause();$('#rv-p').textContent='▶';v.currentTime=Math.max(0,Math.min(v.duration||0,v.currentTime+st/RV.fps))}
 });
 
+// 기록 방 (11/25 HB 명령서 6번): ①작업 공간 ②변경 이력(파트별) ③도감 수집. 재료 = state workspace·history·dex. 기록이 없으면 0이 아니라 '기록 없음'.
+const REC_TABS=[['space','🧰 작업 공간'],['chg','🧾 변경 이력'],['dex','🃏 도감']];
+const recH=m=>m>=60?`${Math.floor(m/60)}시간${m%60?' '+m%60+'분':''}`:`${m}분`;
+const recD=s=>{const d=new Date(s+'T00:00:00');return isNaN(d)?esc(s):`${d.getMonth()+1}/${d.getDate()} ${'일월화수목금토'[d.getDay()]}`};
+const recTile=(ic,nm,val,no)=>`<div class="jrt ${no?'no':''}"><span>${ic}</span><b class="num">${val}</b><small>${nm}</small></div>`;
+const recNone=t=>`<div class="empty">${t}</div>`;
+
+// ① 작업 공간: 지금 쓰는 툴(맥스·언리얼·블렌더·Cascadeur·캐릭터 생성)만. 추출 이력은 여기 없음
+function recSpace(){
+  const W=S3.st.workspace;if(!W)return oct(recNone('PC 지킴이가 보내면 나타나요'));
+  const D=W.days||[],d=D.find(x=>x.date===S3.recD)||D[D.length-1];if(!d)return oct(recNone('기록이 아직 없어요'));
+  const isT=d.date===today(),j=((S3.st.journal||{}).days||[]).find(x=>x.date===d.date)||{},tt=S3.st.timetable||{},S=d.sess||[],tot=Object.entries(d.tot||{}).sort((a,b)=>b[1]-a[1]);
+  const live=W.now&&isT&&S3.st.meta&&Date.now()/1000-(S3.st.meta.last_sync||0)<600?W.now:null,sum=tot.reduce((a,b)=>a+b[1],0);
+  const mine=lsx('daily_log',{})[d.date]||{},good=(d.good||[]).concat(mine.good?['(내가 적은 것) '+mine.good]:[]),bad=(d.bad||[]).concat(mine.bad?['(내가 적은 것) '+mine.bad]:[]);
+  const fbad=(d.fb||[]).filter(f=>f.v!=='아니다'&&f.say);
+  return `${D.length>1?`<div class="nav2 jrd" style="margin-bottom:14px">${D.map(x=>`<button class="btn ${x===d?'on':''}" data-recd="${esc(x.date)}">${recD(x.date)}</button>`).join('')}</div>`:''}
+  ${isT?oct(live?`<h2 class="sec">지금</h2><div class="recnow">🟢 ${esc(live.k)}</div><div class="kv">${live.f?esc(live.f)+' · ':''}${live.since?`${esc(live.since)}부터 ${recH(live.min||0)}째`:''}</div>`:`<h2 class="sec">지금</h2><div class="recnow off">맥스·언리얼·캐릭터 생성 툴을 쓰고 있지 않아요</div>`)+'<div style="height:16px"></div>':''}
+  ${oct(`<h2 class="sec">${recD(d.date)} 작업 시간</h2><div class="jrg">
+    ${recTile('🕘','시작',S.length?esc(S[0].a):'기록 없음',!S.length)}${recTile('🏁',isT&&live?'마지막 기록':'끝',S.length?esc(S[S.length-1].b):'기록 없음',!S.length)}
+    ${recTile('🖐️','툴을 쓴 시간',S.length?recH(sum):'기록 없음',!S.length)}${isT&&tt.clocked_in&&tt.end?recTile('🌙','퇴근 예정',esc(tt.end)):''}
+    ${recTile('💾','맥스 저장',j.wl&&j.wl.max_saves!=null&&S.length?j.wl.max_saves+'번':'기록 없음',!(j.wl&&j.wl.max_saves!=null&&S.length))}</div>
+    ${tot.map(([k,m])=>`<div class="rule"><span>◆</span><span>${esc(k)}</span><b class="num" style="margin-left:auto">${recH(m)}</b></div>`).join('')}
+    ${d.rec?`<div class="kv">PC가 기록한 시간 ${esc(d.from)}~${esc(d.to)} (${recH(d.logged)})${S.length?'':' · 그동안 이 툴을 쓴 기록은 없어요'}</div>`:'<div class="kv">이날은 PC 활동 기록이 없어요 (0시간이라는 뜻이 아니에요)</div>'}`)}
+  <div style="height:16px"></div><div class="grid g2">
+   ${oct(`<h2 class="sec">한 일</h2>${S.length?S.slice().reverse().map(s=>`<div class="rule recr"><span class="num">${esc(s.a)}<br>${esc(s.b)}</span><span><b>${esc(s.k)}</b> <small>${esc(s.sub||'')}</small><br><span class="kv">${s.f?esc(s.f)+(s.nf>1?` 외 ${s.nf-1}개`:''):'파일 이름 없음'}</span></span><b class="num">${recH(s.min)}</b></div>`).join(''):recNone('기록 없음')}${d.nsess>S.length?`<div class="kv">앞의 ${d.nsess-S.length}묶음은 줄였어요</div>`:''}
+     ${(j.cmp||[]).map(c=>`<div class="rule"><span>🧊</span><span class="recw">${esc(c)}</span></div>`).join('')}`)}
+   ${oct(`<h2 class="sec">코칭팀 대화 · 피드백</h2>${(d.talk||[]).map(t=>`<div class="recq"><b>🙋 ${esc(t.t)} ${esc(t.q)}</b><br>🎓 ${t.a?esc(t.a):'답 기다리는 중'}</div>`).join('')}
+     ${(d.fb||[]).map(f=>`<div class="recq"><b>${esc(f.m)} ${f.fr?esc(f.fr)+'f':''}</b>${f.me?`<br>🙋 ${esc(f.me)}`:''}<br>🎓 ${esc(f.say||'—')}${f.c?` <small>확신 ${esc(f.c)}</small>`:''}${f.v?`<br>→ ${esc(f.v)}`:''}</div>`).join('')}
+     ${(d.talk||[]).length+(d.fb||[]).length?'':recNone('기록 없음')}<div class="kv">앱에서 물은 것과 키포즈 피드백만 모여요</div>`)}
+   ${oct(`<h2 class="sec">문제점</h2>${bad.concat(fbad.map(f=>`${f.m} ${f.fr?f.fr+'f ':''}— ${f.say}`)).slice(0,6).map(x=>`<div class="jrw">${esc(x)}</div>`).join('')||recNone('기록 없음')}`)}
+   ${oct(`<h2 class="sec">잘한 점</h2>${good.slice(0,5).map(x=>`<div class="recg">${esc(x)}</div>`).join('')||recNone('기록 없음')}`)}
+  </div>`}
+
+// ② 변경 이력: 파트별(팀 결과 편지 제목 · 동현 결정) + 자동 기록 개수
+function recChg(){
+  const H=S3.st.history;if(!H)return oct(recNone('PC 지킴이가 보내면 나타나요'));
+  const P=H.parts||[],p=P.find(x=>x.k===S3.recP)||P[0];if(!p)return oct(recNone('기록이 아직 없어요'));
+  const by={};(p.items||[]).forEach(i=>(by[i.d]=by[i.d]||[]).push(i));const A=H.auto||[],n=S3.recN||12;let left=n;
+  return `<div class="nav2 jrd" style="margin-bottom:14px">${P.map(x=>`<button class="btn ${x===p?'on':''}" data-recp="${esc(x.k)}">${esc(x.n)} <b class="num">${x.total}</b></button>`).join('')}</div>
+  ${oct(`<h2 class="sec">${esc(p.n)} <span class="kv">최근 ${H.days}일 ${p.total}건</span></h2>${Object.keys(by).length?Object.keys(by).map(d=>{const L=by[d].slice(0,left);left-=L.length;return L.length?`<div class="recday">${recD(d)}</div>${L.map(i=>`<div class="rule recr"><span class="num">${esc(i.t)}</span><span class="recw">${i.fix?'<em class="draft">정정</em> ':''}${esc(i.fix?i.x.replace(/^정정:\s*/,''):i.x)}</span></div>`).join('')}`:''}).join(''):recNone('최근 기록이 없어요')}
+   ${p.items.length>n?`<div class="nav2"><button class="btn" data-recmore="1">더 보기 (${p.items.length-n})</button></div>`:p.total>p.items.length?`<div class="kv">최근 ${p.items.length}건까지 보여요</div>`:''}`)}
+  <div style="height:16px"></div>${oct(`<h2 class="sec">자동 기록</h2>${A.length?A.slice().reverse().map(a=>`<div class="rule"><span>${recD(a.d)}</span><span class="kv" style="margin-left:auto">✅ 끝난 작업 ${a.done||0} · 💾 저장 감지 ${a.save||0} · 🎯 통과 ${a.gate||0}${a.err?` · 🔴 오류 ${a.err}`:''}</span></div>`).join(''):recNone('기록 없음')}<div class="kv">저장 감지에는 도구 시험 저장도 섞여 있어요</div>`)}`}
+
+// ③ 도감 수집: 하루 한 캐릭터의 한 모션 = 카드 1장. 그림은 직접 그린 문장(게임 그림 안 씀)
+function dexCards(){const X=(S3.st.dex||{}).cards||[],loc=cxStore();
+  return X.map(c=>{const k=Object.keys(loc).find(q=>q.split('|')[1]===String(c.day)&&loc[q].done),l=k&&loc[k];
+    return Object.assign({},c,{got:c.got||(l?{t:k.split('|')[0],v:l.verdict,why:l.why,take:l.take||[]}:null)})})}
+function dexArt(c){const h=(c.day*67)%360,col=c.got?'#CEA85E':c.ready?'#7AA4D2':'#4a4a4e';let p='';const n=5+c.day%4;for(let i=0;i<n;i++){const a=i/n*Math.PI*2+h/57,b=a+Math.PI/n;p+=`${i?'L':'M'}${50+30*Math.cos(a)} ${50+30*Math.sin(a)}L${50+13*Math.cos(b)} ${50+13*Math.sin(b)}`}
+  return `<svg viewBox="0 0 100 100" aria-hidden="true" fill="none" stroke="${col}" stroke-width="1.6"><circle cx="50" cy="50" r="42" opacity=".5"/><path d="${p}Z" ${c.got?`fill="${col}" fill-opacity=".22"`:''}/>${c.got?`<circle cx="50" cy="50" r="5" fill="${col}"/>`:c.ready?`<circle cx="50" cy="50" r="5"/>`:'<path d="M43 49v-5a7 7 0 0114 0v5M41 49h18v13H41z"/>'}</svg>`}
+function recDex(){
+  if(!S3.st.dex)return oct(recNone('PC 지킴이가 보내면 나타나요'));
+  const C=dexCards(),got=C.filter(c=>c.got).length,op=C.filter(c=>c.ready).length,td=C.find(c=>c.today&&!c.got),sel=C.find(c=>c.day===S3.recC);
+  if(!C.length)return oct(recNone('아직 카드가 없어요. 코칭팀이 올리면 나타나요'));
+  return `${oct(`<h2 class="sec">모은 카드</h2><div class="num big2">${got}<span class="kv"> / ${C.length}장</span></div><div class="prog"><i style="width:${Math.round(got/C.length*100)}%"></i></div><div class="kv">하루에 한 캐릭터의 한 모션 · 열린 카드 ${op}장${td?'':' · 오늘 카드 없음'}</div>
+    ${td?`<div class="nav2"><a class="btn pri2" href="#studio">오늘 카드 모으러 가기 ▸</a></div>`:''}`)}<div style="height:16px"></div>
+  <div class="dexg">${C.map(c=>`<button class="dexc ${c.got?'got':c.ready?'':'lock'} ${c.today?'td':''}" data-recc="${c.day}" aria-label="${c.day}번 카드 ${esc(c.topic)}"><small class="num">No.${String(c.day).padStart(3,'0')}</small>${dexArt(c)}<b>${c.ready||c.got?esc(c.who||c.topic):'???'}</b><span>${c.ready||c.got?esc(c.topic):'준비 중'}</span>${c.got?'<i>✨ 모음</i>':c.today?'<i>오늘</i>':c.ready?'<i>아직</i>':'<i>🔒</i>'}</button>`).join('')}</div>
+  ${sel?`<div style="height:16px"></div><div id="dexd">${oct(`<h2 class="sec">No.${String(sel.day).padStart(3,'0')} ${esc(sel.who||'')} <span class="kv">${esc(sel.stage||'')}</span></h2><div class="rule"><span>◆</span><span>모션 ${esc(sel.topic)}</span></div>${sel.vs?`<div class="rule"><span>◇</span><span>견줄 것 ${esc(sel.vs)}</span></div>`:''}${sel.date?`<div class="rule"><span>◇</span><span>${recD(sel.date)} 카드</span></div>`:''}
+    ${sel.got?`<div class="rule"><span>✨</span><span>내 결론 <b>${esc(sel.got.v||'')}</b>${sel.got.why?' — '+esc(sel.got.why):''}<br><span class="kv">${esc(sel.got.t||'')}</span></span></div>${(sel.got.take||[]).filter(Boolean).map(t=>`<div class="cxe tp">가져올 것: ${esc(t)}</div>`).join('')}`:sel.ready?`<div class="kv">아직 안 모았어요. ${sel.today?'작업실 퀘스트를 끝내면 카드가 채워져요':'지난 카드라 지금은 앱에서 열 수 없어요 (코칭팀이 다시 올리면 열려요)'}</div>`:`<div class="kv">🔒 준비 중${sel.pending?' · '+esc(sel.pending):''}</div>`}`)}</div>`:''}`}
+
+function recRoom(){
+  const t=REC_TABS.some(x=>x[0]===S3.recT)?S3.recT:'space';
+  $('#r-log').innerHTML=`<h1>기록</h1><p class="lead">${{space:'지금 쓰는 툴과 오늘 한 일이에요',chg:'무엇이 바뀌었는지 파트별로 봐요',dex:'하루 한 모션씩 모아요'}[t]}</p>${hz()}<div class="nav2 rect" role="tablist" style="margin-bottom:16px">${REC_TABS.map(([k,n])=>`<a class="btn ${k===t?'on':''}" role="tab" aria-selected="${k===t}" href="#log/${k}">${n}</a>`).join('')}</div>${({space:recSpace,chg:recChg,dex:recDex})[t]()}`;
+}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-recd],[data-recp],[data-recc],[data-recmore]');if(!b)return;const D=b.dataset,y=scrollY;
+  if(D.recd)S3.recD=D.recd;if(D.recp){S3.recP=D.recp;S3.recN=12}if(D.recmore)S3.recN=(S3.recN||12)+12;if(D.recc)S3.recC=S3.recC===+D.recc?null:+D.recc;
+  recRoom();scrollTo(0,y);if(D.recc&&S3.recC){const x=document.getElementById('dexd');x&&x.scrollIntoView({block:'nearest'})}});
+
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','hqv_a','hqv_b','hqv_c','hqv_d'];
-const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
-const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',hb:'#CEA85E'};
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','hqv_a','hqv_b','hqv_c','hqv_d'];
+const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['log','기록','book','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
+const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
 const S3={st:lsGet('v3_state',{}),room:'lobby',cur:0,answers:lsGet('v3_ans',{})};
 
 // ---- 그림(직접 그린 SVG) ----
-function icon(k){const p={hex:'<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/>',check:'<path d="M5 12.5l4.5 4.5L19 7"/>',keys:'<path d="M5 18V8M12 18V5M19 18v-7"/><circle cx="5" cy="8" r="1.6"/><circle cx="12" cy="5" r="1.6"/><circle cx="19" cy="11" r="1.6"/>',org:'<rect x="9" y="3" width="6" height="5"/><rect x="3" y="16" width="6" height="5"/><rect x="15" y="16" width="6" height="5"/><path d="M12 8v4M6 16v-4h12v4"/>',cube:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5"/>',moon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>'}[k];
+function icon(k){const p={hex:'<path d="M12 3l7.8 4.5v9L12 21l-7.8-4.5v-9z"/>',check:'<path d="M5 12.5l4.5 4.5L19 7"/>',keys:'<path d="M5 18V8M12 18V5M19 18v-7"/><circle cx="5" cy="8" r="1.6"/><circle cx="12" cy="5" r="1.6"/><circle cx="19" cy="11" r="1.6"/>',org:'<rect x="9" y="3" width="6" height="5"/><rect x="3" y="16" width="6" height="5"/><rect x="15" y="16" width="6" height="5"/><path d="M12 8v4M6 16v-4h12v4"/>',book:'<path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3zM5 17a3 3 0 013-3h11M9 8h6"/>',cube:'<path d="M12 3l8 4.5v9L12 21l-8-4.5v-9zM12 12l8-4.5M12 12v9M12 12L4 7.5"/>',moon:'<path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z"/>'}[k];
   return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`}
 function medallion(k,color,size){
   let t='';for(let i=0;i<24;i++){const a=i*15*Math.PI/180,r1=44,r2=i%6?47:49;t+=`<line x1="${50+r1*Math.sin(a)}" y1="${50-r1*Math.cos(a)}" x2="${50+r2*Math.sin(a)}" y2="${50-r2*Math.cos(a)}"/>`}
@@ -757,18 +837,26 @@ function rmSend(cmd,extra){
   const r=Q.add('remote',d);const L=rmPend().filter(x=>Date.now()-x.at<900000);L.push({id:r.id,cmd,at:Date.now(),dry});lsSet('v3_rm',L);
   Sync3.flush();toast('📡 보냈어요 → 답 기다리는 중(약 30초)');if(S3.room==='hb')hbBoard()}
 function rmCard(){
+  const qt=S3.st.quit||{},us=qt.usage||{};
   const R=S3.st.remote_result||{},items=R.items||[],B=R.board||{},L=rmPend();
   const rows=L.slice().reverse().slice(0,4).map(p=>{const it=items.find(i=>i.id===p.id);
     const wait=Math.round((Date.now()-p.at)/1000);
     return `<div class="kv">${RM_NM[p.cmd]||esc(p.cmd)}${p.dry?' (연습)':''} · ${it?(it.ok?'✅ ':'❌ ')+esc(it.msg||''):(wait>180?'⚠️ 답 없음 ('+wait+'초 지남, PC 지킴이 확인)':'⏳ 답 기다리는 중 '+wait+'초')}</div>`}).join('');
   const lines=(B.lines||[]).map(x=>`<div class="kv">${esc(x)}</div>`).join('');
   return oct(`<h2 class="sec">📡 리모컨</h2>
-  <div class="grid g2"><button class="btn bl" data-rm="status">📋 상황판</button><button class="btn bl" data-rm="clockin">🌅 출근</button>
+  <div class="grid rmg"><button class="btn bl" data-rm="clockin">🌅 출근</button>
+  <button class="btn bl" id="rm-quit" ${qt.on?'disabled':''}>${qt.on?'🌙 퇴근 '+esc(qt.at||''):S3.qArm&&Date.now()-S3.qArm<5000?'🌙 한 번 더 누르면 퇴근':'🌙 퇴근'}</button>
+  <button class="btn bl" data-rm="status">📋 상황판</button>
   <button class="btn bl" data-rm="stop" id="rm-stop">${S3.rmArm&&Date.now()-S3.rmArm<5000?'🛑 한 번 더 누르면 정지':'🛑 비상정지'}</button></div>
+  <div class="kv" id="rm-use" style="margin-top:8px">오늘 남은 Claude 사용량 ${us.st==='ok'?`<b class="num" style="color:var(--gold)">${us.left}%</b>${us.t?' · '+esc(us.t.slice(5)):''}`:us.st==='format'?'확인 필요 (기록에 남은 % 칸이 없어요)':'기록 없음'}<br>${qt.on?'퇴근 모드예요 · 남은 사용량 채우기가 주간 97%까지 돌아요':'안 누르면 20:00에 자동으로 퇴근 모드가 돼요'}</div>
   <div style="display:flex;gap:6px;margin-top:8px"><input id="rm-yt" type="url" inputmode="url" placeholder="유튜브 주소" style="flex:1;min-width:0"><button class="btn bl" data-rm="youtube">▶</button></div>
   <label class="kv"><input type="checkbox" id="rm-dry" ${S3.rmDry?'checked':''}> 연습(PC에서 실제로 안 함)</label>
   ${rows||'<div class="kv">아직 보낸 명령 없어요</div>'}
   ${lines?`<div style="margin-top:8px">${B.t?`<div class="kv">상황판 ${esc(String(B.t).slice(5,16).replace('T',' '))}</div>`:''}${lines}</div>`:''}`)}
+document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('#rm-quit')))return;
+  if(S3.qArm&&Date.now()-S3.qArm<5000){S3.qArm=0;if(S3.rmDry){toast('연습이라 보내지 않았어요');hbBoard();return}
+    Q.add('clockout',{date:today()});S3.jrWant=1;S3.jrD=today();Sync3.flush();toast('🌙 퇴근을 보냈어요 · 집계와 퇴근 모드를 켜요');hbBoard()}
+  else{S3.qArm=Date.now();toast('한 번 더 누르면 퇴근이에요');hbBoard();setTimeout(()=>{if(S3.room==='hb')hbBoard()},5200)}});
 document.addEventListener('change',e=>{if(e.target.id==='rm-dry')S3.rmDry=e.target.checked});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(!b)return;const c=b.dataset.rm;
   if(c==='stop'){if(S3.rmArm&&Date.now()-S3.rmArm<5000){S3.rmArm=0;rmSend('stop',{confirm:true})}else{S3.rmArm=Date.now();toast('한 번 더 누르면 정지 표시를 만들어요');hbBoard();setTimeout(()=>{if(S3.room==='hb')hbBoard()},5200)}return}
@@ -793,7 +881,7 @@ function render(){
   document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
   if(S3.room!=='world'&&window.World&&World.on)World.stop();
-  ({lobby,director,studio,ops,out,title,world,review,hb:hbBoard})[S3.room]?.();
+  ({lobby,director,studio,ops,out,title,world,review,log:recRoom,hb:hbBoard})[S3.room]?.();
   nav();
 }
 function route(){
@@ -801,6 +889,7 @@ function route(){
   let seen='';try{seen=lsGet('v3_title_day','')}catch(e){}
   if(!h){h=seen===today()?'lobby':'title'}
   S3.rv='';if(/^review(\/|$)/.test(h)){S3.rv=decodeURIComponent(h.slice(7));h='review'}
+  if(/^log(\/|$)/.test(h)){S3.recT=h.slice(4)||S3.recT||'space';h='log'}
   if(h!=='title'&&h!=='review'&&!ROOMS.some(r=>r[0]===h))h='lobby';
   S3.room=h;render();window.scrollTo(0,0);
 }
