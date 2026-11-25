@@ -329,6 +329,10 @@ h2.sec .spk{float:right;padding:4px 12px;min-height:44px;font-size:14px;line-hei
 #r-lib.on{position:fixed;left:var(--side);right:0;top:var(--toph);bottom:var(--navh);display:flex;flex-direction:column;z-index:2;background:var(--bg)}
 #lib-bar{display:flex;gap:10px;align-items:center;padding:6px 10px;border-bottom:1px solid #2a2418}#lib-bar b{flex:1;min-width:0}#lib-bar .btn{padding:8px 14px}
 #lib-f{flex:1;border:0;width:100%;min-height:0;background:#000}
+/* 캘린더 세 갈래: 작업 파랑 · 개인 흰색 · HB Studio 노랑 */
+.k-work{--k:#5B9BE6}.k-me{--k:#E8DFC8}.k-studio{--k:#F2C230}.calrow{border-left:3px solid var(--k,#333);padding-left:10px}.cev[class*=k-]{border-color:var(--k)}.wkg .c.ce[class*=k-]{outline-color:var(--k)}.kd{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--k,#888);margin-right:7px;vertical-align:1px}
+.calk{margin:0 0 14px}.calk .btn{padding:8px 12px;border-color:var(--k);color:var(--k)}.calk .btn[aria-pressed=false]{opacity:.5}.chip:disabled{opacity:.35}
+.mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.mgrid>small{text-align:center;color:var(--dim);font:600 13px system-ui,"Malgun Gothic",sans-serif}.md{all:unset;box-sizing:border-box;cursor:pointer;min-height:74px;min-width:0;padding:3px;background:#161618;overflow:hidden;display:flex;flex-direction:column;gap:2px}.md.td{outline:2px solid var(--gold);outline-offset:-2px}.md:focus-visible{outline:2px solid var(--ivory)}.md b{font:700 14px system-ui,sans-serif}.md i{font:600 11px/1.35 system-ui,"Malgun Gothic",sans-serif;font-style:normal;border-left:3px solid var(--k);padding-left:3px;white-space:nowrap;overflow:hidden;text-overflow:clip}.md small{font-size:11px;color:var(--dim)}@media(min-width:700px){.md{min-height:96px}.md i{font-size:13px}}
 </style>
 </head>
 <body>
@@ -368,6 +372,7 @@ h2.sec .spk{float:right;padding:4px 12px;min-height:44px;font-size:14px;line-hei
 </div>
 <div id="cal" class="sheet mini" hidden>
   <div class="sh-h"><b id="cal-ttl">📅 일정</b><button id="cal-close" class="ib" aria-label="닫기">✕</button></div>
+  <div class="chips" id="cal-k"></div>
   <input id="cal-sum" class="pct" maxlength="100" placeholder="무슨 일정? 예: 면접" aria-label="일정 제목">
   <div class="calf"><input id="cal-date" class="pct" type="date" aria-label="날짜"><label class="kv"><input id="cal-all" type="checkbox"> 종일</label></div>
   <div class="calf"><input id="cal-s" class="pct" type="time" value="14:00" aria-label="시작"><span>~</span><input id="cal-e" class="pct" type="time" value="15:00" aria-label="끝"></div>
@@ -376,7 +381,7 @@ h2.sec .spk{float:right;padding:4px 12px;min-height:44px;font-size:14px;line-hei
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=15;
+const BUILD=16;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -429,7 +434,7 @@ const api=(()=>{
   return {
     // BUILD 9: 구글 API(캘린더) 직접 호출 — 브리지 토큰 그대로. 개발 모드는 가짜 중계 dev/gcal/ 로
     async gfetch(url,opt){
-      if(dev())return fetch(url.replace('https://www.googleapis.com/calendar/v3/calendars/primary/','../dev/gcal/'),Object.assign({cache:'no-store'},opt));
+      if(dev())return fetch(url.replace('https://www.googleapis.com/calendar/v3/calendars/','../dev/gcal/'),Object.assign({cache:'no-store'},opt));
       return drive(url,opt);
     },
     async get(names){
@@ -1035,9 +1040,14 @@ const Ask=(()=>{
 // BUILD 9 📅 구글 캘린더 양방향(SPEC_v2 11/21 13:56): 원본 = 동현 기본 캘린더. 오늘±30일 읽기, 앱 켤 때·5분마다 새로고침.
 // 추가·수정은 바로 캘린더에 반영. 삭제 버튼 없음 → '취소 표시'(제목 앞 ✖ + 알림 끔). 내용은 폰 캐시(localStorage)에만 — 저장소·PC·로그로 보내지 않는다.
 const Cal=(()=>{
-  const BASE='https://www.googleapis.com/calendar/v3/calendars/primary/events';
+  // 세 갈래(11/26 동현 06:04): 🎬 작업 · 🙋 개인(기본 캘린더) · 🦡 HB Studio(팀 자동, 여기서는 보기만). 다른 사람 캘린더와 캘린더 목록은 부르지 않는다
+  const SRC=[['work','🎬 작업'],['me','🙋 개인'],['studio','🦡 HB Studio']];
+  const cid=k=>k==='me'?'primary':((S3.st.cal_cfg||{})[k]||'');
+  const base=k=>'https://www.googleapis.com/calendar/v3/calendars/'+encodeURIComponent(cid(k))+'/events';
+  const off=()=>lsx('cal_off',{}),shown=e=>!off()[e.k||'me'];
+  let addK='';
   const REFRESH_MS=300000;
-  let c=lsGet('wc_cal',{t:0,items:[],err:''}),busy=false,editId=null;
+  let c=lsGet('wc_cal3',{t:0,items:[],err:'',errs:{}}),busy=false,editId=null;
   const pad=n=>String(n).padStart(2,'0');
   const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   const planDay=d=>ymd(new Date(d.getTime()-5*3600000));   // 일정 하루 = 05시 경계(새벽 2시 일정은 전날 칸)
@@ -1048,19 +1058,21 @@ const Cal=(()=>{
   const hm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
   async function load(force){
     if(busy)return;if(!force&&Date.now()-c.t<(c.err?60000:REFRESH_MS))return;busy=true;
-    try{
-      const a=new Date(Date.now()-30*86400000),b=new Date(Date.now()+30*86400000);
-      const u=BASE+'?singleEvents=true&orderBy=startTime&maxResults=250&timeMin='+encodeURIComponent(a.toISOString())+'&timeMax='+encodeURIComponent(b.toISOString());
-      const r=await api.gfetch(u);
-      if(r.ok){const j=await r.json();c={t:Date.now(),items:(j.items||[]).filter(e=>e.status!=='cancelled').map(e=>({id:e.id,summary:e.summary||'(제목 없음)',start:e.start,end:e.end,status:e.status})),err:''}}
-      else{let w='';try{w=JSON.stringify((await r.json()).error||{})}catch(e){}c={...c,t:Date.now(),err:r.status===403&&/accessNotConfigured|SERVICE_DISABLED/.test(w)?'api':r.status===403?'perm':r.status===401?'login':'HTTP '+r.status}}
-    }catch(e){c={...c,t:Date.now(),err:e.message}}
-    lsSet('wc_cal',c);busy=false;UI.all(Sync.state);
+    const a=new Date(Date.now()-40*86400000),b=new Date(Date.now()+70*86400000),q='?singleEvents=true&orderBy=startTime&maxResults=250&timeMin='+encodeURIComponent(a.toISOString())+'&timeMax='+encodeURIComponent(b.toISOString());
+    const items=[],errs={};
+    for(const [k] of SRC){if(!cid(k))continue;
+      try{const r=await api.gfetch(base(k)+q);
+        if(r.ok){const j=await r.json();items.push(...(j.items||[]).filter(e=>e.status!=='cancelled').map(e=>({k,id:k+'|'+e.id,summary:e.summary||'(제목 없음)',start:e.start,end:e.end,status:e.status})))}
+        else{let w='';try{w=JSON.stringify((await r.json()).error||{})}catch(e){}errs[k]=r.status===403&&/accessNotConfigured|SERVICE_DISABLED/.test(w)?'api':r.status===403?'perm':r.status===401?'login':r.status===404?'none':'HTTP '+r.status}
+      }catch(e){errs[k]=e.message}
+      if(errs[k])items.push(...c.items.filter(x=>x.k===k))}   // 못 읽은 갈래는 저장본
+    c={t:Date.now(),items,errs,err:Object.values(errs)[0]||''};
+    lsSet('wc_cal3',c);busy=false;UI.all(Sync.state);
   }
   // 하루(05시 경계) 일정: 종일 + 시간 일정. at(date) → {all:[], byH:{h:[e]}, list:[]}
   function day(date){
     const out={all:[],byH:{},list:[]};
-    for(const e of c.items){
+    for(const e of c.items){if(!shown(e))continue;
       if(allDay(e)){const s=e.start.date,x=e.end&&e.end.date||s;if(s<=date&&date<x||s===date){out.all.push(e);out.list.push(e)}continue}
       const s=st(e);if(!s)continue;const t=en(e)||new Date(s.getTime()+3600000);
       let hit=false;
@@ -1069,10 +1081,11 @@ const Cal=(()=>{
       if(planDay(s)===date&&!hit){hit=true;(out.byH[s.getHours()]=out.byH[s.getHours()]||[]).push(e)}
       if(hit)out.list.push(e);
     }
+    out.list.sort((x,y)=>(allDay(y)-allDay(x))||((st(x)||0)-(st(y)||0)));out.all.sort((x,y)=>(x.k==='work'?0:1)-(y.k==='work'?0:1));
     return out;
   }
   const when=e=>allDay(e)?'종일':hm(st(e))+(en(e)?'~'+hm(en(e)):'');
-  const row=(e,btn)=>`<div class="hqrow calrow${cancelled(e)?' cx':''}"><b>📅</b><span>${esc(e.summary)}<br><small class="kv">${esc(when(e))}</small></span>${btn?`<button class="btn" data-calopen="${esc(e.id)}">고치기</button>`:''}</div>`;
+  const row=(e,btn)=>`<div class="hqrow calrow k-${e.k}${cancelled(e)?' cx':''}"><b>${{work:'🎬',me:'🙋',studio:'🦡'}[e.k]||'📅'}</b><span>${esc(e.summary)}<br><small class="kv">${esc(when(e))}</small></span>${btn&&e.k!=='studio'?`<button class="btn" data-calopen="${esc(e.id)}">고치기</button>`:''}</div>`;
   function status(){
     if(c.err==='perm')return '<div class="sub calperm">🔐 캘린더 허용이 필요해요 — 부대표가 허용 순서를 알려 줄 거예요</div>';
     if(c.err==='api')return '<div class="sub">⚠️ 캘린더 서비스가 꺼져 있어요(다리 설정) · 저장본 보여 줘요</div>';
@@ -1080,6 +1093,11 @@ const Cal=(()=>{
     if(c.err)return `<div class="sub">⚠️ 캘린더 못 읽음 (${esc(c.err)}) · 저장본 보여 줘요</div>`;
     return '';
   }
+  function chips(){const o=off();return `<div class="nav2 calk" role="group" aria-label="캘린더 갈래">${SRC.filter(x=>cid(x[0])).map(([k,n])=>`<button class="btn k-${k}" data-calk="${k}" aria-pressed="${!o[k]}">${o[k]?'▢':'▣'} ${n}${(c.errs||{})[k]?' ⚠️':''}</button>`).join('')}</div>`}
+  function month(ym){const [y,m]=ym.split('-').map(Number),f=new Date(y,m-1,1),n=new Date(y,m,0).getDate(),lead=(f.getDay()+6)%7,td=planDay(new Date());let h='';
+    for(let i=0;i<lead;i++)h+='<span></span>';
+    for(let d=1;d<=n;d++){const D=y+'-'+pad(m)+'-'+pad(d),L=day(D).list.filter(e=>!cancelled(e));h+=`<button class="md ${D===td?'td':''}" data-pday="${D}" aria-label="${m}월 ${d}일 일정 ${L.length}개"><b>${d}</b>${L.slice(0,3).map(e=>`<i class="k-${e.k}">${esc(e.summary)}</i>`).join('')}${L.length>3?`<small>+${L.length-3}</small>`:''}</button>`}
+    return `<div class="nav2" style="margin:0 0 10px"><button class="btn" data-calm="-1" aria-label="앞 달">◂</button><b>${y}년 ${m}월</b><button class="btn" data-calm="1" aria-label="다음 달">▸</button></div><div class="mgrid">${'월화수목금토일'.split('').map(x=>`<small>${x}</small>`).join('')}${h}</div>`}
   function planHtml(date){
     const d=day(date);
     return `${status()}${d.list.map(e=>row(e,true)).join('')||'<div class="sub" style="padding:8px 0">📅 이날 캘린더 일정 없어요</div>'}<div class="nav2"><button class="btn pri2" data-calnew="${esc(date)}">＋ 캘린더에 일정 추가</button></div>`;
@@ -1092,9 +1110,12 @@ const Cal=(()=>{
     $('#cal-date').value=e?(allDay(e)?e.start.date:ymd(s)):(date||ymd(new Date()));
     $('#cal-s').value=s?hm(s):'14:00';$('#cal-e').value=t?hm(t):'15:00';
     $('#cal-all').checked=!!(e&&allDay(e));
+    addK=e?e.k:cid('work')?'work':'me';kbar(!!e);
     $('#cal-cancel').hidden=!e||cancelled(e);
     $('#cal').hidden=false;setTimeout(()=>$('#cal-sum').focus(),50);
   }
+  function kbar(lock){$('#cal-k').innerHTML=SRC.filter(x=>x[0]!=='studio'&&cid(x[0])).map(([k,n])=>`<button type="button" class="chip ${k===addK?'on':''}" data-caladd="${k}" ${lock&&k!==addK?'disabled':''}>${n}</button>`).join('')}
+  const rid=id=>encodeURIComponent(String(id).slice(String(id).indexOf('|')+1));
   function body(){
     const sum=$('#cal-sum').value.trim().slice(0,100),dt=$('#cal-date').value,ad=$('#cal-all').checked;
     if(!sum||!/^\d{4}-\d\d-\d\d$/.test(dt))return null;
@@ -1105,24 +1126,26 @@ const Cal=(()=>{
   }
   async function save(){
     const b=body();if(!b){toast('제목과 날짜를 넣어 주세요');return}
-    const r=await api.gfetch(BASE+(editId?'/'+encodeURIComponent(editId):''),{method:editId?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).catch(e=>({ok:false,status:0}));
+    const r=await api.gfetch(base(addK)+(editId?'/'+rid(editId):''),{method:editId?'PATCH':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).catch(e=>({ok:false,status:0}));
     if(r.ok){$('#cal').hidden=true;toast(editId?'✅ 캘린더 고쳤어요':'✅ 캘린더에 넣었어요');editId=null;load(true)}
     else toast(r.status===403||r.status===401?'🔐 캘린더 허용이 아직이에요':'⚠️ 못 넣었어요 ('+r.status+')');
   }
   async function cancel(){   // 삭제 대신 취소 표시(✖ + 알림 끔)
     const e=editId&&c.items.find(x=>x.id===editId);if(!e)return;
-    const r=await api.gfetch(BASE+'/'+encodeURIComponent(editId),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({summary:'✖ '+e.summary.replace(/^✖\s*/,''),reminders:{useDefault:false,overrides:[]}})}).catch(()=>({ok:false,status:0}));
+    const r=await api.gfetch(base(e.k)+'/'+rid(editId),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({summary:'✖ '+e.summary.replace(/^✖\s*/,''),reminders:{useDefault:false,overrides:[]}})}).catch(()=>({ok:false,status:0}));
     if(r.ok){$('#cal').hidden=true;toast('✖ 취소로 표시했어요(지우지 않아요)');editId=null;load(true)}else toast('⚠️ 못 바꿨어요 ('+r.status+')');
   }
   function click(t){
     if(t.dataset.calnew!=null){open(null,t.dataset.calnew);return true}
     if(t.dataset.calopen){open(t.dataset.calopen);return true}
+    if(t.dataset.calk){const o=off();o[t.dataset.calk]=!o[t.dataset.calk];lsSet('v3_cal_off',o);render();return true}
+    if(t.dataset.caladd){addK=t.dataset.caladd;kbar(false);return true}
     if(t.id==='cal-save'){save();return true}
     if(t.id==='cal-cancel'){cancel();return true}
     if(t.id==='cal-close'){$('#cal').hidden=true;editId=null;return true}
     return false;
   }
-  return {load,day,planHtml,click,cancelled,get isOpen(){return !$('#cal').hidden},get data(){return c}};
+  return {load,day,planHtml,chips,month,click,cancelled,get isOpen(){return !$('#cal').hidden},get data(){return c}};
 })();
 
 // HB HQ 폰 알림(웹 푸시, 11/26 동현 03:54). 실제 주소에서만. 폰이 허용하면 주소를 PC로 보내고, 받은 시각은 서비스워커가 적어 두었다가 앱을 열 때 PC로 보낸다(도착률·지연).
@@ -1240,9 +1263,9 @@ function motionCard(){const M=((S3.st.progress||{}).items||[]).filter(m=>m.char!
   return oct(`<h2 class="sec">내 모션 <span class="cin sm">Motion</span></h2>${M.map(m=>{const p=m.pct==null?null:Math.round(m.pct*100);return `<div class="rule"><span>🎞️</span><span>${esc(m.motion)}<br><span class="kv">${esc(m.stage||'')}${m.days!=null?' · '+m.days+'일':''}</span></span><b class="num" style="margin-left:auto">${p==null?'–':p+'%'}</b></div>`}).join('')||recNone(S3.st.progress?'진행 중인 포폴 모션이 없어요':'PC 지킴이가 보내면 나타나요')}<div class="nav2"><a class="btn" href="#hb">🎬 클립 ${C.length}개 보기</a></div>`)}
 
 // ---- 로비: 지금·다음 일정 → 막힌 일·급한 소식·새 보고서 → 방 카드 ----
-function nowNext(){const d=Cal.day(pday()),now=Date.now(),L=d.list.filter(e=>!Cal.cancelled(e)&&e.start&&e.start.dateTime).map(e=>({s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime),t:e.summary})).sort((a,b)=>a.s-b.s);
+function nowNext(){const d=Cal.day(pday()),now=Date.now(),L=d.list.filter(e=>!Cal.cancelled(e)&&e.start&&e.start.dateTime).map(e=>({k:e.k,s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime),t:e.summary})).sort((a,b)=>a.s-b.s);
   const cur=L.find(x=>x.s<=now&&now<x.e),nx=L.find(x=>x.s>now),p=planOf(pday()),h=new Date().getHours(),hs=p?p.slots.map(s=>s.h):[],i=hs.indexOf(h),sl=p&&!p.dflt&&i>=0&&p.slots[i].plan?p.slots[i]:null,ns=p&&!p.dflt&&i>=0?p.slots.slice(i+1).find(s=>s.plan):null;
-  return {cur:cur?`${esc(cur.t)} <span class="kv">~${hmOf(cur.e)}</span>`:sl?esc(sl.plan):'',nx:nx?`<b class="num">${hmOf(nx.s)}</b> ${esc(nx.t)}`:ns?`<b class="num">${z2(ns.h)}시</b> ${esc(ns.plan)}`:'',all:d.all.filter(e=>!Cal.cancelled(e)).map(e=>e.summary),n:d.list.filter(e=>!Cal.cancelled(e)).length,err:Cal.data.err}}
+  return {cur:cur?`<i class="kd k-${cur.k}"></i>${esc(cur.t)} <span class="kv">~${hmOf(cur.e)}</span>`:sl?esc(sl.plan):'',nx:nx?`<i class="kd k-${nx.k}"></i><b class="num">${hmOf(nx.s)}</b> ${esc(nx.t)}`:ns?`<b class="num">${z2(ns.h)}시</b> ${esc(ns.plan)}`:'',all:d.all.filter(e=>!Cal.cancelled(e)).map(e=>e.summary),n:d.list.filter(e=>!Cal.cancelled(e)).length,err:Cal.data.err}}
 function roomStat(id){
   if(id==='ops'){const b=blocked().length,r=jobs().filter(j=>j.status==='진행').length;return S3.st.jobs?b?[b,'막힌 일','bad']:[r,'도는 일','ok']:['–','기다리는 중','no']}
   if(id==='hb'){const G=(S3.st.hb_gates||{}).gates||[],n=G.filter(g=>g.pass===true).length;return G.length?[n,`/ ${G.length} 통과`,'gold']:['–','기다리는 중','no']}
@@ -1309,10 +1332,10 @@ function planOf(date){const T=S3.st.plan_today,W=S3.st.plan_week;let slots=null,
   for(const r of Q.of('plan_edit')){if(r.data.date!==date||r.st==='fail'&&r.rej)continue;if(r.st==='ok'&&Date.now()/1000-r.t>120)continue;const s=slots.find(x=>x.h===r.data.h);if(s){s[r.data.field]=r.data.value;s.q=r.st;dflt=false}}
   return {slots,dflt}}
 function weekHtml(){const W=S3.st.plan_week;if(!W||!W.days)return recNone('주간 계획을 아직 못 받았어요');
-  return `<div class="wkg"><span></span>${W.days.map(d=>`<button class="hd ${d.date===pday()?'td':''}" data-pday="${esc(d.date)}">${esc(d.dow)}<br>${esc(d.date.slice(8))}</button>`).join('')}${W.hours.map((hr,i)=>`<span class="hl">${z2(hr)}</span>${W.days.map(d=>{const p=planOf(d.date),s=p?p.slots[i]:{},ce=(Cal.day(d.date).byH[hr]||[]).some(e=>!Cal.cancelled(e));return `<span class="c ${s.plan?'p':''} ${ce?'ce':''}" title="${esc(s.plan||'')}"></span>`}).join('')}`).join('')}</div><div class="kv">칸 색 = 계획 있음 · 파란 테두리 = 캘린더 일정</div>`}
+  return `<div class="wkg"><span></span>${W.days.map(d=>`<button class="hd ${d.date===pday()?'td':''}" data-pday="${esc(d.date)}">${esc(d.dow)}<br>${esc(d.date.slice(8))}</button>`).join('')}${W.hours.map((hr,i)=>`<span class="hl">${z2(hr)}</span>${W.days.map(d=>{const p=planOf(d.date),s=p?p.slots[i]:{},ce=((Cal.day(d.date).byH[hr]||[]).find(e=>!Cal.cancelled(e))||{}).k;return `<span class="c ${s.plan?'p':''} ${ce?'ce k-'+ce:''}" title="${esc(s.plan||'')}"></span>`}).join('')}`).join('')}</div><div class="kv">칸 색 = 시간 계획 · 테두리 = 캘린더(파랑 작업 · 흰색 개인 · 노랑 HB Studio)</div>`}
 function plan(){const td=pday();if(!S3.pDate)S3.pDate=td;const v=S3.pView||'day',p=planOf(S3.pDate),CD=Cal.day(S3.pDate),nh=new Date().getHours();
-  $('#r-plan').innerHTML=`<h1>일정</h1><p class="lead">구글 캘린더와 시간 계획</p>${hz()}<div class="nav2 jrd" style="margin-bottom:14px"><button class="btn ${v==='day'?'on':''}" data-pv="day">하루</button><button class="btn ${v==='week'?'on':''}" data-pv="week">주간</button>${S3.pDate!==td?`<button class="btn" data-pday="${td}">오늘로</button>`:''}</div>
-  ${v==='week'?oct(weekHtml()):`<div class="grid g2"><div>${oct(`<h2 class="sec">${recD(S3.pDate)} 캘린더</h2>${Cal.planHtml(S3.pDate)}`)}</div><div>${oct(`<h2 class="sec">시간 계획 ${p&&p.dflt?'<span class="kv">기본 양식</span>':''}</h2>${p?p.slots.map(s=>`<button class="slot ${S3.pDate===td&&s.h===nh?'now':''}" data-pedit="${s.h}"><b class="num">${z2(s.h)}</b><span>${esc(s.plan)||'<small class="kv">＋ 계획</small>'}${(CD.byH[s.h]||[]).map(e=>`<em class="cev ${Cal.cancelled(e)?'cx':''}">${esc(e.summary)}</em>`).join('')}</span>${s.q==='pend'||s.q==='sent'?'<small>⏳</small>':s.q==='fail'?'<small>⚠️</small>':''}</button>`).join(''):recNone('이날 계획을 못 받았어요')}`)}</div></div>`}`}
+  $('#r-plan').innerHTML=`<h1>일정</h1><p class="lead">구글 캘린더와 시간 계획</p>${hz()}<div class="nav2 jrd" style="margin-bottom:14px"><button class="btn ${v==='day'?'on':''}" data-pv="day">하루</button><button class="btn ${v==='week'?'on':''}" data-pv="week">주</button><button class="btn ${v==='month'?'on':''}" data-pv="month">달</button>${S3.pDate!==td?`<button class="btn" data-pday="${td}">오늘로</button>`:''}</div>${Cal.chips()}
+  ${v==='month'?oct(Cal.month(S3.pM||(S3.pM=S3.pDate.slice(0,7)))):v==='week'?oct(weekHtml()):`<div class="grid g2"><div>${oct(`<h2 class="sec">${recD(S3.pDate)} 캘린더</h2>${Cal.planHtml(S3.pDate)}`)}</div><div>${oct(`<h2 class="sec">시간 계획 ${p&&p.dflt?'<span class="kv">기본 양식</span>':''}</h2>${p?p.slots.map(s=>`<button class="slot ${S3.pDate===td&&s.h===nh?'now':''}" data-pedit="${s.h}"><b class="num">${z2(s.h)}</b><span>${esc(s.plan)||'<small class="kv">＋ 계획</small>'}${(CD.byH[s.h]||[]).map(e=>`<em class="cev k-${e.k} ${Cal.cancelled(e)?'cx':''}">${esc(e.summary)}</em>`).join('')}</span>${s.q==='pend'||s.q==='sent'?'<small>⏳</small>':s.q==='fail'?'<small>⚠️</small>':''}</button>`).join(''):recNone('이날 계획을 못 받았어요')}`)}</div></div>`}`}
 let pEdit=null;
 function openEdit(h){const p=planOf(S3.pDate),s=p&&p.slots.find(x=>x.h===+h);if(!s)return;pEdit=+h;$('#edit-ttl').textContent=`📅 ${S3.pDate.slice(5).replace('-','/')} ${z2(h)}시`;const v=$('#edit-val');v.value=s.plan||'';
   $('#edit-quick').innerHTML=['작업','공부','피드백','휴식','운동',''].map(q=>`<button class="chip" data-eq="${esc(q)}">${q||'비우기'}</button>`).join('');$('#edit').hidden=false;setTimeout(()=>v.focus(),50)}
@@ -1359,7 +1382,8 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
   if(D.rpt){rptOpen(D.rpt);return}
   if(D.askto2){Ask.open(D.askto2);return}
   if(D.goask){Ask.open(D.to,D.goask);return}
-  if(D.pv){S3.pView=D.pv;plan();return}
+  if(D.pv){S3.pView=D.pv;if(D.pv==='month')S3.pM=S3.pDate.slice(0,7);plan();return}
+  if(D.calm){const [y,m]=S3.pM.split('-').map(Number),d=new Date(y,m-1+ +D.calm,1);S3.pM=d.getFullYear()+'-'+z2(d.getMonth()+1);plan();return}
   if(D.pday){S3.pDate=D.pday;S3.pView='day';plan();return}
   if(D.pedit){openEdit(D.pedit);return}
   if(D.eq!=null){$('#edit-val').value=D.eq;saveEdit();return}
@@ -1375,7 +1399,7 @@ document.getElementById('chan').hidden=IS_ROOT;
 if(IS_ROOT&&'serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{const r=String((e.data||{}).hqRoom||'');if(ROOMS.some(x=>x[0]===r.split('/')[0]))location.hash='#'+r})}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','부대표실','org','--green'],['hb','진행판','bars','--gold'],['coach','코칭실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
@@ -1762,7 +1786,7 @@ const Sync3={busy:false,
     try{await Q.flush();const res=await api.get(V3_STATES.filter(n=>!isVid(n)));if(!res.ok)throw new Error('상태 못 받음');
       S3.st=Object.assign({},S3.st,res.state);const nv=vidNeed();if(nv.length){const r2=await api.get(nv).catch(()=>null);if(r2&&r2.ok)Object.assign(S3.st,r2.state)}
       lsSet('v3_state',Object.fromEntries(Object.entries(S3.st).filter(([k])=>!isVid(k))));$('#sync').classList.remove('bad');
-      Q.applyDone(S3.st.meta&&S3.st.meta.done);mbTidy();rmSeen();Ask.render(S3.st);Push.check()}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
+      Q.applyDone(S3.st.meta&&S3.st.meta.done);mbTidy();rmSeen();Ask.render(S3.st);Push.check();if(S3.st.cal_cfg&&JSON.stringify(S3.st.cal_cfg)!==S3.calCfg){S3.calCfg=JSON.stringify(S3.st.cal_cfg);Cal.load(true)}}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
     this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('.room input,.room textarea')))&&!vidPlaying())render();jrOpen()},
   flush(){Q.flush().catch(()=>{})}};
 window.addEventListener('hashchange',route);clock();setInterval(clock,20000);
