@@ -377,7 +377,7 @@ h2.sec .spk{float:right;padding:4px 12px;min-height:44px;font-size:14px;line-hei
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=13;
+const BUILD=14;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1048,13 +1048,13 @@ const Cal=(()=>{
   const cancelled=e=>/^✖/.test(e.summary||'')||e.status==='cancelled';
   const hm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
   async function load(force){
-    if(busy)return;if(!force&&Date.now()-c.t<REFRESH_MS)return;busy=true;
+    if(busy)return;if(!force&&Date.now()-c.t<(c.err?60000:REFRESH_MS))return;busy=true;
     try{
       const a=new Date(Date.now()-30*86400000),b=new Date(Date.now()+30*86400000);
       const u=BASE+'?singleEvents=true&orderBy=startTime&maxResults=250&timeMin='+encodeURIComponent(a.toISOString())+'&timeMax='+encodeURIComponent(b.toISOString());
       const r=await api.gfetch(u);
       if(r.ok){const j=await r.json();c={t:Date.now(),items:(j.items||[]).filter(e=>e.status!=='cancelled').map(e=>({id:e.id,summary:e.summary||'(제목 없음)',start:e.start,end:e.end,status:e.status})),err:''}}
-      else c={...c,t:Date.now(),err:(r.status===401||r.status===403)?'perm':'HTTP '+r.status};
+      else{let w='';try{w=JSON.stringify((await r.json()).error||{})}catch(e){}c={...c,t:Date.now(),err:r.status===403&&/accessNotConfigured|SERVICE_DISABLED/.test(w)?'api':r.status===403?'perm':r.status===401?'login':'HTTP '+r.status}}
     }catch(e){c={...c,t:Date.now(),err:e.message}}
     lsSet('wc_cal',c);busy=false;UI.all(Sync.state);
   }
@@ -1076,6 +1076,8 @@ const Cal=(()=>{
   const row=(e,btn)=>`<div class="hqrow calrow${cancelled(e)?' cx':''}"><b>📅</b><span>${esc(e.summary)}<br><small class="kv">${esc(when(e))}</small></span>${btn?`<button class="btn" data-calopen="${esc(e.id)}">고치기</button>`:''}</div>`;
   function status(){
     if(c.err==='perm')return '<div class="sub calperm">🔐 캘린더 허용이 필요해요 — 부대표가 허용 순서를 알려 줄 거예요</div>';
+    if(c.err==='api')return '<div class="sub">⚠️ 캘린더 서비스가 꺼져 있어요(다리 설정) · 저장본 보여 줘요</div>';
+    if(c.err==='login')return '<div class="sub">🔐 구글 로그인을 다시 확인해야 해요 · 저장본 보여 줘요</div>';
     if(c.err)return `<div class="sub">⚠️ 캘린더 못 읽음 (${esc(c.err)}) · 저장본 보여 줘요</div>`;
     return '';
   }
@@ -1138,12 +1140,12 @@ const Push=(()=>{
     if(!can()||ready==='busy'||busy)return;const was=ready;ready='busy';
     try{const r=await reg();sub=await r.pushManager.getSubscription();
       if(Notification.permission==='granted'&&key()&&lsx('push_on',false)){
-        if(sub&&!same(sub.options&&sub.options.applicationServerKey,key())){await sub.unsubscribe();sub=null}   // PC 열쇠가 바뀌었으면 다시
-        if(!sub)sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(key())});
-        const sid=await id(sub.endpoint),S=S3.st.push;if(!(S.ids||[]).includes(sid)&&Date.now()-lsx('push_sent',0)>600000)post()}
+        const old=lsx('push_key','');let why=sub?'':'gone';if(sub&&old&&old!==key()){await sub.unsubscribe();sub=null;why='key'}   // PC 열쇠가 정말 바뀐 때만 다시(등록 때 적어 둔 열쇠와 견줌)
+        if(!sub)sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(key())});lsSet('v3_push_key',key());
+        const sid=await id(sub.endpoint),S=S3.st.push;if(!(S.ids||[]).includes(sid)&&Date.now()-lsx('push_sent',0)>600000)post(why||'list')}
       await seen()}catch(e){}
     ready=true;if(was!==true&&S3.room==='director')render()}
-  function post(){lsSet('v3_push_sent',Date.now());Q.add('push_sub',{sub:sub.toJSON(),dev:mbDev(),did:did()});Sync3.flush()}
+  function post(why){lsSet('v3_push_sent',Date.now());Q.add('push_sub',{sub:sub.toJSON(),dev:mbDev(),did:did(),why});Sync3.flush()}
   async function seen(){if(!sub||!('caches' in window))return;const c=await caches.open('hq-push'),ks=await c.keys();if(!ks.length)return;
     const it=[];for(const k of ks.slice(0,50)){try{it.push(await (await c.match(k)).json())}catch(e){}}
     if(it.length)Q.add('push_seen',{endpoint:sub.endpoint,items:it});for(const k of ks.slice(0,50))await c.delete(k);Sync3.flush()}
@@ -1153,7 +1155,7 @@ const Push=(()=>{
     if(!key()){toast('PC 지킴이를 기다려요');return}
     const p=await Notification.requestPermission();if(p!=='granted'){toast(p==='denied'?'알림이 막혀 있어요 · 폰 설정에서 HB HQ 알림을 켜 주세요':'허용을 눌러야 켜져요');render();return}
     try{const r=await reg();sub=await r.pushManager.getSubscription();if(sub&&!same(sub.options&&sub.options.applicationServerKey,key())){await sub.unsubscribe();sub=null}
-      if(!sub)sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(key())});lsSet('v3_push_on',true);post();toast('🔔 알림을 켰어요')}catch(e){toast('⚠️ 알림을 못 켰어요 · '+e.message)}
+      if(!sub)sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(key())});lsSet('v3_push_on',true);lsSet('v3_push_key',key());post('on');toast('🔔 알림을 켰어요')}catch(e){toast('⚠️ 알림을 못 켰어요 · '+e.message)}
     render()}
   async function off(){lsSet('v3_push_on',false);if(sub){const ep=sub.endpoint;try{await sub.unsubscribe()}catch(e){}sub=null;Q.add('push_unsub',{endpoint:ep});Sync3.flush()}toast('🔕 이 폰 알림을 껐어요');render()}
   const isOn=()=>can()&&Notification.permission==='granted'&&lsx('push_on',false)&&!!sub;
@@ -1256,7 +1258,7 @@ function lobby(){
   const x=nowNext(),B=blocked(),er=((S3.st.meta||{}).errors)||[],dead=S3.st.meta&&S3.st.meta.agent_alive===false,urg=news().me.filter(n=>n.urgent&&!n.rd),R=rptNew();
   const bad=B.length+er.length+(dead?1:0);
   $('#r-lobby').innerHTML=`<h1>로비</h1>
-  <a class="nnx" href="#plan" aria-label="일정 열기"><span><small>지금</small>${x.cur||(x.all.length?esc(x.all[0])+' <span class="kv">종일</span>':'<span class="kv">비어 있어요</span>')}</span><span><small>다음</small>${x.nx||'<span class="kv">오늘은 더 없어요</span>'}</span></a>${x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글 캘린더는 허용 전이라 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:''}
+  <a class="nnx" href="#plan" aria-label="일정 열기"><span><small>지금</small>${x.cur||(x.all.length?esc(x.all[0])+' <span class="kv">종일</span>':'<span class="kv">비어 있어요</span>')}</span><span><small>다음</small>${x.nx||'<span class="kv">오늘은 더 없어요</span>'}</span></a>${x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:''}
   <a class="lbl ${bad?'bad':'ok'}" href="#ops">${bad?`🔴 막힌 일 ${bad} <span>${esc(dead?'PC 지킴이가 응답하지 않아요':B.length?nm3(jobT(B[0])):String(er[0]).slice(0,60))}</span>`:S3.st.jobs?'🟢 막힌 일 없음':'⬜ PC 지킴이를 기다려요'}</a>
   ${urg.length?`<a class="lbl bad" href="#director">🔴 급한 소식 ${urg.length} <span>${esc(nm3(urg[0].text))}</span></a>`:''}
   ${R.length?`<button class="lbl me" data-rpt="${esc(R[0].s)}">📰 새 보고서 <span>${esc(R[0].t)}</span></button>`:''}
