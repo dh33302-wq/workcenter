@@ -376,7 +376,7 @@ h2.sec .spk{float:right;padding:4px 12px;min-height:44px;font-size:14px;line-hei
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=10;
+const BUILD=11;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1123,6 +1123,50 @@ const Cal=(()=>{
   return {load,day,planHtml,click,cancelled,get isOpen(){return !$('#cal').hidden},get data(){return c}};
 })();
 
+// HB HQ 폰 알림(웹 푸시, 11/26 동현 03:54). 실제 주소에서만. 폰이 허용하면 주소를 PC로 보내고, 받은 시각은 서비스워커가 적어 두었다가 앱을 열 때 PC로 보낸다(도착률·지연).
+const Push=(()=>{
+  const can=()=>!!document.querySelector('link[rel=manifest]')&&'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+  const u8=s=>{const b=atob((s+'==='.slice((s.length+3)%4)).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0))};
+  const same=(buf,k)=>{const a=new Uint8Array(buf||0),b=u8(k);return a.length===b.length&&a.every((x,i)=>x===b[i])};
+  let sub=null,ready=false;
+  const key=()=>((S3.st.push||{}).key)||'';
+  async function reg(){return Promise.race([navigator.serviceWorker.ready,new Promise((_,n)=>setTimeout(()=>n(new Error('준비 안 됨')),8000))])}
+  async function id(ep){const h=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(ep)));return [...h.slice(0,6)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+  async function check(){   // 앱을 열 때: 등록이 살아 있는지, PC 목록에 있는지, 받은 기록 보내기
+    if(!can()||ready==='busy')return;const was=ready;ready='busy';
+    try{const r=await reg();sub=await r.pushManager.getSubscription();
+      if(Notification.permission==='granted'&&key()&&lsx('push_on',false)){
+        if(sub&&!same(sub.options&&sub.options.applicationServerKey,key())){await sub.unsubscribe();sub=null}   // PC 열쇠가 바뀌었으면 다시
+        if(!sub)sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(key())});
+        const sid=await id(sub.endpoint),S=S3.st.push;if(!(S.ids||[]).includes(sid)&&Date.now()-lsx('push_sent',0)>600000)post()}
+      await seen()}catch(e){}
+    ready=true;if(was!==true&&S3.room==='director')render()}
+  function post(){lsSet('v3_push_sent',Date.now());Q.add('push_sub',{sub:sub.toJSON(),dev:mbDev()});Sync3.flush()}
+  async function seen(){if(!sub||!('caches' in window))return;const c=await caches.open('hq-push'),ks=await c.keys();if(!ks.length)return;
+    const it=[];for(const k of ks.slice(0,50)){try{it.push(await (await c.match(k)).json())}catch(e){}}
+    if(it.length)Q.add('push_seen',{endpoint:sub.endpoint,items:it});for(const k of ks.slice(0,50))await c.delete(k);Sync3.flush()}
+  async function on(){
+    if(!key()){toast('PC 지킴이를 기다려요');return}
+    const p=await Notification.requestPermission();if(p!=='granted'){toast(p==='denied'?'알림이 막혀 있어요 · 폰 설정에서 HB HQ 알림을 켜 주세요':'허용을 눌러야 켜져요');render();return}
+    try{const r=await reg();sub=await r.pushManager.getSubscription();if(sub&&!same(sub.options&&sub.options.applicationServerKey,key())){await sub.unsubscribe();sub=null}
+      if(!sub)sub=await r.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:u8(key())});lsSet('v3_push_on',true);post();toast('🔔 알림을 켰어요')}catch(e){toast('⚠️ 알림을 못 켰어요 · '+e.message)}
+    render()}
+  async function off(){lsSet('v3_push_on',false);if(sub){const ep=sub.endpoint;try{await sub.unsubscribe()}catch(e){}sub=null;Q.add('push_unsub',{endpoint:ep});Sync3.flush()}toast('🔕 이 폰 알림을 껐어요');render()}
+  const isOn=()=>can()&&Notification.permission==='granted'&&lsx('push_on',false)&&!!sub;
+  function card(){const P=S3.st.push,h='<h2 class="sec">폰 알림</h2>';
+    if(!document.querySelector('link[rel=manifest]'))return '';
+    if(!can())return oct(h+'<div class="kv">이 브라우저는 HQ 알림을 못 받아요</div>');
+    if(!P||!P.key)return oct(h+recNone('PC 지킴이가 보내면 켤 수 있어요'));
+    if(Notification.permission==='denied')return oct(h+'<div class="jrw">알림이 막혀 있어요 · 폰 설정 → 앱 → HB HQ → 알림을 켜 주세요</div>');
+    const s=P.stat||{};
+    return oct(h+(isOn()?`<div class="ok">🔔 이 폰으로 받아요</div><div class="kv">${s.n?`최근 7일 도착 ${s.got}/${s.n}${s.pct!=null?` (${s.pct}%)`:''}${s.med!=null?` · 보통 ${s.med}초`:''}`:'도착 기록이 아직 없어요'}${s.wait?` · 확인 전 ${s.wait}`:''}</div><div class="nav2"><button class="btn" id="push-test">시험 알림</button><button class="btn" id="push-off">끄기</button></div><div class="kv">지금은 ntfy 알림도 같이 와요(1주 비교)</div>`
+      :`<div class="kv">켜면 막힌 일·할 일·주간 보고가 HB HQ 이름으로 와요</div><div class="nav2"><button class="btn pri2" id="push-on">🔔 알림 켜기</button></div>`))}
+  const hint=()=>can()&&key()&&!isOn()&&Notification.permission!=='denied'&&Date.now()-lsx('push_later',0)>7*864e5?`<div class="lbl me" id="push-hint"><button class="btn" id="push-on">🔔 HQ 알림 켜기</button><button class="btn" id="push-later">나중에</button></div>`:'';
+  document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('button');if(!t)return;
+    if(t.id==='push-on')on();else if(t.id==='push-off')off();else if(t.id==='push-later'){lsSet('v3_push_later',Date.now());render()}
+    else if(t.id==='push-test'){Q.add('push_test',{});Sync3.flush();toast('📨 시험 알림을 부탁했어요 · 30초쯤 걸려요')}});
+  return {card,check,hint,isOn,can}})();
+
 // HB HQ 방 구성 (11/26 동현 03:39~03:44): 아래 탭 4개 + 로비 카드. 묻기·일정·내 할 일·소식은 옛 화면(BUILD 9)에서 옮김.
 const TABS4=['lobby','studio','lib','director'];
 const CARD_ROOMS=['ops','hb','coach','log','plan','out','world'];
@@ -1203,7 +1247,7 @@ function lobby(){
   <a class="lbl ${bad?'bad':'ok'}" href="#ops">${bad?`🔴 막힌 일 ${bad} <span>${esc(dead?'PC 지킴이가 응답하지 않아요':B.length?nm3(jobT(B[0])):String(er[0]).slice(0,60))}</span>`:S3.st.jobs?'🟢 막힌 일 없음':'⬜ PC 지킴이를 기다려요'}</a>
   ${urg.length?`<a class="lbl bad" href="#director">🔴 급한 소식 ${urg.length} <span>${esc(nm3(urg[0].text))}</span></a>`:''}
   ${R.length?`<button class="lbl me" data-rpt="${esc(R[0].s)}">📰 새 보고서 <span>${esc(R[0].t)}</span></button>`:''}
-  ${hz()}<div class="rcs">${CARD_ROOMS.map(id=>{const [n,ds,c]=roomStat(id),r=ROOMS.find(q=>q[0]===id);return `<a class="rc c-${c}" href="#${id}" data-room="${id}">${icon(r[2])}<b>${r[1]}${oldNm(id)}</b><span class="num">${n}</span><small>${ds}</small></a>`}).join('')}</div>`;
+  ${Push.hint()}${hz()}<div class="rcs">${CARD_ROOMS.map(id=>{const [n,ds,c]=roomStat(id),r=ROOMS.find(q=>q[0]===id);return `<a class="rc c-${c}" href="#${id}" data-room="${id}">${icon(r[2])}<b>${r[1]}${oldNm(id)}</b><span class="num">${n}</span><small>${ds}</small></a>`}).join('')}</div>`;
 }
 
 // ---- 대표실: 결정함 · 내 할 일 · 소식 · 퇴근 채점 ----
@@ -1313,10 +1357,10 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
 // 실제 주소(매니페스트 있음)에서만 서비스워커·설치. 시험 주소는 '시험' 표시
 const IS_ROOT=!!document.querySelector('link[rel=manifest]');
 document.getElementById('chan').hidden=IS_ROOT;
-if(IS_ROOT&&'serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(IS_ROOT&&'serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{const r=(e.data||{}).hqRoom;if(r&&ROOMS.some(x=>x[0]===r))location.hash='#'+r})}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','부대표실','org','--green'],['hb','진행판','bars','--gold'],['coach','코칭실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
@@ -1702,7 +1746,7 @@ const Sync3={busy:false,
     try{await Q.flush();const res=await api.get(V3_STATES.filter(n=>!isVid(n)));if(!res.ok)throw new Error('상태 못 받음');
       S3.st=Object.assign({},S3.st,res.state);const nv=vidNeed();if(nv.length){const r2=await api.get(nv).catch(()=>null);if(r2&&r2.ok)Object.assign(S3.st,r2.state)}
       lsSet('v3_state',Object.fromEntries(Object.entries(S3.st).filter(([k])=>!isVid(k))));$('#sync').classList.remove('bad');
-      Q.applyDone(S3.st.meta&&S3.st.meta.done);mbTidy();rmSeen();Ask.render(S3.st)}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
+      Q.applyDone(S3.st.meta&&S3.st.meta.done);mbTidy();rmSeen();Ask.render(S3.st);Push.check()}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
     this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('.room input,.room textarea')))&&!vidPlaying())render();jrOpen()},
   flush(){Q.flush().catch(()=>{})}};
 window.addEventListener('hashchange',route);clock();setInterval(clock,20000);

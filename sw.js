@@ -13,3 +13,15 @@ self.addEventListener('fetch',e=>{
     catch(err){const m=await c.match(e.request,{ignoreSearch:true});if(m)return m;if(e.request.mode==='navigate'&&!/^v3\//.test(p)){const s=await c.match('index.html');if(s)return s}return Response.error()}
   })());
 });
+// 폰 알림(웹 푸시): 보여 주고, 받은 시각을 적어 둔다(앱을 열 때 PC로 감). 누르면 그 방으로
+const ROOM=/^[a-z]{2,10}$/;
+self.addEventListener('push',e=>{let d={};try{d=e.data.json()}catch(x){}
+  const room=ROOM.test(d.room||'')?d.room:'lobby',title=String(d.title||'HB HQ').slice(0,80);
+  e.waitUntil((async()=>{
+    await self.registration.showNotification(title,{body:String(d.body||'').slice(0,300),icon:'hq-192.png',badge:'hq-badge-96.png',tag:String(d.tag||d.i||'hq'),renotify:true,data:{room}});
+    if(d.i){const c=await caches.open('hq-push');await c.put('push-log/'+encodeURIComponent(d.i),new Response(JSON.stringify({i:String(d.i),ms:Date.now()})))}
+  })())});
+self.addEventListener('notificationclick',e=>{e.notification.close();const room=(e.notification.data||{}).room||'lobby',base=new URL('./',self.location).href;
+  e.waitUntil((async()=>{const all=await clients.matchAll({type:'window',includeUncontrolled:true}),w=all.find(c=>c.url.split(/[#?]/)[0].replace(/index\.html$/,'')===base);
+    if(w){try{await w.focus()}catch(x){}w.postMessage({hqRoom:room});return}
+    return clients.openWindow(base+'#'+room)})())});
