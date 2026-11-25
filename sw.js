@@ -13,12 +13,12 @@ self.addEventListener('fetch',e=>{
     catch(err){const m=await c.match(e.request,{ignoreSearch:true});if(m)return m;if(e.request.mode==='navigate'&&!/^v3\//.test(p)){const s=await c.match('index.html');if(s)return s}return Response.error()}
   })());
 });
-// 폰 알림(웹 푸시): 보여 주고, 받은 시각을 적어 둔다(앱을 열 때 PC로 감). 누르면 그 방으로
+// 컴퓨터에서는 늘 소리 없이(동현 11/26 06:30). 폰 알림(웹 푸시): 보여 주고, 받은 시각을 적어 둔다(앱을 열 때 PC로 감). 누르면 그 방으로
 const ROOM=/^[a-z]{2,10}(\/[A-Za-z0-9_-]{1,40})?$/;
 self.addEventListener('push',e=>{let d={};try{d=e.data.json()}catch(x){}
   const room=ROOM.test(d.room||'')?d.room:'lobby',title=String(d.title||'HB HQ').slice(0,80);
   e.waitUntil((async()=>{
-    await self.registration.showNotification(title,{body:String(d.body||'').slice(0,300),icon:'hq-192.png',badge:'hq-badge-96.png',tag:String(d.tag||d.i||'hq'),renotify:true,silent:!!d.silent,data:{room}});
+    await self.registration.showNotification(title,{body:String(d.body||'').slice(0,300),icon:'hq-192.png',badge:'hq-badge-96.png',tag:String(d.tag||d.i||'hq'),renotify:true,silent:!!d.silent||!/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent),data:{room}});
     if(d.i){const c=await caches.open('hq-push');await c.put('push-log/'+encodeURIComponent(d.i),new Response(JSON.stringify({i:String(d.i),ms:Date.now()})))}
   })())});
 self.addEventListener('notificationclick',e=>{e.notification.close();const room=(e.notification.data||{}).room||'lobby',base=new URL('./',self.location).href;

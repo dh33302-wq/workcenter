@@ -334,6 +334,14 @@ h2.sec .spk{float:right;padding:4px 12px;min-height:44px;font-size:14px;line-hei
 .k-work{--k:#5B9BE6}.k-me{--k:#E8DFC8}.k-studio{--k:#F2C230}.calrow{border-left:3px solid var(--k,#333);padding-left:10px}.cev[class*=k-]{border-color:var(--k)}.wkg .c.ce[class*=k-]{outline-color:var(--k)}.kd{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--k,#888);margin-right:7px;vertical-align:1px}
 .calk{margin:0 0 14px}.calk .btn{padding:8px 12px;border-color:var(--k);color:var(--k)}.calk .btn[aria-pressed=false]{opacity:.5}.chip:disabled{opacity:.35}
 .mgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.mgrid>small{text-align:center;color:var(--dim);font:600 13px system-ui,"Malgun Gothic",sans-serif}.md{all:unset;box-sizing:border-box;cursor:pointer;min-height:74px;min-width:0;padding:3px;background:#161618;overflow:hidden;display:flex;flex-direction:column;gap:2px}.md.td{outline:2px solid var(--gold);outline-offset:-2px}.md:focus-visible{outline:2px solid var(--ivory)}.md b{font:700 14px system-ui,sans-serif}.md i{font:600 11px/1.35 system-ui,"Malgun Gothic",sans-serif;font-style:normal;border-left:3px solid var(--k);padding-left:3px;white-space:nowrap;overflow:hidden;text-overflow:clip}.md small{font-size:11px;color:var(--dim)}@media(min-width:700px){.md{min-height:96px}.md i{font-size:13px}}
+/* ⏱ 집중 타이머 · 블록 체크 */
+.fx{padding:12px 14px;margin:8px 0;background:var(--bg-panel);border-left:6px solid #3a3426;min-width:0}.fx[hidden]{display:none}
+.fx.p-focus{border-color:#5B9BE6;background:#101c2c}.fx.p-warn{border-color:#F0922B;background:#2b1a08}.fx.p-rest,.fx.p-ok{border-color:#4CAF6E;background:#0f2417}.fx.p-over{border-color:#ff5a4d;background:#3a0d0d;animation:fxbl 1s steps(2,jump-none) infinite}@keyframes fxbl{from{background:#3a0d0d}to{background:#6e1414}}@media(prefers-reduced-motion:reduce){.fx.p-over{animation:none}}
+.fx-h b{font-size:calc(19px*var(--s));overflow-wrap:anywhere}.fx-h em{font-style:normal;color:var(--gold);font:700 calc(14px*var(--s)) system-ui,"Malgun Gothic",sans-serif;margin-left:8px}
+.fx-t{font-size:calc(46px*var(--s));line-height:1.1;font-variant-numeric:tabular-nums}.fx-n{overflow-wrap:anywhere}.fx-b{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px}.fx-b:empty{display:none}.fx-b .btn{min-height:46px;padding:8px 16px}
+.fxk{all:unset;box-sizing:border-box;flex:none;min-width:44px;min-height:44px;font-size:20px;text-align:center;line-height:44px;cursor:pointer}b.fxk{cursor:default}button.fxk:focus-visible{outline:2px solid var(--ivory)}
+.hqrow.dr{border:2px dashed #5B9BE6;padding-left:8px}.fxb2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none!important;max-width:46%}
+button.lbl.qb{border-left-color:#c0564a}
 </style>
 </head>
 <body>
@@ -382,7 +390,7 @@ h2.sec .spk{float:right;padding:4px 12px;min-height:44px;font-size:14px;line-hei
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=16;
+const BUILD=17;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1048,7 +1056,7 @@ const Cal=(()=>{
   const off=()=>lsx('cal_off',{}),shown=e=>!off()[e.k||'me'];
   let addK='';
   const REFRESH_MS=300000;
-  let c=lsGet('wc_cal3',{t:0,items:[],err:'',errs:{}}),busy=false,editId=null;
+  let c=lsGet('wc_cal3',{t:0,items:[],err:'',errs:{}}),busy=false,again=false,editId=null;
   const pad=n=>String(n).padStart(2,'0');
   const ymd=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
   const planDay=d=>ymd(new Date(d.getTime()-5*3600000));   // 일정 하루 = 05시 경계(새벽 2시 일정은 전날 칸)
@@ -1057,18 +1065,18 @@ const Cal=(()=>{
   const allDay=e=>!!(e.start&&e.start.date);
   const cancelled=e=>/^✖/.test(e.summary||'')||e.status==='cancelled';
   const hm=d=>pad(d.getHours())+':'+pad(d.getMinutes());
-  async function load(force){
-    if(busy)return;if(!force&&Date.now()-c.t<(c.err?60000:REFRESH_MS))return;busy=true;
+  async function load(force,ms){
+    if(busy){if(force)again=true;return}if(!force&&Date.now()-c.t<(c.err?60000:ms||REFRESH_MS))return;busy=true;
     const a=new Date(Date.now()-40*86400000),b=new Date(Date.now()+70*86400000),q='?singleEvents=true&orderBy=startTime&maxResults=250&timeMin='+encodeURIComponent(a.toISOString())+'&timeMax='+encodeURIComponent(b.toISOString());
     const items=[],errs={};
     for(const [k] of SRC){if(!cid(k))continue;
       try{const r=await api.gfetch(base(k)+q);
-        if(r.ok){const j=await r.json();items.push(...(j.items||[]).filter(e=>e.status!=='cancelled').map(e=>({k,id:k+'|'+e.id,summary:e.summary||'(제목 없음)',start:e.start,end:e.end,status:e.status})))}
+        if(r.ok){const j=await r.json();items.push(...(j.items||[]).filter(e=>e.status!=='cancelled').map(e=>Object.assign({k,id:k+'|'+e.id,summary:e.summary||'(제목 없음)',start:e.start,end:e.end,status:e.status},k==='work'?{x:(e.extendedProperties||{}).private||{},dsc:String(e.description||'').slice(0,400)}:{})))}
         else{let w='';try{w=JSON.stringify((await r.json()).error||{})}catch(e){}errs[k]=r.status===403&&/accessNotConfigured|SERVICE_DISABLED/.test(w)?'api':r.status===403?'perm':r.status===401?'login':r.status===404?'none':'HTTP '+r.status}
       }catch(e){errs[k]=e.message}
       if(errs[k])items.push(...c.items.filter(x=>x.k===k))}   // 못 읽은 갈래는 저장본
     c={t:Date.now(),items,errs,err:Object.values(errs)[0]||''};
-    lsSet('wc_cal3',c);busy=false;UI.all(Sync.state);
+    lsSet('wc_cal3',c);busy=false;if(again){again=false;return load(true)}UI.all(Sync.state);
   }
   // 하루(05시 경계) 일정: 종일 + 시간 일정. at(date) → {all:[], byH:{h:[e]}, list:[]}
   function day(date){
@@ -1085,8 +1093,13 @@ const Cal=(()=>{
     out.list.sort((x,y)=>(allDay(y)-allDay(x))||((st(x)||0)-(st(y)||0)));out.all.sort((x,y)=>(x.k==='work'?0:1)-(y.k==='work'?0:1));
     return out;
   }
+  // 집중 타이머: 🎬 작업 일정만 고친다(개인·HB Studio 는 여기로 못 고침)
+  async function patch(id,b){if(!/^work\|/.test(String(id))||!cid('work'))return {ok:false,status:0};
+    const r=await api.gfetch(base('work')+'/'+rid(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
+    if(r.ok){const e=c.items.find(x=>x.id===id);if(e){for(const k of ['summary','start','end'])if(b[k])e[k]=b[k];if(b.extendedProperties)e.x=Object.assign({},e.x,b.extendedProperties.private)}}
+    return {ok:r.ok,status:r.status}}
   const when=e=>allDay(e)?'종일':hm(st(e))+(en(e)?'~'+hm(en(e)):'');
-  const row=(e,btn)=>`<div class="hqrow calrow k-${e.k}${cancelled(e)?' cx':''}"><b>${{work:'🎬',me:'🙋',studio:'🦡'}[e.k]||'📅'}</b><span>${esc(e.summary)}<br><small class="kv">${esc(when(e))}</small></span>${btn&&e.k!=='studio'?`<button class="btn" data-calopen="${esc(e.id)}">고치기</button>`:''}</div>`;
+  const row=(e,btn)=>{const f=btn&&e.k==='work'&&!allDay(e)&&!cancelled(e)?Focus.row(e):null;return `<div class="hqrow calrow k-${e.k}${cancelled(e)?' cx':''}${f&&f.draft?' dr':''}">${f&&!/^(rest|sleep)$/.test(f.k)?`<button class="fxk" data-fxk="${esc(e.id)}" aria-pressed="${f.done}" aria-label="${f.done?'끝 표시 지우기':'끝 표시'}">${f.done?'✅':'⬜'}</button>`:`<b>${{work:'🎬',me:'🙋',studio:'🦡'}[e.k]||'📅'}</b>`}<span>${esc(e.summary)}<br><small class="kv">${esc(when(e))}</small></span>${btn&&e.k!=='studio'?`<span class="fxb2">${f&&f.draft?`<button class="btn" data-fxd="${esc(e.id)}">확정</button>`:''}<button class="btn" data-calopen="${esc(e.id)}">고치기</button></span>`:''}</div>`};
   function status(){
     if(c.err==='perm')return '<div class="sub calperm">🔐 캘린더 허용이 필요해요 — 부대표가 허용 순서를 알려 줄 거예요</div>';
     if(c.err==='api')return '<div class="sub">⚠️ 캘린더 서비스가 꺼져 있어요(다리 설정) · 저장본 보여 줘요</div>';
@@ -1146,8 +1159,127 @@ const Cal=(()=>{
     if(t.id==='cal-close'){$('#cal').hidden=true;editId=null;return true}
     return false;
   }
-  return {load,day,planHtml,chips,month,click,cancelled,get isOpen(){return !$('#cal').hidden},get data(){return c}};
+  return {load,patch,planDay,hasWork:()=>!!cid('work'),day,planHtml,chips,month,click,cancelled,get isOpen(){return !$('#cal').hidden},get data(){return c}};
 })();
+
+// ⏱ 집중 타이머 · 오늘 🎬 블록 체크 · 퇴근 버튼 (11/26 동현 06:21·06:30, 기준 hub\control\하루패턴_v1_261126.md)
+// 상태의 원본 = '🎬 동현 작업' 캘린더(✅ 제목 앞 · ▶시작과 +30분은 일정에 숨은 칸). 그래서 집 PC·노트북·폰이 같은 상태. 쓰기는 작업 캘린더에만(Cal.patch 가 막음).
+// PC 는 소리 없음: 알림 silent, 소리 파일을 부르지 않음. 폰 소리는 구글 캘린더 알림과 '쉬는 시간 초과' 알림(집 PC 지킴이)만.
+const IS_PC=matchMedia('(hover:hover) and (pointer:fine)').matches&&!/Android|iPhone|iPad/i.test(navigator.userAgent);
+const Focus=(()=>{
+  const M=60000,RED_MAX=20;   // 빨강은 20분까지만(그 뒤로는 시작 버튼만)
+  const core=t=>String(t||'').replace(/^(?:\s|✅|✔️?|✖|📝\s*(?:초안)?[\s:·]*|🔁\s*이월\s*(?=🎯))+/u,'').trim();
+  const KD=[['focus',/^🎯/u],['rest',/^☕/u],['meal',/^(?:🍚|🍽|🍱)/u],['spare',/^🔁/u],['wrap',/^🛑/u],['sleep',/^🌙/u],['mark',/^🏁/u]];
+  const kindOf=t=>{const c=core(t),h=KD.find(x=>x[1].test(c));return h?h[0]:'etc'};
+  const isDone=t=>/^\s*(?:📝\s*(?:초안)?\s*)?✅/u.test(t||''),isDraft=t=>/^(?:\s|✅)*📝/u.test(t||'');
+  const crit=d=>{const m=String(d||'').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'').match(/완료\s*기준\s*[:：·-]?\s*([^\n]+)/);return m?m[1].trim().slice(0,90):''};
+  // 퇴근 뒤로 밀린 '🔁이월 🎯'(비서가 옮긴 것)은 타이머에서 빼고 목록에만
+  function blocks(day){const L=all(day).filter(b=>b.k!=='mark'),w=L.find(b=>b.k==='wrap');if(w)L.forEach(b=>{if(b.s>=w.e&&/^(?:\s|✅|📝\s*(?:초안)?)*🔁\s*이월/u.test(b.t))b.k='hold'});return L}
+  // 퇴근했나: HQ 퇴근 버튼 또는 비서가 만든 '🏁 퇴근' 일정
+  const gone=(day,t)=>((S3.st.quit||{}).leave||{}).d===day||all(day).some(b=>b.k==='mark'&&b.s<=t);
+  function all(day){return Cal.data.items.filter(e=>e.k==='work'&&e.start&&e.start.dateTime&&!Cal.cancelled(e)).map(e=>({id:e.id,s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime),t:e.summary,c:core(e.summary),k:kindOf(e.summary),done:isDone(e.summary),draft:isDraft(e.summary),on:!!(e.x||{}).hq_start,ext:!!(e.x||{}).hq_ext,crit:crit(e.dsc)}))
+    .filter(b=>b.e>b.s&&Cal.planDay(new Date(b.s))===day).sort((a,b)=>a.s-b.s||a.e-b.e)}
+  const mine=()=>Cal.data.items.filter(e=>e.k==='me'&&e.start&&e.start.dateTime&&!Cal.cancelled(e)).map(e=>({s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime)}));
+  const hits=(L,s,e)=>L.some(x=>x.s<e&&s<x.e);
+  // F 바로 앞의 쉬는 시간·식사(끝과 시작 사이 30분 안)
+  const restBefore=(B,F)=>{const p=B.filter(b=>b!==F&&b.e<=F.s+M&&F.s-b.e<=30*M).pop();return !!p&&(p.k==='rest'||p.k==='meal')};
+  function phase(B0,now,P){
+    const B=B0.filter(b=>b.k!=='hold'),In=B.filter(b=>b.s<=now&&now<b.e),cur=In.find(b=>b.k==='focus')||In[In.length-1]||null,up=B.filter(b=>b.s>now),nx=up[0]||null,o={ph:'idle',b:cur,nx,left:cur?cur.e-now:nx?nx.s-now:0,over:0,start:null,done:null,ext:null};
+    if(cur&&cur.k==='focus'){
+      const ov=(now-cur.s)/M;
+      if(cur.done)o.ph='ok';
+      else if(!cur.on&&ov>=1&&ov<RED_MAX&&restBefore(B,cur)&&!hits(P,now,now+1)){o.ph='over';o.over=Math.floor(ov)}
+      else o.ph=o.left<=10*M?'warn':'focus';
+      if(!cur.done){o.done=cur;if(!cur.on)o.start=cur;if(o.left>0&&!B.some(b=>b.ext)&&spare(B,cur))o.ext=cur}
+    }else if(cur){o.ph=cur.k==='rest'||cur.k==='meal'?'rest':'etc'}
+    if(!o.start&&nx&&nx.k==='focus'&&!nx.on&&!nx.done&&(cur?cur.k==='rest'||cur.k==='meal':nx.s-now<15*M))o.start=nx;
+    if(!o.done){const p=B.filter(b=>b.k==='focus'&&b.e<=now&&now-b.e<30*M).pop();if(p&&!p.done)o.done=p}
+    return o}
+  const spare=(B,cur)=>B.find(b=>b.k==='spare'&&b.s>=cur.e&&b.e-b.s>=30*M)||null;
+  // +30분: 지금 블록을 늘리고, 🔁여유까지의 블록을 30분씩 밀고, 🔁여유를 30분 줄인다(0이 되면 ✖). 개인 일정과 새로 겹치면 하지 않는다
+  function extPlan(B,cur,P){
+    const Z=spare(B,cur);if(!Z)return {no:'오늘 남은 🔁여유가 30분이 안 돼요'};
+    const mid=B.filter(b=>b.k!=='hold'&&b!==cur&&b!==Z&&b.s>=cur.e&&b.s<Z.s),L=[{b:cur,s:cur.s,e:cur.e+30*M}].concat(mid.map(b=>({b,s:b.s+30*M,e:b.e+30*M})));
+    for(const x of L)if(hits(P,x.s,x.e)&&!hits(P,x.b.s,x.b.e))return {no:`개인 일정과 겹쳐서 못 늘려요 (${hmOf(x.s)}~${hmOf(x.e)})`};
+    const z=Z.e-Z.s<=30*M?{b:Z,x:1}:{b:Z,s:Z.s+30*M,e:Z.e};
+    return {L:[z].concat(L.reverse()),n:mid.length}}
+  const dur=ms=>{const s=Math.max(0,Math.round(ms/1000)),h=Math.floor(s/3600);return (h?h+':'+z2(Math.floor(s%3600/60)):Math.floor(s/60))+':'+z2(s%60)};
+  const NM={focus:'집중',warn:'10분 안에 끝',rest:'쉬는 시간',over:'쉬는 시간 넘음',ok:'끝냈어요',etc:'',idle:''};
+  const now=()=>Date.now();
+  let busy=false,arm=0;
+  function snap(){const d=pday(),B=blocks(d),P=mine(),g=gone(d,now());return Object.assign({B,P,g},g?{ph:'idle',b:null,nx:null,left:0,over:0,start:null,done:null,ext:null}:phase(B,now(),P))}
+  const key=o=>[o.ph,o.g,o.b&&o.b.id,o.b&&o.b.t,o.b&&o.b.e,o.nx&&o.nx.id+o.nx.s,o.start&&o.start.id,o.done&&o.done.id,o.ext&&1,o.over,busy,arm&&now()-arm<6000,S3.fxOpen,o.B.map(b=>b.id+b.t+b.s+b.e+b.on).join(),blocked().length,Cal.data.err,pip&&!pip.closed?1:0].join('|');
+  const tm=o=>o.ph==='over'?'+'+dur(now()-o.b.s):o.b||o.nx?dur(o.b?o.b.e-now():o.nx.s-now()):'–';
+  const btns=o=>`<div class="fx-b">${o.start?`<button class="btn pri2" data-fx="start" ${busy?'disabled':''}>▶ 시작</button>`:o.b&&o.b.on&&!o.b.done?'<span class="kv">▶ 시작함</span>':''}${o.done?`<button class="btn" data-fx="done" ${busy?'disabled':''}>✅ 끝${o.done!==o.b?' <small>'+esc(o.done.c.slice(0,12))+'</small>':''}</button>`:''}${o.ext?`<button class="btn" data-fx="ext" ${busy?'disabled':''}>${arm&&now()-arm<6000?'한 번 더 → 뒤가 30분 밀려요':'+30분'}</button>`:''}</div>`;
+  const head=o=>`<div class="fx-h"><b>${o.b?esc(o.b.c):o.g?'오늘은 퇴근했어요':o.nx?'비어 있어요':o.B.length?'오늘 블록이 끝났어요':'오늘 🎬 블록이 없어요'}</b>${NM[o.ph]?`<em>${o.ph==='over'?`쉬는 시간 ${o.over}분 넘음 → 시작을 눌러요`:NM[o.ph]}</em>`:''}</div>`;
+  const nxt=o=>o.nx?`<div class="fx-n">다음 <b class="num">${hmOf(o.nx.s)}</b> ${esc(o.nx.c)}</div>`:'';
+  const li=b=>`<div class="hqrow fxr${b.draft?' dr':''}${b.done?' rd':''}">${/^(rest|sleep)$/.test(b.k)?'<b class="fxk"></b>':`<button class="fxk" data-fxk="${esc(b.id)}" aria-pressed="${b.done}" aria-label="${b.done?'끝 표시 지우기':'끝 표시'}" ${busy?'disabled':''}>${b.done?'✅':'⬜'}</button>`}<span>${esc(b.c)}<br><small class="kv">${hmOf(b.s)}~${hmOf(b.e)}${b.draft?' · 📝 초안':''}${b.on&&!b.done?' · ▶ 시작함':''}${b.ext?' · +30분':''}</small></span>${b.draft?`<button class="btn" data-fxd="${esc(b.id)}" ${busy?'disabled':''}>확정</button>`:''}</div>`;
+  function card(){const o=snap(),D=o.B.filter(b=>b.k==='focus');
+    if(!o.B.length&&Cal.data.err)return '';
+    return `${head(o)}<div class="fx-t num">${tm(o)}</div>${o.b&&o.b.crit?`<div class="kv">✅ ${esc(o.b.crit)}</div>`:''}${nxt(o)}${o.B.length?btns(o):''}${o.B.length||IS_PC?`<div class="fx-b">${o.B.length?`<button class="btn" data-fx="list" aria-expanded="${!!S3.fxOpen}">🎯 ${D.filter(b=>b.done).length}/${D.length}${o.B.some(b=>b.draft)?' · 📝 초안 '+o.B.filter(b=>b.draft).length:''} ${S3.fxOpen?'▴':'▾'}</button>`:''}${IS_PC?(pip&&!pip.closed?'<button class="btn" data-fx="pipx">작은 창 닫기</button>':`${'documentPictureInPicture' in window?'<button class="btn" data-fx="pip">📌 작은 창(항상 위)</button>':''}<button class="btn" data-fx="pop">🗔 작은 창(보통)</button>`):''}</div>`:''}${S3.fxOpen?o.B.map(li).join(''):''}`}
+  const box=()=>'<div id="fx" class="fx"></div>';
+  // ---- PC 작은 창: 항상 위(문서 PiP) 또는 보통 창. 로그인은 HQ 창 것을 그대로 쓴다 ----
+  let pip=null,pipK='';
+  const PCSS='*{box-sizing:border-box}html,body{margin:0;height:100%}body{background:#141416;color:#F1E9D6;font:500 15px/1.4 system-ui,"Malgun Gothic",sans-serif;padding:10px 12px;overflow:auto;transition:background .3s}body[data-ph=focus]{background:#123a6b}body[data-ph=warn]{background:#8a4a00}body[data-ph=rest]{background:#14532d}body[data-ph=ok]{background:#14402a}body[data-ph=over]{background:#8f1414;animation:bl 1s steps(2,jump-none) infinite}@keyframes bl{from{background:#8f1414}to{background:#d92b2b}}@media(prefers-reduced-motion:reduce){body[data-ph=over]{animation:none;background:#b31d1d}}.fx-h b{font-size:17px;overflow-wrap:anywhere}.fx-h em{font-style:normal;display:block;font-size:14px}.fx-t{font:800 clamp(38px,17vw,84px)/1.05 system-ui,sans-serif;font-variant-numeric:tabular-nums;margin:2px 0}.fx-n,.nl{font-size:14px;overflow-wrap:anywhere}.fx-b{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.btn{min-height:40px;padding:0 12px;border:1px solid #ffffff66;border-radius:8px;background:#0006;color:inherit;font:700 15px system-ui,"Malgun Gothic",sans-serif;cursor:pointer}.pri2{background:#F1E9D6;color:#141416}.btn:disabled{opacity:.5}.btn:focus-visible{outline:2px solid #fff}.kv{font-size:13px;opacity:.9}.bad{margin-top:6px;padding:4px 8px;background:#0007;border-left:4px solid #ff6b5e;font-size:14px;overflow-wrap:anywhere}';
+  function pipHtml(o){const N=o.g?[]:o.B.filter(b=>b.s>now()&&b.k!=='hold').slice(0,3),X=blocked();
+    return `${head(o)}<div class="fx-t">${tm(o)}</div>${btns(o)}${N.map((b,i)=>`<div class="nl">${i?'':'다음 '}<b>${hmOf(b.s)}</b> ${esc(b.c)}</div>`).join('')}${X.length?`<div class="bad">🔴 막힌 일 ${X.length} · ${esc(nm3(jobT(X[0])))}</div>`:''}${Cal.data.err?'<div class="kv">⚠️ 캘린더를 못 읽어 저장본이에요</div>':''}`}
+  function pipOn(w,kind){pip=w;pipK='';const d=w.document;d.title='HQ 오늘';d.body.innerHTML='<div id="p"></div>';const s=d.createElement('style');s.textContent=PCSS;d.head.appendChild(s);d.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-fx]');if(t)act(t.dataset.fx)});
+    const h=w.setInterval(tick,1000);w.addEventListener('pagehide',()=>{w.clearInterval(h);if(pip===w)pip=null;tick()});
+    if(kind==='pop')w.addEventListener('beforeunload',()=>lsSet('v3_fx_pos',{x:w.screenX,y:w.screenY,w:w.innerWidth,h:w.innerHeight}));
+    askNote();tick()}
+  async function openPip(){try{pipOn(await documentPictureInPicture.requestWindow({width:320,height:250}),'pip')}catch(e){toast('작은 창을 못 열었어요 · '+e.message)}}
+  function openPop(){const p=lsx('fx_pos',{x:40,y:40,w:320,h:260}),w=window.open('','hqfocus',`popup=1,width=${p.w},height=${p.h},left=${p.x},top=${p.y}`);if(!w){toast('팝업이 막혀 있어요 · 주소창에서 허용해 주세요');return}pipOn(w,'pop')}
+  function askNote(){try{if(IS_PC&&'Notification' in window&&Notification.permission==='default')Notification.requestPermission()}catch(e){}}
+  // ---- PC 무음 알림: 바뀔 때 한 번씩 ----
+  function note(id,title,body){const k=pday(),s=lsx('fx_note',{});if(s.d!==k){s.d=k;s.k={}}if(s.k[id])return;s.k[id]=1;lsSet('v3_fx_note',s);
+    if(!IS_PC||!('Notification' in window)||Notification.permission!=='granted')return;
+    try{const n=new Notification(title,{body,silent:true,tag:'hq-focus',icon:'hq-192.png'});n.onclick=()=>{try{window.focus()}catch(e){}n.close()}}catch(e){}}
+  function notes(o){const b=o.b;if(!b||Cal.data.err)return;const t=now();
+    if(o.ph==='over'){if(o.over>=5)note(b.id+b.s+(o.over>=10?'o10':'o5'),`☕ ${o.over>=10?10:5}분 넘음 → ${b.c}`,'▶ 시작을 눌러요');return}
+    if((b.k==='focus'||b.k==='rest'||b.k==='meal')&&t-b.s<2*M&&!b.done)note(b.id+b.s+'s',b.k==='focus'?`시작 — ${b.c}`:`${b.c} — ${hmOf(b.e)}까지`,b.crit);
+    if(o.ph==='warn')note(b.id+b.e+'w',`10분 남음 — ${b.c}`,b.crit||'못 끝내면 멈추고 🔁이월이에요')}
+  function tick(){
+    const o=snap(),k=key(o);
+    const el=document.getElementById('fx');
+    if(el&&S3.room==='lobby'){if(el.dataset.k!==k){const h=card();el.dataset.k=k;el.className='fx p-'+o.ph;el.innerHTML=h;el.hidden=!h}else{const t=el.querySelector('.fx-t');if(t)t.textContent=tm(o)}}
+    if(pip&&!pip.closed){try{const d=pip.document;if(pipK!==k){pipK=k;d.body.dataset.ph=o.ph;d.getElementById('p').innerHTML=pipHtml(o)}else{const t=d.querySelector('.fx-t');if(t)t.textContent=tm(o)}}catch(e){}
+      if(now()-Cal.data.t>60000)Cal.load(false,60000)}
+    notes(o);plan(o)}
+  // ---- 폰 '쉬는 시간 넘음' 알림용: 쉬는 시간 뒤 🎯 블록의 시작 시각만 집 PC 지킴이로(작업 캘린더만, 개인 일정과 겹치는 것은 뺌) ----
+  function plan(o){
+    if(!document.querySelector('link[rel=manifest]')||Cal.data.err||(Cal.data.errs||{}).work||now()-Cal.data.t>600000||!Cal.hasWork())return;
+    const it=o.B.filter(b=>!o.g&&b.k==='focus'&&b.e>now()&&restBefore(o.B,b)&&!hits(o.P,b.s,b.s+M)).slice(0,10).map(b=>({k:b.id.slice(-24).replace(/[^\w]/g,''),s:b.s,t:b.c.slice(0,40),on:b.on||b.done})),L=lsx('fp',{}),h=pday()+JSON.stringify(it);
+    if(L.h===h&&(now()-L.t<3600000||!it.length))return;if(!it.length&&!L.h)return;
+    lsSet('v3_fp',{h,t:now()});Q.add('focus_plan',{d:pday(),at:now(),items:it});Sync3.flush()}
+  async function run(fn){if(busy)return;busy=true;tick();try{await fn()}catch(e){toast('⚠️ 못 바꿨어요 · '+e.message)}busy=false;arm=0;await Cal.load(true);tick();if(S3.room==='plan')render()}
+  const set=async(id,body)=>{const r=await Cal.patch(id,body);if(!r.ok)throw new Error(r.status===403||r.status===401?'캘린더 허용이 아직이에요':'구글 응답 '+r.status)};
+  const title=(b,done)=>{const c=b.t.replace(/^(?:\s|✅|📝\s*(?:초안)?[\s:·]*)+/u,'');return done?'✅ '+c:c};   // ✅ 를 누르면 초안 표시도 지운다(끝났으니 확정)
+  function act(a){
+    const o=snap();
+    if(a==='list'){S3.fxOpen=!S3.fxOpen;tick();return}
+    if(a==='pip'){openPip();return}if(a==='pop'){openPop();return}if(a==='pipx'){if(pip)pip.close();pip=null;tick();return}
+    if(a==='start'&&o.start)run(async()=>{await set(o.start.id,{extendedProperties:{private:{hq_start:new Date().toISOString()}}});toast('▶ 시작했어요')});
+    if(a==='done'&&o.done)run(async()=>{await set(o.done.id,{summary:title(o.done,true)});toast('✅ 끝으로 표시했어요')});
+    if(a==='ext'&&o.ext){if(!(arm&&now()-arm<6000)){const p=extPlan(o.B,o.ext,o.P);if(p.no){toast(p.no);return}arm=now();tick();setTimeout(tick,6200);return}
+      run(async()=>{const p=extPlan(o.B,o.ext,o.P);if(p.no){toast(p.no);return}
+        const done=[],iso=t=>({dateTime:new Date(t).toISOString(),timeZone:'Asia/Seoul'});
+        try{for(const x of p.L){const bd=x.x?{summary:'✖ '+x.b.t}:{start:iso(x.s),end:iso(x.e)};if(x.b.id===o.ext.id)bd.extendedProperties={private:{hq_ext:new Date().toISOString()}};await set(x.b.id,bd);done.push(x)}}
+        catch(e){let bad=0;for(const x of done.reverse()){const r=await Cal.patch(x.b.id,x.x?{summary:x.b.t}:{start:iso(x.b.s),end:iso(x.b.e)}).catch(()=>({ok:false}));if(!r.ok)bad++}   // 중간에 끊기면 되돌린다
+          throw new Error(bad?`일부(${bad}개)가 밀린 채예요 · 캘린더를 봐 주세요`:'되돌려 놨어요 ('+e.message+')')}
+        toast('+30분 · 뒤 블록을 밀고 🔁여유에서 뺐어요')})}}
+  document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('button');if(!t)return;const D=t.dataset;
+    if(D.fx){act(D.fx);return}
+    if(D.fxk){const b=blocks(S3.room==='plan'?S3.pDate||pday():pday()).find(x=>x.id===D.fxk);if(b)run(()=>set(b.id,{summary:title(b,!b.done)}));return}
+    if(D.fxd){const b=blocks(S3.room==='plan'?S3.pDate||pday():pday()).find(x=>x.id===D.fxd);if(b)run(async()=>{await set(b.id,{summary:title(b,b.done)});toast('확정했어요')});return}
+    if(t.id==='lb-quit'){if(S3.lqArm&&now()-S3.lqArm<5000){S3.lqArm=0;quitSend();toast('🛑 퇴근을 보냈어요 · 부대표가 내일 초안을 만들어요');render()}else{S3.lqArm=now();render();setTimeout(()=>{if(S3.room==='lobby')render()},5200)}}});
+  // 퇴근 버튼(하루 1번): 퇴근 방 버튼과 같은 일 + 부대표에게 '내일 초안' 편지(지킴이가 하루 1통)
+  function quitBtn(){const q=S3.st.quit||{},i=quitInfo(),sent=q.leave&&q.leave.d===wday()?q.leave.t:'';
+    if(sent)return `<a class="lbl ok" href="#out">🛑 퇴근했어요 <span>${esc(sent)} · 내일 초안을 부탁했어요</span></a>`;
+    if(i.wait)return `<div class="lbl">🛑 퇴근 <span>${i.wait}</span></div>`;
+    return `<button class="lbl qb" id="lb-quit">${S3.lqArm&&now()-S3.lqArm<5000?'🛑 한 번 더 누르면 퇴근이에요':'🛑 퇴근'} <span>${i.rej?'🔴 '+esc(i.rej):'오늘을 닫고 내일 초안을 부탁해요'}</span></button>`}
+  const pd=e=>{const b=blocks(Cal.planDay(new Date(Date.parse(e.start.dateTime)))).find(x=>x.id===e.id);return b||null};
+  setInterval(()=>{if(S3.room==='lobby'&&!document.hidden||pip)tick()},1000);
+  return {box,tick,quitBtn,act,row:pd,li,core,kindOf,isDone,isDraft,phase,extPlan,blocks,restBefore,title,get pip(){return pip},pipOn}})();
 
 // HB HQ 폰 알림(웹 푸시, 11/26 동현 03:54). 실제 주소에서만. 폰이 허용하면 주소를 PC로 보내고, 받은 시각은 서비스워커가 적어 두었다가 앱을 열 때 PC로 보낸다(도착률·지연).
 const Push=(()=>{
@@ -1282,10 +1414,11 @@ function lobby(){
   const bad=B.length+er.length+(dead?1:0);
   $('#r-lobby').innerHTML=`<h1>로비</h1>
   <a class="nnx" href="#plan" aria-label="일정 열기"><span><small>지금</small>${x.cur||(x.all.length?esc(x.all[0])+' <span class="kv">종일</span>':'<span class="kv">비어 있어요</span>')}</span><span><small>다음</small>${x.nx||'<span class="kv">오늘은 더 없어요</span>'}</span></a>${x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:''}
+  ${Focus.box()}
   <a class="lbl ${bad?'bad':'ok'}" href="#ops">${bad?`🔴 막힌 일 ${bad} <span>${esc(dead?'PC 지킴이가 응답하지 않아요':B.length?nm3(jobT(B[0])):String(er[0]).slice(0,60))}</span>`:S3.st.jobs?'🟢 막힌 일 없음':'⬜ PC 지킴이를 기다려요'}</a>
   ${urg.length?`<a class="lbl bad" href="#director">🔴 급한 소식 ${urg.length} <span>${esc(nm3(urg[0].text))}</span></a>`:''}
   ${R.length?`<button class="lbl me" data-rpt="${esc(R[0].s)}">📰 새 보고서 <span>${esc(R[0].t)}</span></button>`:''}
-  ${Push.hint()}${hz()}<div class="rcs">${CARD_ROOMS.map(id=>{const [n,ds,c]=roomStat(id),r=ROOMS.find(q=>q[0]===id);return `<a class="rc c-${c}" href="#${id}" data-room="${id}">${icon(r[2])}<b>${r[1]}${oldNm(id)}</b><span class="num">${n}</span><small>${ds}</small></a>`}).join('')}</div>`;
+  ${Focus.quitBtn()}${Push.hint()}${hz()}<div class="rcs">${CARD_ROOMS.map(id=>{const [n,ds,c]=roomStat(id),r=ROOMS.find(q=>q[0]===id);return `<a class="rc c-${c}" href="#${id}" data-room="${id}">${icon(r[2])}<b>${r[1]}${oldNm(id)}</b><span class="num">${n}</span><small>${ds}</small></a>`}).join('')}</div>`;Focus.tick();
 }
 
 // ---- 대표실: 결정함 · 내 할 일 · 소식 · 퇴근 채점 ----
@@ -1795,9 +1928,9 @@ route();Ask.bind();Ask.render(S3.st);Sync3.run();Cal.load(true);checkBuild();set
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){Sync3.run();checkBuild();Cal.load()}});
 
 // ---- game1: 에르고 · 효과음(직접 만든 소리) · 진동 ----
-const vib=n=>{try{if(lsx('snd',true))navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
+const vib=n=>{try{if(lsx('snd',!IS_PC))navigator.vibrate&&navigator.vibrate(n)}catch(e){}};
 let AC;function tone(f,t0,d,type,g){if(!AC)return;const o=AC.createOscillator(),v=AC.createGain();o.type=type||'sine';o.frequency.setValueAtTime(f,AC.currentTime+t0);v.gain.setValueAtTime(0,AC.currentTime+t0);v.gain.linearRampToValueAtTime(g||.08,AC.currentTime+t0+.01);v.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+t0+d);o.connect(v);v.connect(AC.destination);o.start(AC.currentTime+t0);o.stop(AC.currentTime+t0+d+.02)}
-function sfx(k){if(!lsx('snd',true))return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){return}
+function sfx(k){if(!lsx('snd',!IS_PC))return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){return}
   if(k==='start'){tone(110,0,.5,'sine',.1);tone(220,.05,.4,'triangle',.05)}
   else if(k==='absorb'){tone(300,0,.35,'sine',.05);tone(600,.08,.3,'sine',.04)}
   else if(k==='tick'){tone(900+Math.random()*200,0,.05,'square',.02)}
@@ -1820,8 +1953,8 @@ function giveErgo(key,amt){const given=lsx('ergo_given',{}),dk=today()+'|'+key;i
     setTimeout(()=>{const t0=performance.now(),dur=600;const el=$('#ergo');el.classList.add('pop');vib([30,40,60]);sfx('done');
       (function step(t){const p=Math.min(1,(t-t0)/dur);ergoShow(Math.round(from+(to-from)*p));if(Math.floor(p*12)!==Math.floor(((t-16-t0)/dur)*12))sfx('tick');if(p<1)requestAnimationFrame(step);else setTimeout(()=>el.classList.remove('pop'),250)})(t0)},650+n*14)
   },120)}
-function sndBtn(){const b=$('#snd');if(b)b.textContent=lsx('snd',true)?'🔊':'🔇'}
-document.addEventListener('click',e=>{if(e.target.id==='snd'){lsSet('v3_snd',!lsx('snd',true));sndBtn();sfx('tick')}});
+function sndBtn(){const b=$('#snd');if(b)b.textContent=lsx('snd',!IS_PC)?'🔊':'🔇'}
+document.addEventListener('click',e=>{if(e.target.id==='snd'){lsSet('v3_snd',!lsx('snd',!IS_PC));sndBtn();sfx('tick')}});
 ergoShow(ergoGet());sndBtn();
 
 // ---- game2: 3D 키우기 탭 (열 때만 three.js 로딩) ----
