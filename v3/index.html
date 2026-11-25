@@ -830,7 +830,7 @@ function dkLevel(v,[,lo,mid,goal]){return v==null?['⬜','기록 없음','']:v<l
 function dkGauge(k,v){const L=DK_LV[k],[ic,tx,cl]=dkLevel(v,L);
   return `<div class="dkg ${cl}"><div class="rule" style="border:0;padding-bottom:4px"><span>${ic} <b>${L[0]} 여유 ${gb(v)}</b></span><span class="kv" style="margin-left:auto">${tx}</span></div><div class="dkb" role="img" aria-label="${L[0]} 여유 ${gb(v)}, 바닥 ${L[1]} 목표 ${L[3]}"><i style="width:${v==null?0:Math.min(100,v/L[3]*100)}%"></i><u style="left:${L[1]/L[3]*100}%"></u><u style="left:${L[2]/L[3]*100}%"></u></div><div class="kv">바닥 ${L[1]} · 주의 ${L[2]} · 목표 ${L[3]}GB</div></div>`}
 function dkGame(g){const s=g.steps||[],n=g.now||0;
-  return `<details class="gt" data-gk="dk:${esc(g.k)}"><summary>🎮 <b>${esc(g.t)}</b> <span class="kv">${n?`${n}/9 ${DK_ST[n-1]}${(s[n-1]||[])[0]==='bad'?' · 🔴 막힘':''}`:'아직 시작 전'}</span><span class="dks" aria-hidden="true">${DK_ST.map((_,i)=>`<i class="${esc((s[i]||['none'])[0])}"></i>`).join('')}</span></summary>${DK_ST.map((t,i)=>{const [k,x]=s[i]||['none',''],[ic,nm]=DK_IC[k]||DK_IC.none;return `<div class="rule"><span>${ic}</span><span>${i+1}. ${t}${x?`<br><span class="kv">${esc(x)}</span>`:''}</span><span class="kv" style="margin-left:auto">${nm}</span></div>`}).join('')}${g.hold?`<div class="kv">📌 ${esc(g.hold)}</div>`:''}</details>`}
+  return `<details class="gt" data-gk="dk:${esc(g.k)}"><summary>🎮 <b>${esc(g.t)}</b> <span class="kv">${n?`${n}/9 ${DK_ST[n-1]}${(s[n-1]||[])[0]==='bad'?' · 🔴 막힘':''}`:'아직 시작 전'}</span><span class="dks" aria-hidden="true">${DK_ST.map((_,i)=>`<i class="${esc((s[i]||['none'])[0])}"></i>`).join('')}</span></summary>${DK_ST.map((t,i)=>{const [k,x]=s[i]||['none',''],[ic,nm]=DK_IC[k]||DK_IC.none;return `<div class="rule"><span>${ic}</span><span>${i+1}. ${t}${x?`<br><span class="kv">${esc(x)}</span>`:''}</span><span class="kv" style="margin-left:auto;white-space:nowrap">${nm}</span></div>`}).join('')}${g.hold?`<div class="kv">📌 ${esc(g.hold)}</div>`:''}</details>`}
 function diskCard(){const D=S3.st.disk,h=`<h2 class="sec">저장 관리자 <span class="cin sm">Storage</span></h2>`;
   if(!D)return oct(h+recNone('PC 지킴이가 보내면 나타나요'));
   const k=D.k&&!D.k.bad?D.k:{},G=D.games||[],ms=k.at?Date.parse(k.at.replace(' ','T')):NaN,old=Date.now()-ms>45*60000,td=k.at&&k.at.slice(0,10)===today(),W=k.why;
@@ -839,7 +839,7 @@ function diskCard(){const D=S3.st.disk,h=`<h2 class="sec">저장 관리자 <span
    <div class="rule"><span>📦 ${td||!k.at?'오늘':esc(k.at.slice(5,10))} 창고로 보낸 것</span><b class="num" style="margin-left:auto">${gb(k.today_gb)}</b></div>
    <div class="rule"><span>⏳ 창고 도착 확인 전</span><b class="num" style="margin-left:auto">${gb(k.open_gb)}${k.open_gb!=null&&k.open_max!=null?` / ${k.open_max}`:''}</b></div>
    <div class="rule"><span>☁️ 창고 사용</span><b class="num" style="margin-left:auto">${k.cloud_used_gb==null?'기록 없음':(k.cloud_used_gb/1000).toFixed(2)+'TB'} / 20TB</b></div>
-   <div class="${W&&W.length?'jrw':'kv'}" id="dk-why">${W&&W.length?'🚧 '+W.map(esc).join(' · '):W?'막힌 것 없음':'막힌 이유 기록 없음'}</div>
+   <div class="${W&&W.length?'jrw':'kv'}" id="dk-why">${W&&W.length?'🚧 '+W.map(esc).join(' · '):W?'자리·보내기에 막힌 것 없음':'막힌 이유 기록 없음'}</div>
    ${k.at?`<div class="kv">${esc(k.at.slice(5,16))} 기록${k.last?` · 마지막으로 보낸 때 ${esc(k.last.slice(5,16))}`:''}</div>`:''}
    <h2 class="sec" style="margin-top:14px">게임별 일생 <span class="kv">${G.length}개 · 누르면 펼쳐져요</span></h2>${G.map(dkGame).join('')||'<div class="empty">게임 기록 없음</div>'}`)}
 
