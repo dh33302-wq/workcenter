@@ -244,6 +244,16 @@ body:has(#r-world.on) #mbb{bottom:auto;top:calc(60px*var(--s) + 62px)}
 .gr{border:1px solid #2a2a2a;padding:10px;margin:10px 0}.gr .btn{margin-top:8px}.gr .cv{margin-top:8px}
 
 .gmb{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.gmb button{min-height:44px;padding:6px 14px;border:1px solid #3a3426;background:#141414;color:inherit;font:inherit;font-size:calc(15px*var(--s));max-width:100%;overflow-wrap:anywhere;cursor:pointer}.gmb button.on{border-color:var(--gold);color:var(--gold);background:rgba(206,168,94,.14)}.gmb.why button{font-size:calc(14px*var(--s))}
+/* 두 작품·캐릭터 카드·보고 칸 (11/25) */
+.rect{grid-template-columns:repeat(5,1fr)}@media(max-width:600px){.rect{grid-template-columns:1fr 1fr}}
+.twt{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}.twt .btn{text-align:center;padding:10px 4px;white-space:nowrap}#r-two .btn.on{background:var(--gold);color:#18160C}
+.twg{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0}.twp{border:1px solid #2a2a2a;padding:10px;min-width:0;overflow-wrap:anywhere}.twp.d{border-top:3px solid var(--gold)}.twp.s{border-top:3px solid var(--blue)}
+.twr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.tws{all:unset;cursor:pointer;box-sizing:border-box;min-height:72px;min-width:0;padding:8px 2px;border:1px solid #3a3426;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}.tws span{font-size:calc(20px*var(--s))}.tws b{font-size:calc(15px*var(--s))}.tws small{color:var(--dim);font-size:calc(13px*var(--s))}.tws.op{border-color:var(--gold)}.tws.lk{opacity:.6}.tws.on{background:#221d10}.tws:focus-visible{outline:2px solid var(--ivory)}
+.two{margin-top:12px;border-top:1px solid #2a2418;padding-top:12px}.twy{display:flex;gap:8px;margin-top:8px}.twy .pct{flex:1;min-width:0;width:auto;margin:0}
+#r-two .ccin{margin-top:8px;width:100%;box-sizing:border-box}
+.twm{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:4px 0 14px;font:600 calc(15px*var(--s)) system-ui,"Malgun Gothic",sans-serif}
+.twc{padding:10px 0;border-bottom:1px solid #2a2418}.twa{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:6px 0;overflow-wrap:anywhere}.twa span{color:var(--dim)}.twa i{color:var(--gold);font-style:normal}
+.two .cxt table{width:100%}.two .cxt th,.two .cxt td{white-space:normal;overflow-wrap:anywhere;min-width:0}#r-two .q{word-break:keep-all}
 </style>
 </head>
 <body>
@@ -264,6 +274,7 @@ body:has(#r-world.on) #mbb{bottom:auto;top:calc(60px*var(--s) + 62px)}
   <section id="r-world" class="room"></section>
   <section id="r-out" class="room"></section>
   <section id="r-review" class="room"></section>
+  <section id="r-two" class="room"></section>
 </main>
 <nav id="nav"></nav>
 <div id="toast" hidden></div>
@@ -446,7 +457,7 @@ document.addEventListener('click',e=>{
 });
 
 // 기록 방 (11/25 HB 명령서 6번): ①작업 공간 ②변경 이력(파트별) ③도감 수집. 재료 = state workspace·history·dex. 기록이 없으면 0이 아니라 '기록 없음'.
-const REC_TABS=[['space','🧰 작업 공간'],['chg','🧾 변경 이력'],['dex','🃏 도감'],['mail','📮 내 건의']];
+const REC_TABS=[['space','🧰 작업 공간'],['chg','🧾 변경 이력'],['dex','🃏 도감'],['mail','📮 내 건의'],['rep','📋 보고']];
 const recH=m=>m>=60?`${Math.floor(m/60)}시간${m%60?' '+m%60+'분':''}`:`${m}분`;
 const recD=s=>{const d=new Date(s+'T00:00:00');return isNaN(d)?esc(s):`${d.getMonth()+1}/${d.getDate()} ${'일월화수목금토'[d.getDay()]}`};
 const recTile=(ic,nm,val,no)=>`<div class="jrt ${no?'no':''}"><span>${ic}</span><b class="num">${val}</b><small>${nm}</small></div>`;
@@ -506,7 +517,7 @@ function recDex(){
 
 function recRoom(){
   const t=REC_TABS.some(x=>x[0]===S3.recT)?S3.recT:'space';
-  $('#r-log').innerHTML=`<h1>기록</h1><p class="lead">${{space:'지금 쓰는 툴과 오늘 한 일이에요',chg:'무엇이 바뀌었는지 파트별로 봐요',dex:'하루 한 모션씩 모아요',mail:'적어 둔 것이 어떻게 되는지 봐요'}[t]}</p>${hz()}<div class="nav2 rect" role="tablist" style="margin-bottom:16px">${REC_TABS.map(([k,n])=>`<a class="btn ${k===t?'on':''}" role="tab" aria-selected="${k===t}" href="#log/${k}">${n}</a>`).join('')}</div>${({space:recSpace,chg:recChg,dex:recDex,mail:recMail})[t]()}`;
+  $('#r-log').innerHTML=`<h1>기록</h1><p class="lead">${{space:'지금 쓰는 툴과 오늘 한 일이에요',chg:'무엇이 바뀌었는지 파트별로 봐요',dex:'하루 한 모션씩 모아요',mail:'적어 둔 것이 어떻게 되는지 봐요',rep:'계획이 바뀐 것과 남은 허점이에요'}[t]}</p>${hz()}<div class="nav2 rect" role="tablist" style="margin-bottom:16px">${REC_TABS.map(([k,n])=>`<a class="btn ${k===t?'on':''}" role="tab" aria-selected="${k===t}" href="#log/${k}">${n}</a>`).join('')}</div>${({space:recSpace,chg:recChg,dex:recDex,mail:recMail,rep:recRep})[t]()}`;
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-recd],[data-recp],[data-recc],[data-recmore]');if(!b)return;const D=b.dataset,y=scrollY;
   if(D.recd)S3.recD=D.recd;if(D.recp){S3.recP=D.recp;S3.recN=12}if(D.recmore)S3.recN=(S3.recN||12)+12;if(D.recc)S3.recC=S3.recC===+D.recc?null:+D.recc;
@@ -666,12 +677,120 @@ function gradeBox(d){
 function keepOpen(root,fn){const o=[...root.querySelectorAll('details[open][data-gk]')].map(e=>e.dataset.gk);fn();root.querySelectorAll('details[data-gk]').forEach(e=>{if(o.includes(e.dataset.gk))e.open=true})}
 function vidPlaying(){return [...document.querySelectorAll('.room.on video')].some(v=>!v.paused&&!v.ended)}
 // 영상은 바뀐 것만 받는다(30초마다 다시 받지 않음)
-function vidNeed(){const V=[].concat(...((S3.st.hb_gates||{}).clips||[]).map(c=>c.vids||(c.vs?[{vs:c.vs}]:[])));return [...new Set(V.filter(v=>v.vs&&!vidReady(v)).map(v=>v.vs))]}
+function vidNeed(){const V=[].concat(...((S3.st.hb_gates||{}).clips||[]).map(c=>c.vids||(c.vs?[{vs:c.vs}]:[])),twVids());return [...new Set(V.filter(v=>v.vs&&!vidReady(v)).map(v=>v.vs))]}
+
+// 두 작품(동현 작품 | HB Studio 작품)·캐릭터 카드·보고 칸·연결 상태 (11/25). 잠긴 단계는 앱에 자료 자체가 오지 않는다(지킴이가 막음).
+const TW_ST=[['blocking','🧱','블로킹'],['polish','🌊','폴리싱'],['detail','✨','디테일'],['final','🏁','완성']];
+const TW_PICK=[['D','동현 작품이 나음'],['S','HB Studio 가 나음'],['same','비슷']];
+const twNm=s=>(TW_ST.find(x=>x[0]===s)||['','',s])[2];
+const twAt=s=>s?hm(s):'';
+// ---- 반응: 폰에 먼저 적고(v3_tw) PC 가 같은 값을 돌려주면 지운다 ----
+const twKey=(w,s)=>w.k+'|'+s;
+function twVal(w,s,z){const L=lsx('tw',{}),k=twKey(w,s),x=L[k],v={p:(z.re||{}).pick||'',w:(z.re||{}).why||'',st:''};if(!x)return v;
+  const q=Q.list().find(r=>r.id===x.id);if(q&&q.st==='fail'&&q.rej)return Object.assign(v,{st:'🔴 못 넣었어요'+(q.msg?' · '+q.msg:'')});
+  if(v.p===x.p&&v.w===x.w||!q){delete L[k];lsSet('v3_tw',L);return v}
+  return {p:x.p,w:x.w,st:q.st==='sent'||q.st==='ok'?'⏳ PC가 받는 중':'📤 보내는 중'}}
+function twSend(k,s,p,words){const w=(((S3.st.two||{}).works)||[]).find(x=>x.k===k);if(!w)return;
+  const r=Q.add('two_react',{char:w.char,motion:w.motion,stage:s,pick:p,words}),L=lsx('tw',{});L[twKey(w,s)]={p,w:words,id:r.id};lsSet('v3_tw',L);Sync3.flush();toast(p?'✍️ 적었어요':'↩️ 표시를 지웠어요');twoRoom()}
+const twWhyMax=160;
+// ---- 두 작품 화면 ----
+function twStage(w,s){const z=w.st[s[0]]||{},op=!!z.o,on=S3.twS===w.k+'|'+s[0];
+  return `<button class="tws ${op?'op':'lk'} ${on?'on':''}" data-tws="${esc(w.k+'|'+s[0])}" aria-expanded="${on}" ${op?'':'data-lock="1"'}><span>${op?s[1]:'🔒'}</span><b>${s[2]}</b><small>${op?(z.re?'반응함':z.d&&z.s?'열림':'준비 중'):'잠김'}</small></button>`}
+function twSide(nm,cls,x,extra){return `<div class="twp ${cls}"><b>${nm}</b>${extra}<div class="kv">${x?`${x.at?twAt(x.at)+' 판':'시각 기록 없음'}${x.keys!=null?` · 키 ${esc(x.keys)}개`:''}`:'아직 없어요'}</div></div>`}
+function twOpen(w,s){const z=w.st[s];if(!z||!z.o)return '';
+  const q=z.v&&vidReady(z.v),v=twVal(w,s,z),pair=z.d&&z.s,rv=pair&&z.d.rev!=null&&z.s.rev!=null&&z.d.rev!==z.s.rev;
+  return `<div class="two"><div class="kv">${twNm(s)} · ${twAt(z.o)}에 열림${w.why==='s_only'?' · 동현 작품 없이 HB Studio 만 끝낸 모션':''}</div>
+   ${rv?`<div class="jrw">🪪 카드가 달라요 (동현 작품 ${esc(z.d.rev)}판 · HB Studio ${esc(z.s.rev)}판)</div>`:''}
+   <div class="twg">${twSide('🙋 동현 작품','d',z.d,'')}${twSide('🤖 HB Studio 작품','s',z.s,' <em class="draft">내부용</em>')}</div>
+   ${z.v?(q?`<div class="cv"><div class="cvh"><b>왼쪽 동현 | 오른쪽 HB Studio</b> <span class="kv">${z.kind==='ue'?'언리얼':z.kind==='max'?'맥스':'종류 기록 없음'}</span></div>${vidTag(q)}</div>`:`<div class="empty">${z.v.miss?'영상 파일이 없어요':z.v.vs?'영상을 받는 중이에요':'영상은 최근 것만 폰에 올려요'}</div>`):'<div class="empty">나란히 영상이 아직 없어요</div>'}
+   ${(z.diff||[]).length?`<div class="cxt"><table><thead><tr><th>무엇</th><th>동현</th><th>HB Studio</th><th>차이</th></tr></thead><tbody>${z.diff.map(i=>`<tr><th>${esc(i.n)}</th><td class="num">${esc(i.d)}</td><td class="num">${esc(i.s)}</td><td class="num">${esc(i.x)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="kv">숫자 차이 기록 없음</div>'}
+   ${z.coach?`<div class="recq">🎓 티칭팀: ${esc(z.coach)}</div>`:''}
+   ${pair?`<div class="gmb">${TW_PICK.map(([p,n])=>`<button class="${v.p===p?'on':''}" aria-pressed="${v.p===p}" data-twp="${esc(JSON.stringify([w.k,s,v.p===p?'':p]))}">${n}</button>`).join('')}</div>
+    ${v.p?`<div class="twy"><input class="pct" id="tw-why" maxlength="${twWhyMax}" placeholder="이유 한 줄 (안 써도 돼요)" aria-label="이유 한 줄" value="${esc(S3.twDraft!=null&&S3.twDraftK===w.k+'|'+s?S3.twDraft:v.w)}"><button class="btn" data-tww="${esc(JSON.stringify([w.k,s,v.p]))}">적기</button></div>`:''}${v.st?`<div class="kv">${esc(v.st)}</div>`:''}`:''}</div>`}
+function twWorks(){const T=S3.st.two;if(!T)return oct(recNone('PC 지킴이가 보내면 나타나요'));const W=T.works||[];
+  if(!W.length)return oct(`<h2 class="sec">아직 짝이 없어요</h2><p class="why">동현 캐릭터의 첫 모션이 생기면 여기에 나와요.</p>${twHow()}`);
+  return W.map(w=>{const s=(S3.twS||'').startsWith(w.k+'|')?S3.twS.slice(w.k.length+1):'';
+   return oct(`<h2 class="sec">${esc(w.cname)} · ${esc(w.name)}</h2><div class="twg">${twSide('🙋 동현 작품','d',w.d_at?{at:w.d_at}:null,w.d_stage?` <span class="kv">${esc(STG_NM[w.d_stage]||w.d_stage)}</span>`:'')}<div class="twp s"><b>🤖 HB Studio 작품</b> <em class="draft">내부용</em><div class="kv">${TW_ST.filter(x=>(w.st[x[0]]||{}).o).length} / 4 단계 열림</div></div></div>
+    <div class="twr">${TW_ST.map(x=>twStage(w,x)).join('')}</div>${s&&(w.st[s]||{}).o?twOpen(w,s):''}`)}).join('<div style="height:16px"></div>')+(T.n>W.length?`<div class="kv">그 밖에 ${T.n-W.length}개</div>`:'')+(T.bad?`<div class="jrw">⚠️ 잠금 파일 ${T.bad}개를 못 읽어서 잠가 뒀어요</div>`:'')+'<div style="height:16px"></div>'+oct(twHow())}
+const twHow=()=>`<div class="rule"><span>🔒</span><span>단계 끝을 누르면 그 단계만 열려요</span></div><div class="rule"><span>🙋</span><span>동현 작품 = 동현 손 + 티칭팀</span></div><div class="rule"><span>🤖</span><span>HB Studio 작품 = 사람 손 0, 내부용</span></div>`;
+// ---- 캐릭터 카드: 한 장에 한 질문. 쓰는 동안은 폰(v3_cc)에만, 저장을 누르면 PC 로 ----
+const CC={get:()=>lsx('cc',null),set:v=>lsSet('v3_cc',v)};
+const ccGet=(c,f)=>f.split('.').reduce((o,k)=>o==null?undefined:o[k],c);
+function ccPut(c,f,v){const k=f.split('.'),l=k.pop();let o=c;k.forEach(x=>{if(!o[x]||typeof o[x]!=='object')o[x]={};o=o[x]});o[l]=v}
+const ccQ=()=>((S3.st.chars||{}).q)||[];
+const ccHas=v=>Array.isArray(v)?v.length>0:v!=null&&String(v).trim()!=='';
+function ccOk(q,c){if(!q.required)return true;const v=ccGet(c,q.field);if(q.type==='three')return Array.isArray(v)&&v.length===3;
+  if(q.extra&&!ccHas(ccGet(c,q.extra.field)))return false;if(q.also&&!new RegExp(q.also.pattern).test(String(ccGet(c,q.also.field)||'')))return false;return ccHas(v)}
+function ccNew(card,base){CC.set({card:card?JSON.parse(JSON.stringify(card)):{},base:base||'',step:0,lock:!!card,at:Date.now()});S3.twT='card';location.hash='#two/card'}
+function ccBtn(on,f,v,t,ty){return `<button class="${on?'on':''}" aria-pressed="${!!on}" data-ccv="${esc(JSON.stringify([f,v,t]))}">${esc(ty||v)}</button>`}
+function ccIn(f,ph,max,val,ty){return `<input class="pct ccin" data-ccf="${esc(f)}" ${ty==='num'?'type="number" inputmode="numeric"':'type="text"'} maxlength="${max}" placeholder="${esc(ph)}" aria-label="${esc(ph)}" value="${esc(val??'')}">`}
+function ccStep(D,q,n,N){const c=D.card,v=ccGet(c,q.field),t=q.type;let h='';
+  if(t==='one')h=`<div class="gmb">${q.choices.map(x=>ccBtn(v===x,q.field,x,'one')).join('')}</div>${q.free?ccIn(q.field,'직접 쓰기',60,q.choices.includes(v)?'':v):''}`;
+  if(t==='many')h=`<div class="gmb">${q.choices.map(x=>ccBtn((v||[]).includes(x),q.field,x,'many')).join('')}</div>`;
+  if(t==='three'){const my=(v||[]).filter(x=>!q.choices.includes(x));h=`<div class="kv">고른 것 <b class="num">${(v||[]).length}</b> / 3</div><div class="gmb">${q.choices.concat(my).map(x=>ccBtn((v||[]).includes(x),q.field,x,'three')).join('')}</div>${q.free?`<div class="twy"><input class="pct" id="cc-add" maxlength="20" placeholder="직접 쓰기" aria-label="낱말 직접 쓰기"><button class="btn" data-ccadd="${esc(q.field)}">더하기</button></div>`:''}`}
+  if(t==='line')h=ccIn(q.field,q.ask,q.max||160,v);
+  if(q.extra&&!(c.weapon&&c.weapon.kind==='맨손'))h+=`<div class="kv">${esc(q.extra.ask)}</div><div class="gmb">${q.extra.choices.map(x=>ccBtn(ccGet(c,q.extra.field)===x,q.extra.field,x,'one')).join('')}</div>`;
+  if(q.number)h+=`<div class="kv">${esc(q.number.ask)}</div>${ccIn(q.number.field,`${q.number.min}~${q.number.max}`,5,ccGet(c,q.number.field),'num')}`;
+  if(q.line)h+=`<div class="kv">${esc(q.line)}</div>${ccIn(q.line_field,q.line,160,ccGet(c,q.line_field))}`;
+  if(q.also)h+=`<div class="kv">${esc(q.also.ask)}${D.lock?' · 저장한 뒤에는 못 바꿔요':''}</div>${D.lock?`<b>${esc(ccGet(c,q.also.field))}</b>`:ccIn(q.also.field,q.also.ask,24,ccGet(c,q.also.field))}`;
+  const ok=ccOk(q,c);
+  return `<div class="prog"><i style="width:${Math.round(n/N*100)}%"></i></div><div class="kv">${n+1} / ${N}${q.required?'':' · 건너뛰어도 돼요'}</div><div class="q">${esc(q.ask)}</div>${h}
+   <div class="nav2" style="margin-top:16px"><button class="btn" data-ccgo="${n-1}" ${n?'':'disabled'}>◂ 앞</button><button class="btn pri2" data-ccgo="${n+1}" id="cc-next" ${ok?'':'disabled'}>${!q.required&&!ccHas(v)?'건너뛰기 ▸':'다음 ▸'}</button></div>`}
+const ccTx=v=>Array.isArray(v)?v.join(' · '):v==null?'':String(v);
+function ccRows(c){return ccQ().map(q=>{const x=[q.field,q.extra&&q.extra.field,q.number&&q.number.field,q.line_field,q.also&&q.also.field].filter(Boolean).map(f=>{const v=ccTx(ccGet(c,f));return v&&f==='height_cm'?v+'cm':v}).filter(Boolean).join(' · ');return `<div class="rule"><span>${x?'◆':'◇'}</span><span>${esc(q.ask)}<br><b class="recw">${x?esc(x):'비어 있음'}</b></span></div>`}).join('')}
+function ccEnd(D){const T=S3.st.chars||{},bad=ccQ().filter(q=>!ccOk(q,D.card)),s=D.sent,q=s&&Q.list().find(r=>r.id===s.id),wait=q&&!(q.st==='fail'&&q.rej)&&q.st!=='ok';
+  const arm=S3.ccArm&&Date.now()-S3.ccArm<5000;
+  return `<div class="prog"><i style="width:100%"></i></div><div class="q">이렇게 적었어요</div>${ccRows(D.card)}
+   ${bad.length?`<div class="jrw">아직 안 한 질문 ${bad.length}개</div>`:''}${q&&q.st==='fail'&&q.rej?`<div class="jrw">🔴 ${esc(q.msg||'못 넣었어요')}</div>`:''}${wait?`<div class="kv">${q.st==='sent'?'⏳ PC가 받는 중':'📤 보내는 중 (폰에 저장돼 있어요)'}</div>`:''}
+   <div class="nav2"><button class="btn" data-ccgo="${bad.length?ccQ().indexOf(bad[0]):ccQ().length-1}">◂ 고치기</button><button class="btn" data-ccsave="0" ${bad.length||wait?'disabled':''}>저장</button><button class="btn pri2" data-ccsave="1" ${bad.length||wait||T.draft?'disabled':''}>${arm?'한 번 더 누르면 확정':'확정'}</button></div>
+   <div class="kv">${T.draft?'질문이 아직 초안이라 [확정]은 부대표 승인 뒤에 열려요. 저장은 돼요.':'[확정]하면 HB Studio 가 이 카드로 시작해요. 나중에 고치면 다시 확정해요.'}</div>`}
+function ccTidy(){const D=CC.get();if(!D||!D.sent)return;const q=Q.list().find(r=>r.id===D.sent.id);if(q&&q.st==='ok'){CC.set(null);toast(D.sent.f?'🪪 확정했어요':'🪪 저장했어요')}}
+function twCards(){ccTidy();const T=S3.st.chars,D=CC.get();if(!T)return oct(recNone('PC 지킴이가 보내면 나타나요'));const N=ccQ().length;
+  if(!N)return oct(recNone('카드 질문을 못 받았어요'));
+  if(D){const n=Math.max(0,Math.min(N,D.step||0));return oct(`<h2 class="sec">캐릭터 카드 ${T.draft?'<em class="draft">질문 초안</em>':''}</h2>${n<N?ccStep(D,ccQ()[n],n,N):ccEnd(D)}<div class="nav2" style="margin-top:14px"><button class="btn" data-ccx="1">${S3.ccDel&&Date.now()-S3.ccDel<5000?'한 번 더 누르면 지워요':'쓰던 것 지우기'}</button></div><div class="kv">쓰는 동안은 이 폰에만 있어요</div>`)}
+  const C=T.cards||[];
+  return oct(`<h2 class="sec">캐릭터 카드 ${T.draft?'<em class="draft">질문 초안</em>':''}</h2><p class="why">두 작품이 같이 받는 한 장이에요. 질문 ${N}개, 하나씩 골라요.</p><div class="nav2"><button class="btn pri2" data-ccnew="1">🪪 새 캐릭터</button></div>`)
+   +C.map((x,i)=>`<div style="height:16px"></div>${oct(`<h2 class="sec">${esc(x.card.name||x.card.id)} <span class="kv">${x.card.status==='final'?'✅ 확정':'✍️ 초안'} · ${esc(x.card.rev||0)}판</span></h2>${(x.err||[]).length?`<div class="jrw">⚠️ ${x.err.map(esc).join(' · ')}</div>`:''}<div class="kv">${ccTx(x.card.words)?esc(ccTx(x.card.words))+' · ':''}${esc(x.card.job||'')}</div><details class="gt" data-gk="cc:${esc(x.card.id)}"><summary>펼쳐 보기</summary>${ccRows(x.card)}</details><div class="nav2"><button class="btn" data-ccedit="${i}">고치기</button></div>`)}`).join('')}
+// ---- 방 ----
+function twoRoom(){const t=S3.twT==='card'?'card':'works',el=$('#r-two');
+  keepOpen(el,()=>el.innerHTML=`<h1>두 작품</h1><p class="lead">${t==='card'?'캐릭터를 한 장으로 정해요':'같은 단계끼리 나란히 봐요'}</p>${hz()}<div class="nav2 twt" role="tablist"><a class="btn ${t==='works'?'on':''}" role="tab" aria-selected="${t==='works'}" href="#two/works">🎭 두 작품</a><a class="btn ${t==='card'?'on':''}" role="tab" aria-selected="${t==='card'}" href="#two/card">🪪 캐릭터 카드</a></div>${t==='card'?twCards():twWorks()}`)}
+function twEntry(){const T=S3.st.two||{},W=T.works||[],op=W.reduce((a,w)=>a+TW_ST.filter(x=>(w.st[x[0]]||{}).o).length,0),C=((S3.st.chars||{}).cards||[]).length;
+  return oct(`<h2 class="sec">두 작품 <span class="cin sm">D | S</span></h2><div class="kv">${S3.st.two?`모션 ${W.length}개 · 열린 단계 ${op}개 · 카드 ${C}장`:'PC 지킴이 응답을 기다려요'}</div><div class="nav2"><a class="btn pri2" href="#two/works">🎭 나란히 보기</a><a class="btn" href="#two/card">🪪 캐릭터 카드</a></div>`)}
+function mcpLine(){const M=(S3.st.two||{}).mcp;if(!S3.st.two)return '';
+  return `<div class="twm" id="mcp-line">🔌 ${M?M.map(x=>`<span class="m-${x.st}">${{on:'🟢',off:'⚪',old:'🟡',none:'⬜'}[x.st]||'⬜'} ${esc(x.n)} ${{on:'켜짐',off:'꺼짐',old:'기록 오래됨',none:'기록 없음'}[x.st]||''}</span>`).join(''):'<span>맥스·언리얼·블렌더 연결 상태 기록 없음</span>'}</div>`}
+// 보고 칸(기록 방 5번째): 바뀐 것 · 허점 목록. 자료는 부대표
+function recRep(){const R=(S3.st.two||{}).report;if(!S3.st.two)return oct(recNone('PC 지킴이가 보내면 나타나요'));
+  if(!R)return oct(recNone('아직 없어요 · 부대표가 올리면 나타나요'));if(R.bad)return oct('<div class="jrw">⚠️ 보고 파일을 못 읽었어요</div>');const g={};(R.gaps||[]).forEach(x=>(g[x.kind||'그 밖']=g[x.kind||'그 밖']||[]).push(x));
+  return oct(`<h2 class="sec">바뀐 것 <span class="kv">${(R.changes||[]).length}개</span></h2>${(R.changes||[]).map(c=>`<div class="twc"><div class="kv">${esc(c.date)}</div><div class="twa"><span>${esc(c.before||'—')}</span><i>▸</i><b>${esc(c.after||'—')}</b></div>${c.why?`<div class="kv">왜: ${esc(c.why)}</div>`:''}${c.me?`<div class="recq">🙋 ${esc(c.me)}</div>`:''}</div>`).join('')||recNone('없어요')}`)+'<div style="height:16px"></div>'
+   +oct(`<h2 class="sec">허점 목록 <span class="kv">${(R.gaps||[]).length}개</span></h2>${Object.keys(g).map(k=>`<div class="recday">${esc(k)} ${g[k].length}</div>${g[k].map(x=>`<div class="jrw">${esc(x.text)}${x.fix?`<div class="kv">→ ${esc(x.fix)}${x.when?' · '+esc(x.when):''}</div>`:`<div class="kv">→ 해결 확인 필요${x.when?' · '+esc(x.when):''}</div>`}</div>`).join('')}`).join('')||recNone('없어요')}${R.updated?`<div class="kv">갱신 ${twAt(R.updated)}</div>`:''}`)}
+function twVids(){return [].concat(...(((S3.st.two||{}).works)||[]).map(w=>TW_ST.map(s=>(w.st[s[0]]||{}).v))).filter(Boolean)}
+// ---- 누르기 ----
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tws],[data-twp],[data-tww],[data-ccv],[data-ccadd],[data-ccgo],[data-ccsave],[data-ccx],[data-ccnew],[data-ccedit]');if(!b)return;const D=b.dataset,y=scrollY,go=()=>{twoRoom();scrollTo(0,y)};
+  if(D.tws){if(D.lock){toast('🔒 단계 끝을 누르면 열려요');return}S3.twS=S3.twS===D.tws?'':D.tws;S3.twDraft=null;go();return}
+  if(D.twp){const [k,s,p]=JSON.parse(D.twp),i=document.getElementById('tw-why');S3.twDraft=null;twSend(k,s,p,p&&i?i.value.trim():'');scrollTo(0,y);return}
+  if(D.tww){const [k,s,p]=JSON.parse(D.tww);const v=document.getElementById('tw-why').value.trim();S3.twDraft=null;twSend(k,s,p,v);scrollTo(0,y);return}
+  if(D.ccnew){ccNew();twoRoom();return}
+  if(D.ccedit){const x=((S3.st.chars||{}).cards||[])[+D.ccedit];if(x){ccNew(x.card,x.card.updated);twoRoom()}return}
+  const C=CC.get();if(!C)return;
+  if(D.ccx){if(S3.ccDel&&Date.now()-S3.ccDel<5000){S3.ccDel=0;CC.set(null);twoRoom()}else{S3.ccDel=Date.now();go();setTimeout(()=>{if(S3.room==='two'&&S3.ccDel&&Date.now()-S3.ccDel>=5000)twoRoom()},5200)}return}
+  if(D.ccgo){C.step=+D.ccgo;CC.set(C);twoRoom();scrollTo(0,0);return}
+  if(D.ccv){const [f,v,t]=JSON.parse(D.ccv);let cur=ccGet(C.card,f);
+    if(t==='one'){ccPut(C.card,f,cur===v?null:v);if(f==='weapon.kind'){if(v==='맨손'&&cur!==v)ccPut(C.card,'weapon.hand','없음');else if(cur==='맨손')ccPut(C.card,'weapon.hand',null)}}
+    else{cur=Array.isArray(cur)?cur.slice():[];const on=cur.includes(v);if(on)cur=cur.filter(x=>x!==v);else if(t==='three'&&cur.length>=3){toast('3개까지예요. 하나를 먼저 빼 주세요');return}else if(t==='many'&&v==='없음')cur=['없음'];else cur=(t==='many'?cur.filter(x=>x!=='없음'):cur).concat(v);ccPut(C.card,f,cur)}
+    CC.set(C);go();return}
+  if(D.ccadd){const v=(document.getElementById('cc-add').value||'').replace(/\s+/g,' ').trim();if(!v)return;const cur=(ccGet(C.card,D.ccadd)||[]).slice();if(cur.includes(v))return;if(cur.length>=3){toast('3개까지예요. 하나를 먼저 빼 주세요');return}ccPut(C.card,D.ccadd,cur.concat(v));CC.set(C);go();return}
+  if(D.ccsave){const fin=D.ccsave==='1';if(fin&&!(S3.ccArm&&Date.now()-S3.ccArm<5000)){S3.ccArm=Date.now();go();setTimeout(()=>{if(S3.room==='two'&&S3.ccArm)twoRoom()},5200);return}
+    S3.ccArm=0;const r=Q.add('char_save',{card:C.card,base:C.base,final:fin});C.sent={id:r.id,f:fin};CC.set(C);Sync3.flush();toast('📤 보냈어요');go()}});
+document.addEventListener('input',e=>{const t=e.target;if(t.id==='tw-why'){S3.twDraft=t.value;S3.twDraftK=S3.twS;return}
+  if(!t.dataset||!t.dataset.ccf)return;const C=CC.get();if(!C)return;const f=t.dataset.ccf,v=t.type==='number'?(t.value===''?null:+t.value):t.value;
+  ccPut(C.card,f,v);CC.set(C);const q=ccQ()[C.step||0],n=document.getElementById('cc-next');if(q&&n){n.disabled=!ccOk(q,C.card);if(!q.required)n.textContent=ccHas(ccGet(C.card,q.field))?'다음 ▸':'건너뛰기 ▸'}
+  if(q&&q.field===f&&q.free&&q.type==='one')t.parentNode.querySelectorAll('[data-ccv]').forEach(b=>{const [bf,bv]=JSON.parse(b.dataset.ccv);if(bf===f){b.classList.toggle('on',bv===v);b.setAttribute('aria-pressed',bv===v)}})});
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['log','기록','book','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
-const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E'};
+const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2'};
 const DEMO=/[?&]demo=1/.test(location.search);
 let worldLoad=null;   // route() 보다 먼저(3D 탭을 바로 열 때)
 // 옛 이름 → 용어집 v2 이름(보여 줄 때만 바꿈, 데이터는 그대로)
@@ -779,6 +898,7 @@ function studio(){
   const bar=(n,m)=>`<div class="wk"><span>${n}</span><div class="prog"><i style="width:${Math.min(100,Math.round(m/480*100))}%;background:var(--blue)"></i></div><span class="num">${m}분</span></div>`;
   $('#r-studio').innerHTML=`<h1>작업실</h1><p class="lead">대표가 직접 만드는 곳 <em class="draft">초안</em></p>${hz()}
   ${oct(`<h2 class="sec">마일스톤 · 포폴 릴 <span class="cin sm">Milestone</span></h2><div class="stages">${st}</div>`)}
+  <div style="height:20px"></div>${twEntry()}
   <div class="grid g2" style="margin-top:20px">
    <div>${codexCard()}<div style="height:20px"></div>${codexList()}<div style="height:20px"></div>${oct(`<h2 class="sec">오늘 할 일 <span class="cin sm">Quest</span></h2>${tk.length?tk.map(t=>{const k=t.key||t.text,d=dn[k];return `<button class="qrow ${d?'done':''}" data-q="${esc(k)}"><i></i><span>${esc(t.text)}<br><small>${esc(nm3(t.src))}</small></span></button>`}).join(''):'<div class="empty">오늘 할 일이 아직 없어요</div>'}
      <div class="prog"><i style="width:${tk.length?Math.round(doneN/tk.length*100):0}%;background:var(--blue)"></i></div><div class="kv">퀘스트 ${doneN}/${tk.length}</div>
@@ -1013,7 +1133,7 @@ function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="
 
 // ---- Honey Badger HQ 현황판 (11/25): hb\state\gates.json(개수는 파일 값 그대로) = 제품 5묶음 + E2E ----
 const HBT={control:'부대표',code:'개발팀',ref_factory:'자료팀',anim_teacher:'코칭팀',wc_app:'앱팀',job_prep:'취업팀'};
-const HBG=[['library','HB Library(자료실)'],['model','HB Model(모델)'],['animation','HB Animation(애니)'],['render','HB Render(렌더)'],['hq','HB HQ(본부 앱)'],['e2e','E2E 전체']];
+const HBG=[['library','HB Library(자료실)'],['model','HB Model(모델)'],['animation','HB Animation(애니)'],['render','HB Render(렌더)'],['hq','HB HQ(본부 앱)'],['e2e','E2E 전체'],['studio','두 작품(HB Studio 작품)']];
 function gState(g){return g.pass!==true&&g.pass!==false&&/아직 안 잼/.test(String(g.value??'').slice(0,60))?['⚪','새 기준 · 아직','no']:g.pass===true?['✅','통과','ok']:(g.value!=null&&g.value!==''?['🟡','재는 중','mid']:['⚪','아직','no'])}
 
 // ---- 리모컨 (11/25): 폰 → inbox kind=remote → PC 지킴이 → state remote_result. 4가지만(상황판·출근·비상정지·유튜브) ----
@@ -1053,23 +1173,24 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(!
 function hbBoard(){
   const H=S3.st.hb_gates||{},G=H.gates||[];
   const n=G.filter(g=>g.pass===true).length;
-  const grp=HBG.map(([k,nm])=>{const a=G.filter(g=>g.product===k);if(!a.length)return '';
+  const etc=[...new Set(G.map(g=>g.product))].filter(k=>!HBG.some(h=>h[0]===k));   // 모르는 묶음이 새로 생겨도 빠지지 않게
+  const grp=HBG.concat(etc.map(k=>[k,k||'그 밖'])).map(([k,nm])=>{const a=G.filter(g=>g.product===k);if(!a.length)return '';
     const ok=a.filter(g=>g.pass===true).length;
     return oct(`<h2 class="sec">${nm} <span class="kv">${ok}/${a.length}</span></h2>${a.map(g=>{const [ic,tx]=gState(g);
       return `<details class="gt" data-gk="g:${esc(g.id)}"><summary>${ic} <b>${esc(g.id)}</b> ${esc(g.name||'')} <span class="kv">${tx}</span></summary><div class="kv" style="overflow-wrap:anywhere">${g.limit?`기준: ${esc(g.limit)}<br>`:''}값: ${g.value!=null&&g.value!==''?esc(g.value):'아직 못 쟀어요'}<br>근거 파일: ${g.evidence?esc(g.evidence):'없음'}<br>잰 시각: ${g.measured_at?esc(g.measured_at):'–'} · 담당 ${esc(HBT[g.owner]||g.owner||'')}</div></details>`}).join('')}`)}).join('');
   const clips=H.clips||[];
   keepOpen($('#r-hb'),()=>$('#r-hb').innerHTML=`<h1>현황판</h1><p class="lead">${G.length?`통과 ${n} / ${G.length}`:'통과 숫자를 기다려요'}${H.updated?` · 갱신 ${esc(String(H.updated).slice(5,16).replace('T',' '))}`:''}</p>${hz()}
   ${G.length?`<div class="prog" aria-label="통과 진행"><i style="width:${Math.round(n/G.length*100)}%"></i></div>`:'<div class="empty">현황 파일을 아직 못 받았어요</div>'}
-  ${rmCard()}<div class="grid g2">${grp}</div>
+  ${mcpLine()}${rmCard()}<div class="grid g2">${grp}</div>
   ${clips.length?`<div id="clips">${oct(`<h2 class="sec">클립 ${clips.length} <span class="kv">🎬 미리보기(맥스) · 🏁 완성(언리얼)</span></h2>${clips.map(clipCard).join('')}`)}</div>`:''}`);
 }
-function nav(){$('#nav').style.display=S3.room==='title'?'none':'';$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" style="--c:${COLOR[id]}" class="${S3.room===id?'on':''}" ${S3.room===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span></a>`).join('')}
+function nav(){$('#nav').style.display=S3.room==='title'?'none':'';$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" style="--c:${COLOR[id]}" class="${S3.room===id||id==='studio'&&S3.room==='two'?'on':''}" ${S3.room===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span></a>`).join('')}
 function render(){
   {const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('cxin')&&ae.value&&S3.room==='studio')return}
   document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
   if(S3.room!=='world'&&window.World&&World.on)World.stop();
-  ({lobby,director,studio,ops,out,title,world,review,log:recRoom,hb:hbBoard})[S3.room]?.();
+  ({lobby,director,studio,ops,out,title,world,review,log:recRoom,hb:hbBoard,two:twoRoom})[S3.room]?.();
   nav();
 }
 function route(){
@@ -1078,15 +1199,16 @@ function route(){
   if(!h){h=seen===today()?'lobby':'title'}
   S3.rv='';if(/^review(\/|$)/.test(h)){S3.rv=decodeURIComponent(h.slice(7));h='review'}
   if(/^log(\/|$)/.test(h)){S3.recT=h.slice(4)||S3.recT||'space';h='log'}
-  if(h!=='title'&&h!=='review'&&!ROOMS.some(r=>r[0]===h))h='lobby';
+  if(/^two(\/|$)/.test(h)){S3.twT=h.slice(4)||S3.twT||'works';h='two'}
+  if(h!=='title'&&h!=='review'&&h!=='two'&&!ROOMS.some(r=>r[0]===h))h='lobby';
   S3.room=h;render();window.scrollTo(0,0);
 }
 function clock(){const d=new Date(),z=n=>String(n).padStart(2,'0');$('#clk-d').textContent=`${d.getMonth()+1}/${d.getDate()}`;$('#clk-t').textContent=`${z(d.getHours())}:${z(d.getMinutes())}`}
 const Sync3={busy:false,
   async run(){if(this.busy)return;this.busy=true;
-    try{await Q.flush();const res=await api.get(V3_STATES.filter(n=>!n.startsWith('hqv_')));if(!res.ok)throw new Error('상태 못 받음');
+    try{await Q.flush();const res=await api.get(V3_STATES.filter(n=>!isVid(n)));if(!res.ok)throw new Error('상태 못 받음');
       S3.st=Object.assign({},S3.st,res.state);const nv=vidNeed();if(nv.length){const r2=await api.get(nv).catch(()=>null);if(r2&&r2.ok)Object.assign(S3.st,r2.state)}
-      lsSet('v3_state',Object.fromEntries(Object.entries(S3.st).filter(([k])=>!k.startsWith('hqv_'))));$('#sync').classList.remove('bad');
+      lsSet('v3_state',Object.fromEntries(Object.entries(S3.st).filter(([k])=>!isVid(k))));$('#sync').classList.remove('bad');
       Q.applyDone(S3.st.meta&&S3.st.meta.done);mbTidy()}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
     this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('input')))&&!vidPlaying())render();jrOpen()},
   flush(){Q.flush().catch(()=>{})}};
