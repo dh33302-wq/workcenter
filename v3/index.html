@@ -234,6 +234,14 @@ body:has(#r-world.on) #mbb{bottom:auto;top:calc(60px*var(--s) + 62px)}
 .mbfl{margin:4px 0 10px}.mbi{display:flex;gap:12px;padding:10px 0;border-top:1px solid #222}.mbi>div{flex:1;min-width:0;overflow-wrap:anywhere}.mbs{flex:none;width:76px;font:600 12px system-ui,"Malgun Gothic",sans-serif;color:var(--dim)}.mbs b{display:block;font-size:18px}
 .mbi.s-new .mbs{color:var(--ivory)}.mbi.s-sorted .mbs{color:#E0C050}.mbi.s-planned .mbs{color:var(--blue)}.mbi.s-done .mbs{color:var(--green)}.mbp2{color:var(--green);font-size:14px}
 .rect{grid-template-columns:repeat(4,1fr)}@media(max-width:600px){.rect{grid-template-columns:1fr 1fr}}
+/* 클립 카드·퇴근 채점 11/25 */
+.clip,.gr{min-width:0;overflow-wrap:anywhere}.clip summary .cbs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 2px}
+.cb{font-style:normal;font-size:calc(13px*var(--s));border:1px solid #3a3426;padding:1px 8px;color:var(--dim)}.cb.ws{color:var(--gold);border-color:var(--gold)}.cb.bad{color:#f0a49a;border-color:var(--red)}.cb.warn{color:#e6cf8f;border-color:#8a7434}
+.cws{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:10px 0 4px}.cws span{border:1px solid #2a2a2a;padding:8px 6px;text-align:center;color:var(--dim);font-size:calc(14px*var(--s))}.cws span.on{border-color:var(--gold);color:var(--gold);background:rgba(206,168,94,.12)}
+.cck{margin:12px 0}.cok{color:var(--green)}.cbad{color:#f0a49a}.cwarn{color:#e6cf8f}.cwl{border-left:3px solid #8a7434;padding:6px 10px;margin:8px 0}
+.cvs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:12px;margin:10px 0}.cv{border:1px solid #2a2a2a;padding:10px;min-width:0}.cv-max{border-top:3px solid var(--blue)}.cv-ue{border-top:3px solid var(--gold)}.cvh{margin-bottom:6px}.cvo{color:#e6cf8f}
+.hqvid{width:100%;max-width:640px;border-radius:8px;display:block;background:#000}
+.gr{border:1px solid #2a2a2a;padding:10px;margin:10px 0}.gr .btn{margin-top:8px}.gr .cv{margin-top:8px}
 </style>
 </head>
 <body>
@@ -597,14 +605,59 @@ function recMail(){
   window.addEventListener('online',()=>Sync3.run());
 })();
 
+// 클립 카드·퇴근 채점 (11/25 오후 방향 전환): 작업 단계 1·2·3, 저장 검사, 영상 2종(미리보기 = 맥스, 완성 = 언리얼). 기록이 없으면 '기록 없음'.
+const WS_NM={1:['1','손으로','AI는 레퍼런스와 경고만'],2:['2','반반','내가 핵심 포즈, AI가 사이 키'],3:['3','AI 초안','내가 다듬기와 연출']};
+const VID_NM={max:['🎬','미리보기(맥스)'],ue:['🏁','완성(언리얼)'],unknown:['🎞','영상(종류 기록 없음)']};
+const hm=s=>s?esc(String(s).slice(5,16).replace('T',' ').replace('-','/')):'시각 기록 없음';
+const STG_NM={library:'자료',model:'모델',blocking:'블로킹',polish:'폴리싱',detail:'디테일',render:'렌더',engine:'엔진',hq:'HQ'};
+function vidReady(v){const q=v.vs&&S3.st[v.vs];return q&&q.b64&&(!v.id||q.id===v.id)?q:null}
+function vidTag(q){return `<video class="hqvid" controls muted loop playsinline preload="metadata" src="data:${esc(q.mime||'video/mp4')};base64,${q.b64}"></video>`}
+function clipVid(v){
+  const [ic,nm]=VID_NM[v.k]||VID_NM.unknown,q=vidReady(v);
+  return `<div class="cv cv-${esc(v.k)}"><div class="cvh"><b>${ic} ${nm}</b> <span class="kv">${hm(v.at)}</span></div>${v.old?'<div class="kv cvo">⏳ 이 영상 뒤에 또 저장했어요 (옛 저장본)</div>':''}${q?vidTag(q):`<div class="empty">${v.miss?'영상 파일이 없어요':v.vs?'영상을 받는 중이에요':'영상은 최근 클립만 폰에 올려요 (PC에는 있어요)'}</div>`}</div>`}
+function clipVids(c){
+  const V=c.vids||(c.vs?[{k:'unknown',vs:c.vs,at:c.updated}]:[]);
+  if(!V.length)return c.rv?`<a class="btn" href="#review/${esc(c.rv)}">▶ 영상 보기</a>`:'<div class="empty">영상 아직 없어요</div>';
+  const no=V.some(v=>v.k==='ue')||V.some(v=>v.k==='unknown')?'':'<div class="cv"><div class="cvh"><b>🏁 완성(언리얼)</b></div><div class="empty">아직 없어요 · 맥스에서 완성으로 표시하면 만들어요</div></div>';
+  return `<div class="cvs">${V.map(clipVid).join('')}${no}</div>`}
+function clipCheck(c){
+  const s=c.sc;if(!s)return '<div class="kv">💾 저장 검사 기록 없음</div>';
+  const h=s.fail||s.warn?`<b class="${s.fail?'cbad':'cwarn'}">⚠️ 저장 검사 ${[s.fail?`실패 ${s.fail}`:'',s.warn?`경고 ${s.warn}`:''].filter(Boolean).join(' · ')}</b>`:'<b class="cok">✅ 저장 검사 경고 없음</b>';
+  return `<div class="cck">${h}${s.items.map(i=>`<div class="${i.lv==='실패'?'jrw':'cwl'}">${i.lv==='실패'?'🔴':'🟡'} <b>${esc(i.n)}</b> ${esc(i.x)}${i.fr?` <span class="kv">${esc(i.fr)}</span>`:''}</div>`).join('')}${s.fail+s.warn>s.items.length?`<div class="kv">그 밖에 ${s.fail+s.warn-s.items.length}건</div>`:''}
+   <div class="kv">${s.saved?`${hm(s.saved)} 저장본`:'저장 시각 기록 없음'}${s.file?' · '+esc(s.file):''}${s.sec!=null?` · ${s.kind==='final'?'완성 처리':'저장에서 HQ까지'} ${esc(s.sec)}초`:''}</div></div>`}
+function clipWs(c){const w=WS_NM[c.ws],k=c.kb,n=k&&k.human!=null&&k.ai!=null&&k.human+k.ai>0?Math.round(k.human/(k.human+k.ai)*100):null;
+  return `<div class="cws">${[1,2,3].map(i=>`<span class="${c.ws===i?'on':''}"><b>${i}</b> ${WS_NM[i][1]}</span>`).join('')}</div><div class="kv">${w?`작업 단계 ${w[0]} · ${w[2]}`:'작업 단계 기록 없음'}${k?` · 내 키 ${k.human==null?'기록 없음':esc(k.human)} / AI 키 ${k.ai==null?'기록 없음':esc(k.ai)}${n!=null?` (내 손 ${n}%)`:''}`:' · 내 키·AI 키 수 기록 없음'}</div>`}
+function clipCard(c){
+  const s=c.sc,V=c.vids||[],b=[c.ws?`<i class="cb ws">단계 ${esc(c.ws)}</i>`:'',s&&s.fail?`<i class="cb bad">⚠️ 실패 ${s.fail}</i>`:'',s&&s.warn?`<i class="cb warn">경고 ${s.warn}</i>`:'',V.some(v=>v.k==='max')?'<i class="cb">🎬 미리보기</i>':'',V.some(v=>v.k==='ue')?`<i class="cb">${V.find(v=>v.k==='ue').old?'🏁 완성 (옛 저장본)':'🏁 완성'}</i>`:''].filter(Boolean).join('');
+  return `<details class="gt clip" data-gk="clip:${esc(c.id)}" id="clip-${esc(c.id)}"><summary>🎞 <b>${esc(c.name||c.id)}</b> <span class="kv">${esc(STG_NM[c.stage]||c.stage||'')}${c.frames?' · '+esc(c.frames)+'f':''}</span>${b?`<span class="cbs">${b}</span>`:''}</summary>
+   ${clipWs(c)}${clipCheck(c)}${clipVids(c)}
+   <div class="kv" style="overflow-wrap:anywhere">${(c.checks||[]).map(k=>`${k.pass===true?'✅':k.pass===false?'❌':'🟡'} ${esc(k.id)} ${esc(k.value)} ${esc(k.unit)}`).join('<br>')}${(c.checks||[]).length?'<br>':''}${esc(c.id||'')}${c.updated?' · 갱신 '+hm(c.updated):''}</div></details>`}
+// 퇴근 채점: 그날 클립별 마지막 저장본 1개. 요청(개발팀) → 다음 날 결과(코칭팀). 저장 감지만 있고 요청이 없으면 그대로 말한다
+const GR_ST={'대기':'⏳ 채점 기다리는 중','채점 중':'✍️ 채점하는 중','끝':'✅ 채점 끝','막힘':'🔴 채점 막힘'};
+function gradeBox(d){
+  const g=d.grade,done=(g&&g.clips||[]).filter(c=>c.res).length,ask=(g&&g.clips||[]).filter(c=>c.asked).length,out=!!d.out||(d.date===today()&&(S3.st.quit||{}).on);
+  const head=g&&g.req?`📨 채점 요청 ${ask}개${g.at?` · ${hm(g.at)}`:''}${g.by==='button'?' · 퇴근 버튼':g.by==='auto_2000'?' · 20:00 자동':''}`:out?'📭 퇴근은 했는데 채점 요청 기록이 없어요':d.date===today()?'퇴근을 누르면(안 누르면 20:00) 마지막 저장본의 채점을 걸어요':'📭 채점 요청 기록 없음';
+  const clip=c=>{const L=(S3.st.hb_gates||{}).clips||[],k=L.find(x=>x.id===c.id),v=k&&(k.vids||[]).find(x=>x.k==='max'),r=c.res,sv=c.saved||(r&&r.saved)||c.last,late=c.saved&&c.last&&c.last>c.saved&&c.last.slice(0,10)===d.date&&Date.parse(c.last)-Date.parse(c.saved)>60000;
+    const q=v&&vidReady(v),same=!!(v&&v.at&&sv&&v.at.slice(0,10)===d.date&&Date.parse(v.at)-Date.parse(sv)>-60000);
+    return `<div class="gr"><div><b>${esc(c.name||c.id)}</b> <span class="kv">${sv?hm(sv)+' 저장본':'저장 시각 기록 없음'}${c.file?' · '+esc(c.file):''}</span></div>
+     <div class="kv">${r?'✅ 채점 끝'+(r.conf?` · 확신 ${esc(r.conf)}`:''):c.asked?(GR_ST[c.st]||esc(c.st))+(c.why?' · '+esc(c.why):''):'💾 저장 감지만 있어요 (도구 시험 저장일 수도 있어요)'}</div>${late?`<div class="kv cvo">⏳ 채점한 저장본 뒤에 또 저장했어요 (${hm(c.last)})</div>`:''}
+     ${r?`${r.good.map(x=>`<div class="recg">👍 ${esc(x)}</div>`).join('')}${r.fix.map((x,i)=>`<div class="jrw">🔧 ${i+1} ${esc(x)}</div>`).join('')}${r.next?`<div class="jrl">🌅 내일 첫 할 일<br>${esc(r.next)}</div>`:''}${r.ev.length?`<details class="gt" data-gk="ev:${esc(d.date+c.id)}"><summary>🔎 숫자 근거</summary>${r.ev.map(x=>`<div class="kv">${esc(x)}</div>`).join('')}</details>`:''}`:''}
+     ${q&&same?`<div class="cv cv-max"><div class="cvh"><b>🎬 미리보기(맥스)</b> <span class="kv">${hm(v.at)}${late||Date.parse(v.at)-Date.parse(sv)>900000?' · 채점한 판보다 뒤에 만든 영상':''}</span></div>${vidTag(q)}</div>`:k?`<a class="btn" href="#hb">🎞 클립 카드 보기${v&&v.at&&v.at.slice(0,10)!==d.date?` (미리보기는 ${hm(v.at)} 것)`:''}</a>`:''}</div>`};
+  return `<h2 class="sec" style="margin-top:14px">퇴근 채점 <span class="kv">${g&&g.n?`${done}/${ask||g.n} 끝`:''}</span></h2><div class="kv">${head}${g&&g.made?` · 결과 ${hm(g.made)}`:''}</div>${g&&g.bad.length?`<div class="jrw">⚠️ 채점 ${g.bad.map(esc).join('·')} 파일을 못 읽었어요</div>`:''}${g&&g.clips.length?g.clips.map(clip).join('')+(g.n>g.clips.length?`<div class="kv">그 밖에 ${g.n-g.clips.length}개</div>`:''):'<div class="kv">그날 저장한 클립 기록 없음</div>'}`}
+// 펼친 카드는 새로 그려도 그대로 · 영상이 도는 동안은 새로 그리지 않는다
+function keepOpen(root,fn){const o=[...root.querySelectorAll('details[open][data-gk]')].map(e=>e.dataset.gk);fn();root.querySelectorAll('details[data-gk]').forEach(e=>{if(o.includes(e.dataset.gk))e.open=true})}
+function vidPlaying(){return [...document.querySelectorAll('.room.on video')].some(v=>!v.paused&&!v.ended)}
+// 영상은 바뀐 것만 받는다(30초마다 다시 받지 않음)
+function vidNeed(){const V=[].concat(...((S3.st.hb_gates||{}).clips||[]).map(c=>c.vids||(c.vs?[{vs:c.vs}]:[])));return [...new Set(V.filter(v=>v.vs&&!vidReady(v)).map(v=>v.vs))]}
+
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h'];
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['log','기록','book','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
 let worldLoad=null;   // route() 보다 먼저(3D 탭을 바로 열 때)
 // 옛 이름 → 용어집 v2 이름(보여 줄 때만 바꿈, 데이터는 그대로)
-const nm3=t=>String(t??'').replace(/관제센터/g,'부대표').replace(/레퍼런스 공장/g,'자료팀').replace(/애니·리깅 선생님/g,'코칭팀').replace(/취업 준비실/g,'취업팀');
+const nm3=t=>String(t??'').replace(/관제센터/g,'부대표').replace(/레퍼런스 공장/g,'자료팀').replace(/애니·리깅 선생님/g,'코칭팀').replace(/취업 준비실/g,'취업팀').replace(/통합관리 앱/g,'앱팀');
 const S3={st:lsGet('v3_state',{}),room:'lobby',cur:0,answers:lsGet('v3_ans',{})};
 
 // ---- 그림(직접 그린 SVG) ----
@@ -880,7 +933,7 @@ function jrDay(d){
    ${Object.entries(d.motion||{}).map(([k,v])=>`<div class="rule"><span>🖐️</span><span>${esc(k)} ${esc(v)}분</span></div>`).join('')}
    ${(d.missing||[]).length?`<div class="kv">⬜ 기록 없음: ${d.missing.map(k=>esc(JR_NM[k]||k)).join(' · ')}</div>`:''}
    ${(d.errors||[]).length?`<div class="jrw">⚠️ 재료 오류: ${d.errors.map(k=>esc(JR_NM[k]||k)).join(' · ')}</div>`:''}
-   ${jrText(d)}<div class="kv">재료 만든 때 ${jrT(d.made)}</div>`}
+   ${gradeBox(d)}${jrText(d)}<div class="kv">재료 만든 때 ${jrT(d.made)}</div>`}
 function jrWeek(k){
   const t=k.totals||{},p=k.past||{},S=k.strip||[],mx=Math.max(1,...S.map(x=>x.hand||0)),ok=!!(p.comparable&&t.hand_min!=null&&p.hand_min!=null);
   return `<div class="kv">${esc(k.week)} · ${esc(String(k.from).slice(5))} ~ ${esc(String(k.to).slice(5))}</div><div class="jrg">
@@ -912,7 +965,7 @@ function out(){
   const doneQ=tk.filter(t=>dn[t.key||t.text]),got=[].concat(...TROPHIES.map(([id,nm,L])=>L.map((x,i)=>tr[id+i]?x:null))).filter(Boolean);
   const log=lsx('daily_'+today(),null),lg=lsx('daily_log',{}),prev=Object.keys(lg).sort().slice(-3).reverse();
   const f=lg[today()]||{good:'',bad:'',next:['','','']};
-  $('#r-out').innerHTML=`${stars()}<h1>퇴근</h1><p class="lead">별을 보며 하루를 정리해요 <em class="draft">초안</em></p>${hz()}
+  keepOpen($('#r-out'),()=>$('#r-out').innerHTML=`${stars()}<h1>퇴근</h1><p class="lead">별을 보며 하루를 정리해요 <em class="draft">초안</em></p>${hz()}
   ${oct(`<h2 class="sec">퇴근 <span class="cin sm">Clock out</span></h2><button class="btn pri2 bl" id="o-clock" ${(S3.st.unlock||{}).clocked_out?"disabled":""}>🌙 퇴근하기 (오늘 집계)</button><div class="kv">${(S3.st.unlock||{}).clocked_out?((S3.st.unlock.locked?"🔒":"🔓")+" 🖐️ "+S3.st.unlock.hand_min+"분 · "+esc(S3.st.unlock.reason||"")):"누르면 PC가 오늘 손 작업을 집계해요 · 누르기 전엔 🔒"}</div>`)}<div style="height:20px"></div>
   ${journalCard()}<div style="height:20px"></div>
   <div class="grid g2"><div>${oct(`<h2 class="sec">오늘 기록 <span class="cin sm">Today</span></h2>
@@ -926,7 +979,7 @@ function out(){
      <h2 class="sec" style="margin-top:18px">내일 할 일 (1~3개)</h2>
      ${[0,1,2].map(i=>`<input class="pct o-next" style="margin-bottom:8px" maxlength="80" placeholder="${i+1}번" value="${esc(f.next[i]||'')}">`).join('')}
      <div class="nav2"><button class="btn pri2 bl" id="o-save">오늘 기록 저장</button><span class="kv">${f.saved?`✅ ${f.saved}에 저장함 (이 기기)`:'노션 데일리 리포트 연결 전 · 이 기기에만 저장'}</span></div>`)}</div>
-   <div>${oct(`<h2 class="sec">지난 기록</h2>${prev.length?prev.map(d=>`<div class="rule"><span>◇</span><span><b>${d}</b><br><span class="kv">잘한 것: ${esc(lg[d].good||'—')}<br>내일: ${esc((lg[d].next||[]).filter(Boolean).join(' / ')||'—')}</span></span></div>`).join(''):'<div class="empty">아직 저장한 기록이 없어요</div>'}`)}</div></div>`;
+   <div>${oct(`<h2 class="sec">지난 기록</h2>${prev.length?prev.map(d=>`<div class="rule"><span>◇</span><span><b>${d}</b><br><span class="kv">잘한 것: ${esc(lg[d].good||'—')}<br>내일: ${esc((lg[d].next||[]).filter(Boolean).join(' / ')||'—')}</span></span></div>`).join(''):'<div class="empty">아직 저장한 기록이 없어요</div>'}`)}</div></div>`);
 }
 document.addEventListener('click',e=>{
   if(e.target.id==='o-save'){const lg=lsx('daily_log',{});lg[today()]={good:$('#o-good').value,bad:$('#o-bad').value,next:[...document.querySelectorAll('.o-next')].map(i=>i.value),saved:new Date().toTimeString().slice(0,5)};lsSet('v3_daily_log',lg);toast('🌙 오늘 기록을 저장했어요');render();return}
@@ -943,7 +996,7 @@ function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="
 // ---- Honey Badger HQ 현황판 (11/25): hb\state\gates.json(개수는 파일 값 그대로) = 제품 5묶음 + E2E ----
 const HBT={control:'부대표',code:'개발팀',ref_factory:'자료팀',anim_teacher:'코칭팀',wc_app:'앱팀',job_prep:'취업팀'};
 const HBG=[['library','HB Library(자료실)'],['model','HB Model(모델)'],['animation','HB Animation(애니)'],['render','HB Render(렌더)'],['hq','HB HQ(본부 앱)'],['e2e','E2E 전체']];
-function gState(g){return g.pass===true?['✅','통과','ok']:(g.value!=null&&g.value!==''?['🟡','재는 중','mid']:['⚪','아직','no'])}
+function gState(g){return g.pass!==true&&g.pass!==false&&/아직 안 잼/.test(String(g.value??'').slice(0,60))?['⚪','새 기준 · 아직','no']:g.pass===true?['✅','통과','ok']:(g.value!=null&&g.value!==''?['🟡','재는 중','mid']:['⚪','아직','no'])}
 
 // ---- 리모컨 (11/25): 폰 → inbox kind=remote → PC 지킴이 → state remote_result. 4가지만(상황판·출근·비상정지·유튜브) ----
 const RM_NM={status:'📋 상황판',clockin:'🌅 출근',stop:'🛑 비상정지',youtube:'▶ 유튜브'};
@@ -985,12 +1038,12 @@ function hbBoard(){
   const grp=HBG.map(([k,nm])=>{const a=G.filter(g=>g.product===k);if(!a.length)return '';
     const ok=a.filter(g=>g.pass===true).length;
     return oct(`<h2 class="sec">${nm} <span class="kv">${ok}/${a.length}</span></h2>${a.map(g=>{const [ic,tx]=gState(g);
-      return `<details class="gt"><summary>${ic} <b>${esc(g.id)}</b> ${esc(g.name||'')} <span class="kv">${tx}</span></summary><div class="kv" style="overflow-wrap:anywhere">${g.limit?`기준: ${esc(g.limit)}<br>`:''}값: ${g.value!=null&&g.value!==''?esc(g.value):'아직 못 쟀어요'}<br>근거 파일: ${g.evidence?esc(g.evidence):'없음'}<br>잰 시각: ${g.measured_at?esc(g.measured_at):'–'} · 담당 ${esc(HBT[g.owner]||g.owner||'')}</div></details>`}).join('')}`)}).join('');
+      return `<details class="gt" data-gk="g:${esc(g.id)}"><summary>${ic} <b>${esc(g.id)}</b> ${esc(g.name||'')} <span class="kv">${tx}</span></summary><div class="kv" style="overflow-wrap:anywhere">${g.limit?`기준: ${esc(g.limit)}<br>`:''}값: ${g.value!=null&&g.value!==''?esc(g.value):'아직 못 쟀어요'}<br>근거 파일: ${g.evidence?esc(g.evidence):'없음'}<br>잰 시각: ${g.measured_at?esc(g.measured_at):'–'} · 담당 ${esc(HBT[g.owner]||g.owner||'')}</div></details>`}).join('')}`)}).join('');
   const clips=H.clips||[];
-  $('#r-hb').innerHTML=`<h1>현황판</h1><p class="lead">${G.length?`통과 ${n} / ${G.length}`:'통과 숫자를 기다려요'}${H.updated?` · 갱신 ${esc(String(H.updated).slice(5,16).replace('T',' '))}`:''}</p>${hz()}
+  keepOpen($('#r-hb'),()=>$('#r-hb').innerHTML=`<h1>현황판</h1><p class="lead">${G.length?`통과 ${n} / ${G.length}`:'통과 숫자를 기다려요'}${H.updated?` · 갱신 ${esc(String(H.updated).slice(5,16).replace('T',' '))}`:''}</p>${hz()}
   ${G.length?`<div class="prog" aria-label="통과 진행"><i style="width:${Math.round(n/G.length*100)}%"></i></div>`:'<div class="empty">현황 파일을 아직 못 받았어요</div>'}
   ${rmCard()}<div class="grid g2">${grp}</div>
-  ${clips.length?oct(`<h2 class="sec">클립 ${clips.length}</h2>${clips.map(c=>`<details class="gt"><summary>🎞 <b>${esc(c.name||c.id)}</b> <span class="kv">${esc(c.stage||'')}${c.frames?' · '+esc(c.frames)+'f':''}</span></summary><div class="kv">${esc(c.id||'')}${c.updated?' · 갱신 '+esc(String(c.updated).slice(5,16).replace('T',' ')):''}<br>${(c.checks||[]).map(k=>`${k.pass===true?'✅':k.pass===false?'❌':'🟡'} ${esc(k.id)} ${esc(k.value)} ${esc(k.unit)}`).join('<br>')||'검사 기록 없음'}<br>${(()=>{const q=c.vs&&S3.st[c.vs];if(q&&q.b64)return `<video class="hqvid" controls muted loop playsinline preload="metadata" style="width:100%;max-width:480px;border-radius:8px;margin-top:6px" src="data:${esc(q.mime||'video/mp4')};base64,${q.b64}"></video>`;return c.rv?`<a class="btn" href="#review/${esc(c.rv)}">▶ 영상 보기</a>`:'영상 아직 없어요(준비 중)'})()}</div></details>`).join('')}`):''}`;
+  ${clips.length?`<div id="clips">${oct(`<h2 class="sec">클립 ${clips.length} <span class="kv">🎬 미리보기(맥스) · 🏁 완성(언리얼)</span></h2>${clips.map(clipCard).join('')}`)}</div>`:''}`);
 }
 function nav(){$('#nav').style.display=S3.room==='title'?'none':'';$('#nav').innerHTML=ROOMS.map(([id,nm,k])=>`<a href="#${id}" style="--c:${COLOR[id]}" class="${S3.room===id?'on':''}" ${S3.room===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span></a>`).join('')}
 function render(){
@@ -1013,10 +1066,11 @@ function route(){
 function clock(){const d=new Date(),z=n=>String(n).padStart(2,'0');$('#clk-d').textContent=`${d.getMonth()+1}/${d.getDate()}`;$('#clk-t').textContent=`${z(d.getHours())}:${z(d.getMinutes())}`}
 const Sync3={busy:false,
   async run(){if(this.busy)return;this.busy=true;
-    try{await Q.flush();const res=await api.get(V3_STATES);if(!res.ok)throw new Error('상태 못 받음');
-      S3.st=Object.assign({},S3.st,res.state);lsSet('v3_state',S3.st);$('#sync').classList.remove('bad');
+    try{await Q.flush();const res=await api.get(V3_STATES.filter(n=>!n.startsWith('hqv_')));if(!res.ok)throw new Error('상태 못 받음');
+      S3.st=Object.assign({},S3.st,res.state);const nv=vidNeed();if(nv.length){const r2=await api.get(nv).catch(()=>null);if(r2&&r2.ok)Object.assign(S3.st,r2.state)}
+      lsSet('v3_state',Object.fromEntries(Object.entries(S3.st).filter(([k])=>!k.startsWith('hqv_'))));$('#sync').classList.remove('bad');
       Q.applyDone(S3.st.meta&&S3.st.meta.done);mbTidy()}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
-    this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('input'))))render();jrOpen()},
+    this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('input')))&&!vidPlaying())render();jrOpen()},
   flush(){Q.flush().catch(()=>{})}};
 $('#top-med').innerHTML=medallion('hex','#CEA85E',42);
 window.addEventListener('hashchange',route);clock();setInterval(clock,20000);
