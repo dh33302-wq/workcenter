@@ -42,6 +42,7 @@ h2.sec{font-size:calc(22px*var(--s));font-weight:700;margin:0 0 10px}
 .oct.sel{background:var(--rc);box-shadow:0 0 18px color-mix(in srgb,var(--rc) 35%,transparent)}
 .grid{display:grid;gap:20px}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1.3fr 1fr}
 @media(max-width:700px){.g3{grid-template-columns:1fr}.g2{grid-template-columns:1fr}.grid{gap:12px}}
+.grid>*,.grid>*>*{min-width:0}   /* 한 줄 글(말줄임)이 칸을 넓히지 않게 — 운영실 커버 134px 넘침(11/25) */
 a.dept{display:block;color:inherit;text-decoration:none;cursor:pointer}
 a.dept:active .oct{transform:scale(.98);transition:transform .15s cubic-bezier(.2,.7,.3,1)}
 a.dept:focus-visible .oct{outline:2px solid var(--ivory);outline-offset:3px}
@@ -601,6 +602,9 @@ const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remo
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['log','기록','book','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
+let worldLoad=null;   // route() 보다 먼저(3D 탭을 바로 열 때)
+// 옛 이름 → 용어집 v2 이름(보여 줄 때만 바꿈, 데이터는 그대로)
+const nm3=t=>String(t??'').replace(/관제센터/g,'부대표').replace(/레퍼런스 공장/g,'자료팀').replace(/애니·리깅 선생님/g,'코칭팀').replace(/취업 준비실/g,'취업팀');
 const S3={st:lsGet('v3_state',{}),room:'lobby',cur:0,answers:lsGet('v3_ans',{})};
 
 // ---- 그림(직접 그린 SVG) ----
@@ -636,15 +640,15 @@ function lobby(){
   <div class="grid g3">
    ${card('director','check','#CEA85E',pn,'대표실',pn?`컨펌 대기 ${pn}건`:'컨펌 대기 없음')}
    ${card('studio','keys','#7AA4D2',avg===null?'–':avg+'%','작업실',run.length?`진행 ${run.length}개 · 평균 ${avg??'?'}%`:'진행 중인 작업 없음')}
-   ${card('ops','org','#68B096',`${run.length}<span class="kv"> / ${stop.length}</span>`,'운영실',`가동 ${run.length} · 정지 ${stop.length}${wait.length?` · 대기 ${wait.length}`:''}`)}
+   ${card('ops','org','#68B096',`${run.length}<span class="kv"> / ${stop.length}</span>`,'운영실',`도는 일 ${run.length} · 멈춘 일 ${stop.length}${wait.length?` · 기다리는 일 ${wait.length}`:''}`)}
   </div>${hz()}
   <div class="grid g2">
-   <div>${oct(`<h2 class="sec">오늘 할 일</h2>${top?`<div style="font-weight:900;font-size:calc(20px*var(--s))">${esc(top.text)}</div><div class="kv">최우선 · ${esc(top.src||'')}</div>`:'<div class="empty">오늘 할 일이 아직 없어요</div>'}
+   <div>${oct(`<h2 class="sec">오늘 할 일</h2>${top?`<div style="font-weight:900;font-size:calc(20px*var(--s))">${esc(top.text)}</div><div class="kv">최우선 · ${esc(nm3(top.src))}</div>`:'<div class="empty">오늘 할 일이 아직 없어요</div>'}
      ${three.map(t=>`<div class="chk"><i></i><span>${esc(t.text)}</span></div>`).join('')}
      <div class="prog" aria-label="오늘 진행"><i style="width:${three.length?Math.round(doneN/three.length*100):0}%"></i></div><div class="kv">오늘 진행 ${doneN}/${three.length||3}</div>`)}</div>
    <div style="display:grid;gap:20px">
     ${oct(`<h2 class="sec">이상 징후</h2>${bad.length?bad.map(b=>`<div class="alert">${esc(b)}</div>`).join(''):'<div class="ok">급한 이상 없어요</div>'}`)}
-    ${oct(`<h2 class="sec">밤사이</h2>${morning.length?morning.map(n=>`<div class="chk"><i></i><span>${esc(n.text)}<br><span class="kv">${esc(n.time||'')} · ${esc(n.source||'')}</span></span></div>`).join(''):'<div class="empty">아침 보고가 아직 연결되지 않았어요 <em class="draft">노션 연결 전</em></div>'}`)}
+    ${oct(`<h2 class="sec">밤사이</h2>${morning.length?morning.map(n=>`<div class="chk"><i></i><span>${esc(n.text)}<br><span class="kv">${esc(n.time||'')} · ${esc(nm3(n.source))}</span></span></div>`).join(''):'<div class="empty">아침 보고가 아직 연결되지 않았어요 <em class="draft">노션 연결 전</em></div>'}`)}
    </div></div>`;
 }
 
@@ -656,8 +660,8 @@ function director(){
   let main;
   if(it){
     main=oct(`<span class="pri ${it.prio==='P0'?'p0':it.prio==='P1'?'p1':''}">${esc(it.prio||'P2')}</span><span class="kv" style="margin-left:10px">${S3.cur+1} / ${list.length}</span>
-      <div class="q">${esc(it.q)}</div><p class="why">${esc(it.why||'')}</p>
-      <div class="opts">${(it.options||[]).map((o,i)=>`<button class="optb" data-pick="${i}"><div class="oct"><div class="in"><span class="k">${esc(o.k||String.fromCharCode(65+i))}</span><div><b>${esc(o.label)}</b><small>${esc(o.hint||'')}</small></div></div></div></button>`).join('')}</div>
+      <div class="q">${esc(it.q)}</div><p class="why">${esc(nm3(it.why))}</p>
+      <div class="opts">${(it.options||[]).map((o,i)=>`<button class="optb" data-pick="${i}"><div class="oct"><div class="in"><span class="k">${esc(o.k||String.fromCharCode(65+i))}</span><div><b>${esc(nm3(o.label))}</b><small>${esc(nm3(o.hint))}</small></div></div></div></button>`).join('')}</div>
       <div class="nav2"><button class="btn" data-skip="1" ${list.length<2?'disabled':''}>다음 건 ▸</button><span class="kv">고르면 결재함 '내 답'에 적히고, 확정은 부대표가 해요</span></div>`);
   }else{
     const done=Object.keys(S3.answers).length;
@@ -705,7 +709,7 @@ function studio(){
   $('#r-studio').innerHTML=`<h1>작업실</h1><p class="lead">대표가 직접 만드는 곳 <em class="draft">초안</em></p>${hz()}
   ${oct(`<h2 class="sec">마일스톤 · 포폴 릴 <span class="cin sm">Milestone</span></h2><div class="stages">${st}</div>`)}
   <div class="grid g2" style="margin-top:20px">
-   <div>${codexCard()}<div style="height:20px"></div>${codexList()}<div style="height:20px"></div>${oct(`<h2 class="sec">오늘 할 일 <span class="cin sm">Quest</span></h2>${tk.length?tk.map(t=>{const k=t.key||t.text,d=dn[k];return `<button class="qrow ${d?'done':''}" data-q="${esc(k)}"><i></i><span>${esc(t.text)}<br><small>${esc(t.src||'')}</small></span></button>`}).join(''):'<div class="empty">오늘 할 일이 아직 없어요</div>'}
+   <div>${codexCard()}<div style="height:20px"></div>${codexList()}<div style="height:20px"></div>${oct(`<h2 class="sec">오늘 할 일 <span class="cin sm">Quest</span></h2>${tk.length?tk.map(t=>{const k=t.key||t.text,d=dn[k];return `<button class="qrow ${d?'done':''}" data-q="${esc(k)}"><i></i><span>${esc(t.text)}<br><small>${esc(nm3(t.src))}</small></span></button>`}).join(''):'<div class="empty">오늘 할 일이 아직 없어요</div>'}
      <div class="prog"><i style="width:${tk.length?Math.round(doneN/tk.length*100):0}%;background:var(--blue)"></i></div><div class="kv">퀘스트 ${doneN}/${tk.length}</div>
      <div class="nav2"><label class="kv"><input type="checkbox" id="fxbox" ${fx?'checked':''}> QUEST CLEAR 연출</label></div>`)}
     ${oct(`<h2 class="sec">트로피 <span class="cin sm">Trophy</span> <em class="draft">초안 · 동현 확인 전</em></h2><div class="num big2">${pc}%<span class="kv"> ${got}/${tot}</span></div><div class="prog"><i style="width:${pc}%;background:var(--blue)"></i></div>
@@ -788,13 +792,13 @@ const STAFF=[['부대표','🛰️ 부대표 · 판단·설계·팀 지휘','#CE
 function mask(c){return `<svg class="npc" viewBox="0 0 60 70" aria-hidden="true"><defs><clipPath id="cp"><rect width="60" height="70"/></clipPath></defs><g fill="#161618" stroke="${c}" stroke-width="1.3" stroke-linejoin="round"><path d="M6 70c0-16 10-24 24-24s24 8 24 24z"/><path d="M30 46v-6"/><path d="M18 22c0-9 5-15 12-15s12 6 12 15c0 9-5 17-12 17s-12-8-12-17z"/></g><g fill="${c}" opacity=".9"><path d="M21 21q4-3 7 0q-3 3-7 0zM32 21q4-3 7 0q-3 3-7 0z"/><path d="M30 24l-2 7h4z" opacity=".5"/></g><path d="M30 7v-4M26 8l-3-3M34 8l3-3" stroke="${c}" stroke-width="1" fill="none"/></svg>`}
 function ops(){
   const J=jobs();
-  const rows=STAFF.map(([dept,name,c,ids])=>{const js=J.filter(j=>ids.includes(j.id)),run=js.find(j=>j.status==='진행'),bad=js.find(j=>j.status==='멈춤'||j.status==='막힘'),wait=js.find(j=>j.status==='대기');
+  const rows=STAFF.map(([dept,name,c,ids])=>{const js=ids.flatMap(i=>J.filter(j=>j.id===i)),run=js.find(j=>j.status==='진행'),bad=js.find(j=>j.status==='멈춤'||j.status==='막힘'),wait=js.find(j=>j.status==='대기');
     const state=run?'가동':bad?'정지':wait?'대기':js.length?'대기':'기록 없음';const now=(run||bad||wait||js.sort((a,b)=>(b.t||0)-(a.t||0))[0]||{});
     return {dept,name,c,ids,js,state,now:now.headline||now.now||'',upd:now.started||''}});
   const on=rows.filter(r=>r.state==='가동').length,off=rows.filter(r=>r.state==='정지').length;
   const stc={가동:'var(--green)',정지:'#E08A7E',대기:'var(--gold)','기록 없음':'var(--dim)'};
   $('#r-ops').innerHTML=`<h1>운영실</h1><p class="lead">부대표가 운영하는 곳 <em class="draft">초안</em></p>${hz()}
-  <div class="grid g2"><div>${oct(`<h2 class="sec">팀 구성 <span class="cin sm">Team</span> <span class="kv" style="float:right">가동 ${on} · 정지 ${off}</span></h2>
+  <div class="grid g2"><div>${oct(`<h2 class="sec">팀 구성 <span class="cin sm">Team</span> <span class="kv" style="float:right">가동 ${on}팀 · 정지 ${off}팀</span></h2>
     ${rows.map(r=>`<button class="staff ${S3.staff===r.name?'open':''}" data-staff="${esc(r.name)}" style="--sc:${r.c}"><div class="stp">${mask(r.c)}</div><div class="stt"><span class="kv">${r.dept}</span><b>${r.name}</b><small>${esc(r.now)}</small></div><span class="ss" style="color:${stc[r.state]}">◆ ${r.state}</span></button>
       ${S3.staff===r.name?`<div class="sdet">${r.js.length?r.js.slice(0,3).map(j=>`<div class="rule"><span>◇</span><span>${esc(j.headline||j.name)}<br><span class="kv">${esc(j.status)}${typeof j.pct==='number'?' · '+Math.round(j.pct)+'%':''} · ${esc(j.now||'')}</span></span></div>`).join(''):'<div class="empty">연결된 작업 기록이 없어요</div>'}<div class="kv">최근 편지 보기는 연결 전이에요 <em class="draft">초안</em></div></div>`:''}`).join('')}`)}
    ${oct(`<h2 class="sec">아침 보고 <span class="cin sm">Daily Stand-up</span></h2>${(((S3.st.notices||{}).items)||[]).filter(n=>n.source!=='Code').slice(0,3).map(n=>`<div class="rule"><span>◆</span><span>${esc(n.text)}</span><span class="kv" style="margin-left:auto">${esc(n.time||'')}</span></div>`).join('')||'<div class="empty">아침 보고가 아직 연결되지 않았어요 <em class="draft">노션 연결 전</em></div>'}`)}</div>
@@ -802,8 +806,8 @@ function ops(){
    ${oct(`<h2 class="sec">감사 <span class="cin sm">Quality Assurance</span></h2>${[['I','자동 검사','링크 · 결정 충돌 · 유료 가격'],['II','교차 점검','Gemini 대량 대조 → 표본 2차'],['III','대표 표본 감사','대표실에서 주 1회']].map(a=>`<div class="aud"><div class="amed">${a[0]}</div><div><b>${a[1]}</b><br><span class="kv">${a[2]}</span></div></div>`).join('')}`)}
    ${oct(`<h2 class="sec">비용 · 한도 <span class="cin sm">Budget</span></h2>
     <div class="rule"><span>월 예산 상한</span><b style="margin-left:auto;color:var(--gold)">결재 대기</b></div>
-    ${[['Claude 주간 사용량','claude'],['Gemini 무료 한도','gemini']].map(([n,k])=>{const v=lsx('use_'+k,null);return `<div class="lim"><div class="rule" style="border:0"><span>${n}</span><span class="kv" style="margin-left:auto">${v===null?'확인 필요':v+'%'}</span></div><div class="prog"><i style="width:${v||0}%;background:${v>=80?'var(--red)':'var(--green)'}"></i></div><input class="pct" type="number" min="0" max="100" inputmode="numeric" placeholder="동현이 본 % 입력" data-use="${k}" value="${v===null?'':v}" aria-label="${n} 퍼센트"></div>`}).join('')}
-    <div class="kv" style="margin-top:10px">퍼센트는 동현이 직접 보고 입력해요(이 기기에만 저장). 퍼플렉시티 구독 만료 11/23 <em class="draft">확인 필요</em></div>`)}
+    ${[['Claude 주간 사용량','claude'],['Gemini 무료 한도','gemini']].map(([n,k])=>{const qu=((S3.st.quit||{}).usage)||{},au=k==='claude'&&qu.st==='used'?qu.used:null,v=au!==null?au:lsx('use_'+k,null);return `<div class="lim"><div class="rule" style="border:0"><span>${n}</span><span class="kv" style="margin-left:auto">${v===null?'확인 필요':au!==null?`쓴 것 ${v}% · ${esc(String(qu.t||'').slice(5))} 기록`:v+'%'}</span></div><div class="prog"><i style="width:${v||0}%;background:${v>=80?'var(--red)':'var(--green)'}"></i></div>${au!==null?'':`<input class="pct" type="number" min="0" max="100" inputmode="numeric" placeholder="동현이 본 % 입력" data-use="${k}" value="${v===null?'':v}" aria-label="${n} 퍼센트">`}</div>`}).join('')}
+    <div class="kv" style="margin-top:10px">Claude 는 기록에서 읽고, 나머지는 직접 보고 입력해요(이 기기에만 저장). 퍼플렉시티 구독 만료 11/23 <em class="draft">확인 필요</em></div>`)}
   </div></div>`;
 }
 document.addEventListener('change',e=>{const i=e.target.closest('[data-use]');if(i){const v=i.value===''?null:Math.max(0,Math.min(100,+i.value));lsSet('v3_use_'+i.dataset.use,v);render()}});
@@ -1050,7 +1054,6 @@ document.addEventListener('click',e=>{if(e.target.id==='snd'){lsSet('v3_snd',!ls
 ergoShow(ergoGet());sndBtn();
 
 // ---- game2: 3D 키우기 탭 (열 때만 three.js 로딩) ----
-let worldLoad=null;
 function loadScript(u){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=()=>no(new Error(u));document.head.appendChild(e)})}
 function staffStates(){const J=jobs();return STAFF.map(([d,n,c,ids])=>{const js=J.filter(j=>ids.includes(j.id));return js.find(j=>j.status==='멈춤'||j.status==='막힘')?'block':js.find(j=>j.status==='진행')?'work':'rest'})}
 function world(){
