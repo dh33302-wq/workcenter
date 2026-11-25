@@ -254,6 +254,7 @@ body:has(#r-world.on) #mbb{bottom:auto;top:calc(60px*var(--s) + 62px)}
 .twm{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:4px 0 14px;font:600 calc(15px*var(--s)) system-ui,"Malgun Gothic",sans-serif}
 .twc{padding:10px 0;border-bottom:1px solid #2a2418}.twa{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:6px 0;overflow-wrap:anywhere}.twa span{color:var(--dim)}.twa i{color:var(--gold);font-style:normal}
 .two .cxt table{width:100%}.two .cxt th,.two .cxt td{white-space:normal;overflow-wrap:anywhere;min-width:0}#r-two .q{word-break:keep-all}
+.cca{border:1px solid #3a3426;padding:12px;margin-top:12px;overflow-wrap:anywhere}#cc-extra[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -721,7 +722,17 @@ const ccQ=()=>((S3.st.chars||{}).q)||[];
 const ccHas=v=>Array.isArray(v)?v.length>0:v!=null&&String(v).trim()!=='';
 function ccOk(q,c){if(!q.required)return true;const v=ccGet(c,q.field);if(q.type==='three')return Array.isArray(v)&&v.length===3;
   if(q.extra&&!ccHas(ccGet(c,q.extra.field)))return false;if(q.also&&!new RegExp(q.also.pattern).test(String(ccGet(c,q.also.field)||'')))return false;return ccHas(v)}
-function ccNew(card,base){CC.set({card:card?JSON.parse(JSON.stringify(card)):{},base:base||'',step:0,lock:!!card,at:Date.now()});S3.twT='card';location.hash='#two/card'}
+// 부딪히는 답 되묻기: 한 카드에 최대 max 개, 짝마다 한 번만. 저장·확정을 막지 않고 대답은 카드에 안 넣는다(폰 v3_ccq 에만: 다시 안 물으려고)
+const ccCf=()=>(S3.st.chars||{}).cf||null;
+const ccHit=(c,p)=>p.all.every(([f,h])=>{const v=ccGet(c,f);return Array.isArray(v)?v.includes(h):v===h});
+function ccPend(D){const F=ccCf();if(!F)return [];const a=D.cf||{},left=F.max-Object.keys(a).length;return left>0?F.pairs.filter(p=>!(p.id in a)&&ccHit(D.card,p)).slice(0,left):[]}
+function ccAskOn(D){const F=ccCf();if(!F||ccQ().some(q=>!ccOk(q,D.card)))return [];
+  if(!D.ask){const p=ccPend(D);if(!p.length)return [];D.ask={ids:p.map(x=>x.id),v:{}};CC.set(D)}return F.pairs.filter(p=>D.ask.ids.includes(p.id))}
+function ccAskQs(p){const L=ccQ();return [...new Set(p.all.map(x=>L.findIndex(q=>q.field===x[0])))].filter(i=>i>=0)}
+function ccAskView(D,P){const F=ccCf();return `<div class="prog"><i style="width:100%"></i></div><div class="q">한 번만 물어볼게요</div><div class="kv">어느 쪽이든 괜찮아요. 안 누르고 넘어가도 돼요.</div>
+  ${P.map(p=>{const v=D.ask.v[p.id],on=ccHit(D.card,p);return `<div class="cca" data-cca="${esc(p.id)}"><div>${esc(p.ask)}</div>${on?`<div class="gmb">${F.ans.map((t,i)=>`<button class="${v===i?'on':''}" aria-pressed="${v===i}" data-ccask="${esc(JSON.stringify([p.id,i]))}">${esc(t)}</button>`).join('')}</div>${v===1?`<div class="gmb">${ccAskQs(p).map(i=>`<button data-ccfix="${i}">✏️ ${esc(ccQ()[i].ask)}</button>`).join('')}</div>`:''}`:'<div class="kv">✅ 고쳤어요</div>'}</div>`}).join('')}
+  <div class="nav2"><button class="btn" data-ccgo="${ccQ().length-1}">◂ 앞</button><button class="btn pri2" data-ccaskend="1">다음 ▸</button></div>`}
+function ccNew(card,base){CC.set({card:card?JSON.parse(JSON.stringify(card)):{},base:base||'',step:0,lock:!!card,cf:card?lsx('ccq',{})[card.id]||{}:{},at:Date.now()});S3.twT='card';location.hash='#two/card'}
 function ccBtn(on,f,v,t,ty){return `<button class="${on?'on':''}" aria-pressed="${!!on}" data-ccv="${esc(JSON.stringify([f,v,t]))}">${esc(ty||v)}</button>`}
 function ccIn(f,ph,max,val,ty){return `<input class="pct ccin" data-ccf="${esc(f)}" ${ty==='num'?'type="number" inputmode="numeric"':'type="text"'} maxlength="${max}" placeholder="${esc(ph)}" aria-label="${esc(ph)}" value="${esc(val??'')}">`}
 function ccStep(D,q,n,N){const c=D.card,v=ccGet(c,q.field),t=q.type;let h='';
@@ -729,22 +740,22 @@ function ccStep(D,q,n,N){const c=D.card,v=ccGet(c,q.field),t=q.type;let h='';
   if(t==='many')h=`<div class="gmb">${q.choices.map(x=>ccBtn((v||[]).includes(x),q.field,x,'many')).join('')}</div>`;
   if(t==='three'){const my=(v||[]).filter(x=>!q.choices.includes(x));h=`<div class="kv">고른 것 <b class="num">${(v||[]).length}</b> / 3</div><div class="gmb">${q.choices.concat(my).map(x=>ccBtn((v||[]).includes(x),q.field,x,'three')).join('')}</div>${q.free?`<div class="twy"><input class="pct" id="cc-add" maxlength="20" placeholder="직접 쓰기" aria-label="낱말 직접 쓰기"><button class="btn" data-ccadd="${esc(q.field)}">더하기</button></div>`:''}`}
   if(t==='line')h=ccIn(q.field,q.ask,q.max||160,v);
-  if(q.extra&&!(c.weapon&&c.weapon.kind==='맨손'))h+=`<div class="kv">${esc(q.extra.ask)}</div><div class="gmb">${q.extra.choices.map(x=>ccBtn(ccGet(c,q.extra.field)===x,q.extra.field,x,'one')).join('')}</div>`;
+  if(q.extra)h+=`<div id="cc-extra" ${c.weapon&&String(c.weapon.kind||'').trim()==='맨손'?'hidden':''}><div class="kv">${esc(q.extra.ask)}</div><div class="gmb">${q.extra.choices.map(x=>ccBtn(ccGet(c,q.extra.field)===x,q.extra.field,x,'one')).join('')}</div></div>`;
   if(q.number)h+=`<div class="kv">${esc(q.number.ask)}</div>${ccIn(q.number.field,`${q.number.min}~${q.number.max}`,5,ccGet(c,q.number.field),'num')}`;
   if(q.line)h+=`<div class="kv">${esc(q.line)}</div>${ccIn(q.line_field,q.line,160,ccGet(c,q.line_field))}`;
   if(q.also)h+=`<div class="kv">${esc(q.also.ask)}${D.lock?' · 저장한 뒤에는 못 바꿔요':''}</div>${D.lock?`<b>${esc(ccGet(c,q.also.field))}</b>`:ccIn(q.also.field,q.also.ask,24,ccGet(c,q.also.field))}`;
   const ok=ccOk(q,c);
   return `<div class="prog"><i style="width:${Math.round(n/N*100)}%"></i></div><div class="kv">${n+1} / ${N}${q.required?'':' · 건너뛰어도 돼요'}</div><div class="q">${esc(q.ask)}</div>${h}
-   <div class="nav2" style="margin-top:16px"><button class="btn" data-ccgo="${n-1}" ${n?'':'disabled'}>◂ 앞</button><button class="btn pri2" data-ccgo="${n+1}" id="cc-next" ${ok?'':'disabled'}>${!q.required&&!ccHas(v)?'건너뛰기 ▸':'다음 ▸'}</button></div>`}
+   <div class="nav2" style="margin-top:16px"><button class="btn" data-ccgo="${n-1}" ${n?'':'disabled'}>◂ 앞</button><button class="btn pri2" data-ccgo="${D.back?N:n+1}" id="cc-next" ${ok?'':'disabled'}>${D.back?'고쳤어요 ▸':!q.required&&!ccHas(v)?'건너뛰기 ▸':'다음 ▸'}</button></div>`}
 const ccTx=v=>Array.isArray(v)?v.join(' · '):v==null?'':String(v);
 function ccRows(c){return ccQ().map(q=>{const x=[q.field,q.extra&&q.extra.field,q.number&&q.number.field,q.line_field,q.also&&q.also.field].filter(Boolean).map(f=>{const v=ccTx(ccGet(c,f));return v&&f==='height_cm'?v+'cm':v}).filter(Boolean).join(' · ');return `<div class="rule"><span>${x?'◆':'◇'}</span><span>${esc(q.ask)}<br><b class="recw">${x?esc(x):'비어 있음'}</b></span></div>`}).join('')}
-function ccEnd(D){const T=S3.st.chars||{},bad=ccQ().filter(q=>!ccOk(q,D.card)),s=D.sent,q=s&&Q.list().find(r=>r.id===s.id),wait=q&&!(q.st==='fail'&&q.rej)&&q.st!=='ok';
+function ccEnd(D){const P=ccAskOn(D);if(P.length)return ccAskView(D,P);const T=S3.st.chars||{},bad=ccQ().filter(q=>!ccOk(q,D.card)),s=D.sent,q=s&&Q.list().find(r=>r.id===s.id),wait=q&&!(q.st==='fail'&&q.rej)&&q.st!=='ok';
   const arm=S3.ccArm&&Date.now()-S3.ccArm<5000;
   return `<div class="prog"><i style="width:100%"></i></div><div class="q">이렇게 적었어요</div>${ccRows(D.card)}
    ${bad.length?`<div class="jrw">아직 안 한 질문 ${bad.length}개</div>`:''}${q&&q.st==='fail'&&q.rej?`<div class="jrw">🔴 ${esc(q.msg||'못 넣었어요')}</div>`:''}${wait?`<div class="kv">${q.st==='sent'?'⏳ PC가 받는 중':'📤 보내는 중 (폰에 저장돼 있어요)'}</div>`:''}
    <div class="nav2"><button class="btn" data-ccgo="${bad.length?ccQ().indexOf(bad[0]):ccQ().length-1}">◂ 고치기</button><button class="btn" data-ccsave="0" ${bad.length||wait?'disabled':''}>저장</button><button class="btn pri2" data-ccsave="1" ${bad.length||wait||T.draft?'disabled':''}>${arm?'한 번 더 누르면 확정':'확정'}</button></div>
    <div class="kv">${T.draft?'질문이 아직 초안이라 [확정]은 부대표 승인 뒤에 열려요. 저장은 돼요.':'[확정]하면 HB Studio 가 이 카드로 시작해요. 나중에 고치면 다시 확정해요.'}</div>`}
-function ccTidy(){const D=CC.get();if(!D||!D.sent)return;const q=Q.list().find(r=>r.id===D.sent.id);if(q&&q.st==='ok'){CC.set(null);toast(D.sent.f?'🪪 확정했어요':'🪪 저장했어요')}}
+function ccTidy(){const D=CC.get();if(!D||!D.sent)return;const q=Q.list().find(r=>r.id===D.sent.id);if(q&&q.st==='ok'){const k=D.card.id,m=lsx('ccq',{});if(k&&Object.keys(D.cf||{}).length){m[k]=D.cf;lsSet('v3_ccq',m)}CC.set(null);toast(D.sent.f?'🪪 확정했어요':'🪪 저장했어요')}}
 function twCards(){ccTidy();const T=S3.st.chars,D=CC.get();if(!T)return oct(recNone('PC 지킴이가 보내면 나타나요'));const N=ccQ().length;
   if(!N)return oct(recNone('카드 질문을 못 받았어요'));
   if(D){const n=Math.max(0,Math.min(N,D.step||0));return oct(`<h2 class="sec">캐릭터 카드 ${T.draft?'<em class="draft">질문 초안</em>':''}</h2>${n<N?ccStep(D,ccQ()[n],n,N):ccEnd(D)}<div class="nav2" style="margin-top:14px"><button class="btn" data-ccx="1">${S3.ccDel&&Date.now()-S3.ccDel<5000?'한 번 더 누르면 지워요':'쓰던 것 지우기'}</button></div><div class="kv">쓰는 동안은 이 폰에만 있어요</div>`)}
@@ -765,7 +776,7 @@ function recRep(){const R=(S3.st.two||{}).report;if(!S3.st.two)return oct(recNon
    +oct(`<h2 class="sec">허점 목록 <span class="kv">${(R.gaps||[]).length}개</span></h2>${Object.keys(g).map(k=>`<div class="recday">${esc(k)} ${g[k].length}</div>${g[k].map(x=>`<div class="jrw">${esc(x.text)}${x.fix?`<div class="kv">→ ${esc(x.fix)}${x.when?' · '+esc(x.when):''}</div>`:`<div class="kv">→ 해결 확인 필요${x.when?' · '+esc(x.when):''}</div>`}</div>`).join('')}`).join('')||recNone('없어요')}${R.updated?`<div class="kv">갱신 ${twAt(R.updated)}</div>`:''}`)}
 function twVids(){return [].concat(...(((S3.st.two||{}).works)||[]).map(w=>TW_ST.map(s=>(w.st[s[0]]||{}).v))).filter(Boolean)}
 // ---- 누르기 ----
-document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tws],[data-twp],[data-tww],[data-ccv],[data-ccadd],[data-ccgo],[data-ccsave],[data-ccx],[data-ccnew],[data-ccedit]');if(!b)return;const D=b.dataset,y=scrollY,go=()=>{twoRoom();scrollTo(0,y)};
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-tws],[data-twp],[data-tww],[data-ccv],[data-ccadd],[data-ccgo],[data-ccsave],[data-ccx],[data-ccnew],[data-ccedit],[data-ccask],[data-ccfix],[data-ccaskend]');if(!b)return;const D=b.dataset,y=scrollY,go=()=>{twoRoom();scrollTo(0,y)};
   if(D.tws){if(D.lock){toast('🔒 단계 끝을 누르면 열려요');return}S3.twS=S3.twS===D.tws?'':D.tws;S3.twDraft=null;go();return}
   if(D.twp){const [k,s,p]=JSON.parse(D.twp),i=document.getElementById('tw-why');S3.twDraft=null;twSend(k,s,p,p&&i?i.value.trim():'');scrollTo(0,y);return}
   if(D.tww){const [k,s,p]=JSON.parse(D.tww);const v=document.getElementById('tw-why').value.trim();S3.twDraft=null;twSend(k,s,p,v);scrollTo(0,y);return}
@@ -773,7 +784,10 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
   if(D.ccedit){const x=((S3.st.chars||{}).cards||[])[+D.ccedit];if(x){ccNew(x.card,x.card.updated);twoRoom()}return}
   const C=CC.get();if(!C)return;
   if(D.ccx){if(S3.ccDel&&Date.now()-S3.ccDel<5000){S3.ccDel=0;CC.set(null);twoRoom()}else{S3.ccDel=Date.now();go();setTimeout(()=>{if(S3.room==='two'&&S3.ccDel&&Date.now()-S3.ccDel>=5000)twoRoom()},5200)}return}
-  if(D.ccgo){C.step=+D.ccgo;CC.set(C);twoRoom();scrollTo(0,0);return}
+  if(D.ccask){const [k,i]=JSON.parse(D.ccask);if(!C.ask)return;if(C.ask.v[k]===i)delete C.ask.v[k];else C.ask.v[k]=i;CC.set(C);go();return}
+  if(D.ccfix){C.step=+D.ccfix;C.back=true;CC.set(C);twoRoom();scrollTo(0,0);return}
+  if(D.ccaskend){C.cf=C.cf||{};((C.ask||{}).ids||[]).forEach(k=>{C.cf[k]=k in C.ask.v?C.ask.v[k]:-1});C.ask=null;CC.set(C);twoRoom();scrollTo(0,0);return}
+  if(D.ccgo){C.step=+D.ccgo;C.back=false;CC.set(C);twoRoom();scrollTo(0,0);return}
   if(D.ccv){const [f,v,t]=JSON.parse(D.ccv);let cur=ccGet(C.card,f);
     if(t==='one'){ccPut(C.card,f,cur===v?null:v);if(f==='weapon.kind'){if(v==='맨손'&&cur!==v)ccPut(C.card,'weapon.hand','없음');else if(cur==='맨손')ccPut(C.card,'weapon.hand',null)}}
     else{cur=Array.isArray(cur)?cur.slice():[];const on=cur.includes(v);if(on)cur=cur.filter(x=>x!==v);else if(t==='three'&&cur.length>=3){toast('3개까지예요. 하나를 먼저 빼 주세요');return}else if(t==='many'&&v==='없음')cur=['없음'];else cur=(t==='many'?cur.filter(x=>x!=='없음'):cur).concat(v);ccPut(C.card,f,cur)}
@@ -783,7 +797,10 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
     S3.ccArm=0;const r=Q.add('char_save',{card:C.card,base:C.base,final:fin});C.sent={id:r.id,f:fin};CC.set(C);Sync3.flush();toast('📤 보냈어요');go()}});
 document.addEventListener('input',e=>{const t=e.target;if(t.id==='tw-why'){S3.twDraft=t.value;S3.twDraftK=S3.twS;return}
   if(!t.dataset||!t.dataset.ccf)return;const C=CC.get();if(!C)return;const f=t.dataset.ccf,v=t.type==='number'?(t.value===''?null:+t.value):t.value;
-  ccPut(C.card,f,v);CC.set(C);const q=ccQ()[C.step||0],n=document.getElementById('cc-next');if(q&&n){n.disabled=!ccOk(q,C.card);if(!q.required)n.textContent=ccHas(ccGet(C.card,q.field))?'다음 ▸':'건너뛰기 ▸'}
+  const was=f==='weapon.kind'?String(ccGet(C.card,f)||'').trim():'';ccPut(C.card,f,v);
+  if(f==='weapon.kind'){const now=v.trim(),x=document.getElementById('cc-extra');if(now==='맨손')ccPut(C.card,'weapon.hand','없음');else if(was==='맨손')ccPut(C.card,'weapon.hand',null);
+    if(x){x.hidden=now==='맨손';const hv=ccGet(C.card,'weapon.hand');x.querySelectorAll('[data-ccv]').forEach(b=>{const on=JSON.parse(b.dataset.ccv)[1]===hv;b.classList.toggle('on',on);b.setAttribute('aria-pressed',on)})}}
+  CC.set(C);const q=ccQ()[C.step||0],n=document.getElementById('cc-next');if(q&&n){n.disabled=!ccOk(q,C.card);if(!q.required&&!C.back)n.textContent=ccHas(ccGet(C.card,q.field))?'다음 ▸':'건너뛰기 ▸'}
   if(q&&q.field===f&&q.free&&q.type==='one')t.parentNode.querySelectorAll('[data-ccv]').forEach(b=>{const [bf,bv]=JSON.parse(b.dataset.ccv);if(bf===f){b.classList.toggle('on',bv===v);b.setAttribute('aria-pressed',bv===v)}})});
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
