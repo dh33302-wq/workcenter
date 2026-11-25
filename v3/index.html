@@ -196,7 +196,7 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
 .jrt b{font-size:calc(20px*var(--s));overflow-wrap:anywhere}.jrt small{color:var(--dim);font-size:calc(13px*var(--s))}.jrt.no b{color:var(--dim);font-size:calc(16px*var(--s))}
 .jrbar{display:flex;height:14px;background:#222;margin:8px 0;overflow:hidden}.jrbar i{display:block;height:100%}
 .jrs{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:12px 0;text-align:center}.jrs u{display:flex;align-items:flex-end;height:70px;background:#1a1a1c;text-decoration:none}.jrs u i{display:block;width:100%;background:var(--blue);min-height:2px}.jrs small{font-size:calc(12px*var(--s));color:var(--dim)}
-.jrw{border-left:3px solid var(--red);padding:6px 10px;margin:8px 0}.jrl{border:1px solid var(--gold);padding:12px;margin:10px 0;line-height:1.8}
+.jrw{border-left:3px solid var(--red);padding:6px 10px;margin:8px 0}.grb{border-left:3px solid var(--gold);padding:8px 10px;margin:8px 0;overflow-wrap:anywhere;line-height:1.7}.jrl{border:1px solid var(--gold);padding:12px;margin:10px 0;line-height:1.8}
 .jrd{flex-wrap:wrap;gap:6px}.jrd .btn{padding:8px 12px}#jr .btn.on{background:var(--gold);color:#18160C}
 
 /* 11/25 눈 검수: 금색 버튼 글자 안 보임 · 커버 머리줄 겹침 · 일지 머리줄 가림 */
@@ -663,17 +663,27 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
   const [date,clip,kind,id,mark,reason]=JSON.parse(b.dataset.gm),r=Q.add('grade_mark',{key:gmKey(date,clip,kind,id),date,clip,kind,id,mark,reason}),L=lsx('gm',{});
   L[gmKey(date,clip,kind,id)]={m:mark,r:reason,id:r.id};lsSet('v3_gm',L);Sync3.flush();toast(mark?'✍️ 적었어요':'↩️ 표시를 지웠어요');render()});
 const grIt=x=>typeof x==='string'?{id:'',x,why:[]}:x;
+// 작업한 날 = 새벽 5시 전은 전날(PC 채점 파일과 같은 뜻). 시각 글이면 그 시각의, 없으면 지금의 작업한 날
+const wday=s=>{const t=new Date((s?Date.parse(String(s).slice(0,19)):Date.now())-5*3600e3);if(isNaN(t))return '';const z=n=>String(n).padStart(2,'0');return `${t.getFullYear()}-${z(t.getMonth()+1)}-${z(t.getDate())}`};
+// 무엇으로 채점했나 한 줄: 버튼이 늘 이긴다(20:00 자동 뒤에 누르면 그 마지막 저장본). 요청 파일보다 뒤에 누른 퇴근 기록(lv)이 있으면 그것이 기준
+function gradeBasis(d,g,qt){
+  const lv=g&&g.lv,td=d.date===wday(),ms=s=>s?Date.parse(String(s).slice(0,19)):NaN,tm=s=>s?(String(s).slice(0,10)>d.date?'다음 날 새벽 ':'')+esc(String(s).slice(11,16)):'';
+  const req=!!(g&&g.req),lvB=!!(lv&&lv.by==='button'&&lv.at&&(!req||!g.at||ms(lv.at)>=ms(g.at)));if(!req&&!lv)return '';
+  const at=lvB||!req?lv.at:g.at,by=lvB?'button':req?g.by:lv.by,keep=req&&lvB&&g.by==='auto_2000';
+  const s=by==='button'?`${tm(at)} 퇴근 버튼 기준`:by==='auto'||by==='auto_2000'?`${tm(at)||'20:00'} 자동 기준`:`${tm(at)} 기준 (버튼인지 자동인지 기록 없음)`;
+  const pend=td&&qt&&qt.on&&qt.t&&at&&ms(qt.t.replace(' ','T')+':00')>ms(at),old=pend&&Date.now()-ms(qt.t.replace(' ','T')+':00')>600000;
+  return `<div class="grb"><b>${td?'오늘':'그날'} 채점: ${s.trim()}</b>${keep?`<br><span class="kv">20:00 자동 뒤로 바뀐 저장이 없어 채점 요청은 ${tm(g.at)||'자동'} 것 그대로예요</span>`:''}${pend?`<br><span class="kv">${old?`⚠️ ${esc(qt.t.slice(11))} 퇴근 버튼이 아직 채점에 안 걸렸어요 (PC 감지기 확인)`:`🌙 ${esc(qt.t.slice(11))} 퇴근 버튼을 받았어요 · 채점을 다시 거는 중`}</span>`:td&&by!=='button'?'<br><span class="kv">더 저장하고 퇴근 버튼을 누르면 그 저장본으로 다시 채점해요</span>':''}</div>`}
 function gradeBox(d){
-  const g=d.grade,done=(g&&g.clips||[]).filter(c=>c.res).length,ask=(g&&g.clips||[]).filter(c=>c.asked).length,out=!!d.out||(d.date===today()&&(S3.st.quit||{}).on),lv=g&&g.lv;
-  const head=g&&g.req?`📨 채점 요청 ${ask}개${g.at?` · ${hm(g.at)}`:''}${g.by==='button'?' · 퇴근 버튼':g.by==='auto_2000'?' · 20:00 자동':''}`:lv?`${lv.n?'📭':'🌙'} ${lv.by==='auto'?'20:00 자동 퇴근 처리':'퇴근 처리'}${lv.at?` · ${hm(lv.at)}`:''} · ${lv.n?`저장한 클립 ${esc(lv.n)}개인데 채점 요청 파일이 없어요`:'그때까지 채점할 저장이 없었어요'}`:out?'📭 퇴근은 했는데 채점 요청 기록이 없어요':d.date===today()?'퇴근 뒤 마지막 저장본의 채점 요청이 걸리면 여기에 나와요':'📭 채점 요청 기록 없음';
-  const clip=c=>{const L=(S3.st.hb_gates||{}).clips||[],k=L.find(x=>x.id===c.id),v=k&&(k.vids||[]).find(x=>x.k==='max'),r=c.res,sv=c.saved||(r&&r.saved)||c.last,late=c.saved&&c.last&&c.last>c.saved&&c.last.slice(0,10)===d.date&&Date.parse(c.last)-Date.parse(c.saved)>60000;
-    const q=v&&vidReady(v),same=!!(v&&v.at&&sv&&v.at.slice(0,10)===d.date&&Date.parse(v.at)-Date.parse(sv)>-60000);
+  const g=d.grade,done=(g&&g.clips||[]).filter(c=>c.res).length,ask=(g&&g.clips||[]).filter(c=>c.asked).length,out=!!d.out||(d.date===wday()&&(S3.st.quit||{}).on),lv=g&&g.lv;
+  const head=g&&g.req?`📨 채점 요청 ${ask}개`:lv?`${lv.n?`📭 저장한 클립 ${esc(lv.n)}개인데 채점 요청 파일이 없어요`:'🌙 그때까지 채점할 저장이 없었어요'}`:out?'📭 퇴근은 했는데 채점 요청 기록이 없어요':d.date===wday()?'퇴근 뒤 마지막 저장본의 채점 요청이 걸리면 여기에 나와요':'📭 채점 요청 기록 없음';
+  const clip=c=>{const L=(S3.st.hb_gates||{}).clips||[],k=L.find(x=>x.id===c.id),v=k&&(k.vids||[]).find(x=>x.k==='max'),r=c.res,sv=c.saved||(r&&r.saved)||c.last,late=c.saved&&c.last&&c.last>c.saved&&wday(c.last)===d.date&&Date.parse(c.last)-Date.parse(c.saved)>60000;
+    const q=v&&vidReady(v),same=!!(v&&v.at&&sv&&wday(v.at)===d.date&&Date.parse(v.at)-Date.parse(sv)>-60000);
     return `<div class="gr"><div><b>${esc(c.name||c.id)}</b> <span class="kv">${sv?hm(sv)+' 저장본':'저장 시각 기록 없음'}${c.file?' · '+esc(c.file):''}</span></div>
      <div class="kv">${r?'✅ 채점 끝'+(r.conf?` · 확신 ${esc(r.conf)}`:''):c.asked?(GR_ST[c.st]||esc(c.st))+(c.why?' · '+esc(c.why):''):'💾 저장 감지만 있어요 (도구 시험 저장일 수도 있어요)'}</div>${late?`<div class="kv cvo">⏳ 채점한 저장본 뒤에 또 저장했어요 (${hm(c.last)})</div>`:''}
      ${r&&(r.light||r.stage)?`<div><b>${esc(r.light||'')} ${esc(r.stage||'')}</b></div>`:''}${r&&r.intent?`<div class="recq">🎯 내 의도: ${esc(r.intent)}</div>`:''}
      ${r?`${r.good.map(x=>`<div class="recg">👍 ${esc(x)}</div>`).join('')}${r.fix.map(grIt).map((x,i)=>`<div class="jrw">🔧 ${i+1} ${esc(x.x)}${gmBtns(d.date,c.id,'fix',x)}</div>`).join('')}${(r.notice||[]).map(grIt).map(x=>`<div class="recq">🧲 알림(감점 아님) ${esc(x.x)}${gmBtns(d.date,c.id,'notice',x)}</div>`).join('')}${r.next?`<div class="jrl">🌅 내일 첫 할 일<br>${esc(r.next)}</div>`:''}${r.ev.length?`<details class="gt" data-gk="ev:${esc(d.date+c.id)}"><summary>🔎 숫자 근거</summary>${r.ev.map(x=>`<div class="kv">${esc(x)}</div>`).join('')}</details>`:''}`:''}
-     ${q&&same?`<div class="cv cv-max"><div class="cvh"><b>🎬 미리보기(맥스)</b> <span class="kv">${hm(v.at)}${late||Date.parse(v.at)-Date.parse(sv)>900000?' · 채점한 판보다 뒤에 만든 영상':''}</span></div>${vidTag(q)}</div>`:k?`<a class="btn" href="#hb">🎞 클립 카드 보기${v&&v.at&&v.at.slice(0,10)!==d.date?` (미리보기는 ${hm(v.at)} 것)`:''}</a>`:''}</div>`};
-  return `<h2 class="sec" style="margin-top:14px">퇴근 채점 <span class="kv">${ask||done?`${done}/${Math.max(ask,done)} 끝`:''}</span></h2><div class="kv">${head}${g&&g.made?` · 결과 ${hm(g.made)}`:''}</div>${g&&g.bad.length?`<div class="jrw">⚠️ 채점 ${g.bad.map(esc).join('·')} 파일을 못 읽었어요</div>`:''}${g&&g.clips.length?g.clips.map(clip).join('')+(g.n>g.clips.length?`<div class="kv">그 밖에 ${g.n-g.clips.length}개</div>`:''):'<div class="kv">그날 저장한 클립 기록 없음</div>'}`}
+     ${q&&same?`<div class="cv cv-max"><div class="cvh"><b>🎬 미리보기(맥스)</b> <span class="kv">${hm(v.at)}${late||Date.parse(v.at)-Date.parse(sv)>900000?' · 채점한 판보다 뒤에 만든 영상':''}</span></div>${vidTag(q)}</div>`:k?`<a class="btn" href="#hb">🎞 클립 카드 보기${v&&v.at&&wday(v.at)!==d.date?` (미리보기는 ${hm(v.at)} 것)`:''}</a>`:''}</div>`};
+  return `<h2 class="sec" style="margin-top:14px">퇴근 채점 <span class="kv">${ask||done?`${done}/${Math.max(ask,done)} 끝`:''}</span></h2>${gradeBasis(d,g,S3.st.quit)}<div class="kv">${head}${g&&g.made?` · 결과 ${hm(g.made)}`:''}</div>${g&&g.bad.length?`<div class="jrw">⚠️ 채점 ${g.bad.map(esc).join('·')} 파일을 못 읽었어요</div>`:''}${g&&g.clips.length?g.clips.map(clip).join('')+(g.n>g.clips.length?`<div class="kv">그 밖에 ${g.n-g.clips.length}개</div>`:''):'<div class="kv">그날 저장한 클립 기록 없음</div>'}`}
 // 펼친 카드는 새로 그려도 그대로 · 영상이 도는 동안은 새로 그리지 않는다
 function keepOpen(root,fn){const o=[...root.querySelectorAll('details[open][data-gk]')].map(e=>e.dataset.gk);fn();root.querySelectorAll('details[data-gk]').forEach(e=>{if(o.includes(e.dataset.gk))e.open=true})}
 function vidPlaying(){return [...document.querySelectorAll('.room.on video')].some(v=>!v.paused&&!v.ended)}
@@ -1063,7 +1073,7 @@ document.addEventListener('click',e=>{
   if(e.target.id==='cq-start'){Q.add('croquis_start',{date:today()});Sync3.flush();toast('🎨 크로키 15분 시작');return}
   if(e.target.id==='cq-open'){Q.add('croquis_open',{date:today()});Sync3.flush();toast('🧊 맥스를 여는 중…');return}
   const ox=e.target.closest&&e.target.closest('[data-cqox]');if(ox){Q.add('croquis_ox',{ox:ox.dataset.cqox});Sync3.flush();toast('기록했어요');return}
-  if(e.target.id==='o-clock'){Q.add('clockout',{date:today()});S3.jrWant=1;S3.jrD=today();Sync3.flush();toast('🌙 퇴근 집계를 시작했어요');return}
+  if(e.target.id==='o-clock'){Q.add('clockout',{date:wday()});S3.jrWant=1;S3.jrD=wday();Sync3.flush();toast('🌙 퇴근 집계를 시작했어요');return}
 });
 
 // ---- 퇴근 일지·주간 (11/25): state journal(재료 숫자만). 기록이 없으면 0이 아니라 '기록 없음'. 글은 부대표·코칭팀이 쓴 것만 보여 준다 ----
@@ -1104,10 +1114,10 @@ function journalCard(){
   const tab=`<div class="nav2 jrd" style="margin-bottom:10px"><button class="btn ${mode==='day'?'on':''}" data-jrm="day">📓 하루</button><button class="btn ${mode==='week'?'on':''}" data-jrm="week">🗓 주간</button></div>`;
   let body;
   if(mode==='week'){const k=W.find(x=>x.week===S3.jrW)||W[W.length-1];body=W.length?`<div class="nav2 jrd">${W.map(x=>`<button class="btn ${x===k?'on':''}" data-jrw="${esc(x.week)}">${esc(String(x.week).slice(5))}</button>`).join('')}</div>${jrWeek(k)}`:'<div class="empty">주간 재료가 아직 없어요</div>'}
-  else{const d=D.find(x=>x.date===S3.jrD)||D[D.length-1];body=D.length?`<div class="nav2 jrd">${D.map(x=>`<button class="btn ${x===d?'on':''}" data-jrd="${esc(x.date)}">${esc(String(x.date).slice(5).replace('-','/'))} ${esc(x.dow||'')}</button>`).join('')}</div>${d.date===today()&&!d.out?'<div class="kv">🕒 아직 퇴근 전 숫자예요</div>':''}${jrDay(d)}`:'<div class="empty">퇴근 버튼을 누르면 그날 일지가 여기에 열려요</div>'}
+  else{const d=D.find(x=>x.date===S3.jrD)||D[D.length-1];body=D.length?`<div class="nav2 jrd">${D.map(x=>`<button class="btn ${x===d?'on':''}" data-jrd="${esc(x.date)}">${esc(String(x.date).slice(5).replace('-','/'))} ${esc(x.dow||'')}</button>`).join('')}</div>${d.date===wday()&&!d.out?'<div class="kv">🕒 아직 퇴근 전 숫자예요</div>':''}${jrDay(d)}`:'<div class="empty">퇴근 버튼을 누르면 그날 일지가 여기에 열려요</div>'}
   return `<div id="jr">${oct(`<h2 class="sec">작업 일지 <span class="cin sm">Journal</span></h2>${tab}${body}`)}</div>`}
 function jrOpen(){ // 퇴근 뒤 그날 일지가 오면 바로 펼쳐 보여 준다
-  if(!S3.jrWant)return;const d=((S3.st.journal||{}).days||[]).find(x=>x.date===today()&&x.out);
+  if(!S3.jrWant)return;const d=((S3.st.journal||{}).days||[]).find(x=>x.date===wday()&&x.out);
   if(d){S3.jrWant=0;S3.jrMode='day';S3.jrD=d.date;if(S3.room==='out'){out();const e=document.getElementById('jr');e&&e.scrollIntoView({block:'start'})}toast('📓 오늘 일지가 나왔어요')}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-jrm],[data-jrd],[data-jrw]');if(!b)return;
   if(b.dataset.jrm)S3.jrMode=b.dataset.jrm;if(b.dataset.jrd)S3.jrD=b.dataset.jrd;if(b.dataset.jrw)S3.jrW=b.dataset.jrw;const y=scrollY;out();scrollTo(0,y)});
@@ -1180,7 +1190,7 @@ function rmCard(){
   ${lines?`<div style="margin-top:8px">${B.t?`<div class="kv">상황판 ${typeof B.t==='number'?(d=>`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`)(new Date(B.t)):esc(String(B.t).slice(5,16).replace('T',' '))}</div>`:''}${lines}</div>`:''}`)}
 document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('#rm-quit')))return;
   if(S3.qArm&&Date.now()-S3.qArm<5000){S3.qArm=0;if(S3.rmDry){toast('연습이라 보내지 않았어요');hbBoard();return}
-    Q.add('clockout',{date:today()});S3.jrWant=1;S3.jrD=today();Sync3.flush();toast('🌙 퇴근을 보냈어요 · 집계와 퇴근 모드를 켜요');hbBoard()}
+    Q.add('clockout',{date:wday()});S3.jrWant=1;S3.jrD=wday();Sync3.flush();toast('🌙 퇴근을 보냈어요 · 집계와 퇴근 모드를 켜요');hbBoard()}
   else{S3.qArm=Date.now();toast('한 번 더 누르면 퇴근이에요');hbBoard();setTimeout(()=>{if(S3.room==='hb')hbBoard()},5200)}});
 document.addEventListener('change',e=>{if(e.target.id==='rm-dry')S3.rmDry=e.target.checked});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(!b)return;const c=b.dataset.rm;
