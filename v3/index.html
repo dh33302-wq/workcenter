@@ -242,6 +242,8 @@ body:has(#r-world.on) #mbb{bottom:auto;top:calc(60px*var(--s) + 62px)}
 .cvs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:12px;margin:10px 0}.cv{border:1px solid #2a2a2a;padding:10px;min-width:0}.cv-max{border-top:3px solid var(--blue)}.cv-ue{border-top:3px solid var(--gold)}.cvh{margin-bottom:6px}.cvo{color:#e6cf8f}
 .hqvid{width:100%;max-width:640px;border-radius:8px;display:block;background:#000}
 .gr{border:1px solid #2a2a2a;padding:10px;margin:10px 0}.gr .btn{margin-top:8px}.gr .cv{margin-top:8px}
+
+.gmb{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}.gmb button{min-height:44px;padding:6px 14px;border:1px solid #3a3426;background:#141414;color:inherit;font:inherit;font-size:calc(15px*var(--s));max-width:100%;overflow-wrap:anywhere;cursor:pointer}.gmb button.on{border-color:var(--gold);color:var(--gold);background:rgba(206,168,94,.14)}.gmb.why button{font-size:calc(14px*var(--s))}
 </style>
 </head>
 <body>
@@ -620,20 +622,35 @@ function clipVids(c){
   if(!V.length)return c.rv?`<a class="btn" href="#review/${esc(c.rv)}">▶ 영상 보기</a>`:'<div class="empty">영상 아직 없어요</div>';
   const no=V.some(v=>v.k==='ue')||V.some(v=>v.k==='unknown')?'':'<div class="cv"><div class="cvh"><b>🏁 완성(언리얼)</b></div><div class="empty">아직 없어요 · 맥스에서 완성으로 표시하면 만들어요</div></div>';
   return `<div class="cvs">${V.map(clipVid).join('')}${no}</div>`}
+const ckItem=i=>`<div class="${i.lv==='실패'?'jrw':'cwl'}">${i.lv==='실패'?'🔴':'🟡'} ${i.n?`<b>${esc(i.n)}</b> `:''}${esc(i.x)}${i.fr?` <span class="kv">${esc(i.fr)}</span>`:''}</div>`;
+const ckBox=(nm,s,foot)=>`<div class="cck">${s.fail||s.warn?`<b class="${s.fail?'cbad':'cwarn'}">⚠️ ${nm} ${[s.fail?`실패 ${s.fail}`:'',s.warn?`경고 ${s.warn}`:''].filter(Boolean).join(' · ')}</b>`:`<b class="cok">✅ ${nm} 경고 없음</b>`}${(s.items||[]).map(ckItem).join('')}${s.fail+s.warn>(s.items||[]).length?`<div class="kv">그 밖에 ${s.fail+s.warn-s.items.length}건</div>`:''}<div class="kv">${foot}</div></div>`;
+// 저장 검사(저장할 때마다, 숫자만)와 단계 검사(단계 끝·퇴근 때, 원본과 견줌)는 다른 검사라 나눠 보인다
 function clipCheck(c){
-  const s=c.sc;if(!s)return '<div class="kv">💾 저장 검사 기록 없음</div>';
-  const h=s.fail||s.warn?`<b class="${s.fail?'cbad':'cwarn'}">⚠️ 저장 검사 ${[s.fail?`실패 ${s.fail}`:'',s.warn?`경고 ${s.warn}`:''].filter(Boolean).join(' · ')}</b>`:'<b class="cok">✅ 저장 검사 경고 없음</b>';
-  return `<div class="cck">${h}${s.items.map(i=>`<div class="${i.lv==='실패'?'jrw':'cwl'}">${i.lv==='실패'?'🔴':'🟡'} <b>${esc(i.n)}</b> ${esc(i.x)}${i.fr?` <span class="kv">${esc(i.fr)}</span>`:''}</div>`).join('')}${s.fail+s.warn>s.items.length?`<div class="kv">그 밖에 ${s.fail+s.warn-s.items.length}건</div>`:''}
-   <div class="kv">${s.saved?`${hm(s.saved)} 저장본`:'저장 시각 기록 없음'}${s.file?' · '+esc(s.file):''}${s.sec!=null?` · ${s.kind==='final'?'완성 처리':'저장에서 HQ까지'} ${esc(s.sec)}초`:''}</div></div>`}
+  const s=c.sc,m=c.mc,st=x=>STG_NM[x]||x;
+  return (s?ckBox('저장 검사',s,[s.saved?hm(s.saved)+' 저장본':s.made?hm(s.made)+' 검사':'저장 시각 기록 없음',s.file?esc(s.file):'',s.keys!=null?`키 ${esc(s.keys)}`:'',s.foot!=null?`발 미끄러짐 최대 ${esc(s.foot)}cm (선은 아직)`:'',s.sec!=null?`저장에서 검사 끝까지 ${esc(s.sec)}초`:''].filter(Boolean).join(' · ')):'<div class="kv">💾 저장 검사 기록 없음</div>')
+   +(m?ckBox('단계 검사',m,[m.stage?esc(st(m.stage)):'',m.made?hm(m.made)+' 검사':'검사한 시각 기록 없음'].filter(Boolean).join(' · ')):'')}
 function clipWs(c){const w=WS_NM[c.ws],k=c.kb,n=k&&k.human!=null&&k.ai!=null&&k.human+k.ai>0?Math.round(k.human/(k.human+k.ai)*100):null;
   return `<div class="cws">${[1,2,3].map(i=>`<span class="${c.ws===i?'on':''}"><b>${i}</b> ${WS_NM[i][1]}</span>`).join('')}</div><div class="kv">${w?`작업 단계 ${w[0]} · ${w[2]}`:'작업 단계 기록 없음'}${k?` · 내 키 ${k.human==null?'기록 없음':esc(k.human)} / AI 키 ${k.ai==null?'기록 없음':esc(k.ai)}${n!=null?` (내 손 ${n}%)`:''}`:' · 내 키·AI 키 수 기록 없음'}</div>`}
 function clipCard(c){
-  const s=c.sc,V=c.vids||[],b=[c.ws?`<i class="cb ws">단계 ${esc(c.ws)}</i>`:'',s&&s.fail?`<i class="cb bad">⚠️ 실패 ${s.fail}</i>`:'',s&&s.warn?`<i class="cb warn">경고 ${s.warn}</i>`:'',V.some(v=>v.k==='max')?'<i class="cb">🎬 미리보기</i>':'',V.some(v=>v.k==='ue')?`<i class="cb">${V.find(v=>v.k==='ue').old?'🏁 완성 (옛 저장본)':'🏁 완성'}</i>`:''].filter(Boolean).join('');
+  const s={fail:((c.sc||{}).fail||0)+((c.mc||{}).fail||0),warn:(c.sc||{}).warn||0},V=c.vids||[],b=[c.ws?`<i class="cb ws">단계 ${esc(c.ws)}</i>`:'',s.fail?`<i class="cb bad">⚠️ 실패 ${s.fail}</i>`:'',s.warn?`<i class="cb warn">경고 ${s.warn}</i>`:'',V.some(v=>v.k==='max')?'<i class="cb">🎬 미리보기</i>':'',V.some(v=>v.k==='ue')?`<i class="cb">${V.find(v=>v.k==='ue').old?'🏁 완성 (옛 저장본)':'🏁 완성'}</i>`:''].filter(Boolean).join('');
   return `<details class="gt clip" data-gk="clip:${esc(c.id)}" id="clip-${esc(c.id)}"><summary>🎞 <b>${esc(c.name||c.id)}</b> <span class="kv">${esc(STG_NM[c.stage]||c.stage||'')}${c.frames?' · '+esc(c.frames)+'f':''}</span>${b?`<span class="cbs">${b}</span>`:''}</summary>
    ${clipWs(c)}${clipCheck(c)}${clipVids(c)}
    <div class="kv" style="overflow-wrap:anywhere">${(c.checks||[]).map(k=>`${k.pass===true?'✅':k.pass===false?'❌':'🟡'} ${esc(k.id)} ${esc(k.value)} ${esc(k.unit)}`).join('<br>')}${(c.checks||[]).length?'<br>':''}${esc(c.id||'')}${c.updated?' · 갱신 '+hm(c.updated):''}</div></details>`}
 // 퇴근 채점: 그날 클립별 마지막 저장본 1개. 요청(개발팀) → 다음 날 결과(코칭팀). 저장 감지만 있고 요청이 없으면 그대로 말한다
 const GR_ST={'대기':'⏳ 채점 기다리는 중','채점 중':'✍️ 채점하는 중','끝':'✅ 채점 끝','막힘':'🔴 채점 막힘'};
+// 누른 표시: 폰에 먼저 적고(v3_gm) PC 가 같은 값을 돌려주면 지운다. 같은 것을 다시 누르면 지우기(빈 값)
+const GM_OPT={notice:[['의도','✋ 의도예요']],fix:[['맞아요','⭕ 맞아요'],['아니에요','❌ 아니에요'],['헛경보','🔕 헛경보']]};
+const gmKey=(d,c,k,i)=>[d,c,k,i].join('|');
+function gmVal(key,it){const L=lsx('gm',{}),x=L[key];if(!x)return {m:it.mark||'',r:it.reason||'',st:''};
+  const q=Q.list().find(r=>r.id===x.id);if(q&&q.st==='fail'&&q.rej)return {m:it.mark||'',r:it.reason||'',st:'🔴 못 넣었어요'+(q.msg?' · '+q.msg:'')};
+  if((it.mark||'')===x.m&&(it.reason||'')===x.r||!q){delete L[key];lsSet('v3_gm',L);return {m:it.mark||'',r:it.reason||'',st:''}}
+  return {m:x.m,r:x.r,st:q.st==='sent'||q.st==='ok'?'⏳ PC가 받는 중':'📤 보내는 중'}}
+function gmBtns(d,c,k,it){if(!it.id)return '';const v=gmVal(gmKey(d,c,k,it.id),it),a=(m,r)=>`data-gm="${esc(JSON.stringify([d,c,k,it.id,m,r]))}"`;
+  return `<div class="gmb">${GM_OPT[k].map(([m,n])=>`<button class="${v.m===m?'on':''}" aria-pressed="${v.m===m}" ${a(v.m===m?'':m,'')}>${n}</button>`).join('')}</div>${v.m==='아니에요'&&(it.why||[]).length?`<div class="gmb why">${it.why.map(w=>`<button class="${v.r===w?'on':''}" aria-pressed="${v.r===w}" ${a('아니에요',v.r===w?'':w)}>${esc(w)}</button>`).join('')}</div>`:''}${v.st?`<div class="kv">${esc(v.st)}</div>`:''}`}
+document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-gm]');if(!b)return;
+  const [date,clip,kind,id,mark,reason]=JSON.parse(b.dataset.gm),r=Q.add('grade_mark',{key:gmKey(date,clip,kind,id),date,clip,kind,id,mark,reason}),L=lsx('gm',{});
+  L[gmKey(date,clip,kind,id)]={m:mark,r:reason,id:r.id};lsSet('v3_gm',L);Sync3.flush();toast(mark?'✍️ 적었어요':'↩️ 표시를 지웠어요');render()});
+const grIt=x=>typeof x==='string'?{id:'',x,why:[]}:x;
 function gradeBox(d){
   const g=d.grade,done=(g&&g.clips||[]).filter(c=>c.res).length,ask=(g&&g.clips||[]).filter(c=>c.asked).length,out=!!d.out||(d.date===today()&&(S3.st.quit||{}).on);
   const head=g&&g.req?`📨 채점 요청 ${ask}개${g.at?` · ${hm(g.at)}`:''}${g.by==='button'?' · 퇴근 버튼':g.by==='auto_2000'?' · 20:00 자동':''}`:out?'📭 퇴근은 했는데 채점 요청 기록이 없어요':d.date===today()?'퇴근 뒤 마지막 저장본의 채점 요청이 걸리면 여기에 나와요':'📭 채점 요청 기록 없음';
@@ -641,7 +658,8 @@ function gradeBox(d){
     const q=v&&vidReady(v),same=!!(v&&v.at&&sv&&v.at.slice(0,10)===d.date&&Date.parse(v.at)-Date.parse(sv)>-60000);
     return `<div class="gr"><div><b>${esc(c.name||c.id)}</b> <span class="kv">${sv?hm(sv)+' 저장본':'저장 시각 기록 없음'}${c.file?' · '+esc(c.file):''}</span></div>
      <div class="kv">${r?'✅ 채점 끝'+(r.conf?` · 확신 ${esc(r.conf)}`:''):c.asked?(GR_ST[c.st]||esc(c.st))+(c.why?' · '+esc(c.why):''):'💾 저장 감지만 있어요 (도구 시험 저장일 수도 있어요)'}</div>${late?`<div class="kv cvo">⏳ 채점한 저장본 뒤에 또 저장했어요 (${hm(c.last)})</div>`:''}
-     ${r?`${r.good.map(x=>`<div class="recg">👍 ${esc(x)}</div>`).join('')}${r.fix.map((x,i)=>`<div class="jrw">🔧 ${i+1} ${esc(x)}</div>`).join('')}${r.next?`<div class="jrl">🌅 내일 첫 할 일<br>${esc(r.next)}</div>`:''}${r.ev.length?`<details class="gt" data-gk="ev:${esc(d.date+c.id)}"><summary>🔎 숫자 근거</summary>${r.ev.map(x=>`<div class="kv">${esc(x)}</div>`).join('')}</details>`:''}`:''}
+     ${r&&(r.light||r.stage)?`<div><b>${esc(r.light||'')} ${esc(r.stage||'')}</b></div>`:''}${r&&r.intent?`<div class="recq">🎯 내 의도: ${esc(r.intent)}</div>`:''}
+     ${r?`${r.good.map(x=>`<div class="recg">👍 ${esc(x)}</div>`).join('')}${r.fix.map(grIt).map((x,i)=>`<div class="jrw">🔧 ${i+1} ${esc(x.x)}${gmBtns(d.date,c.id,'fix',x)}</div>`).join('')}${(r.notice||[]).map(grIt).map(x=>`<div class="recq">🧲 알림(감점 아님) ${esc(x.x)}${gmBtns(d.date,c.id,'notice',x)}</div>`).join('')}${r.next?`<div class="jrl">🌅 내일 첫 할 일<br>${esc(r.next)}</div>`:''}${r.ev.length?`<details class="gt" data-gk="ev:${esc(d.date+c.id)}"><summary>🔎 숫자 근거</summary>${r.ev.map(x=>`<div class="kv">${esc(x)}</div>`).join('')}</details>`:''}`:''}
      ${q&&same?`<div class="cv cv-max"><div class="cvh"><b>🎬 미리보기(맥스)</b> <span class="kv">${hm(v.at)}${late||Date.parse(v.at)-Date.parse(sv)>900000?' · 채점한 판보다 뒤에 만든 영상':''}</span></div>${vidTag(q)}</div>`:k?`<a class="btn" href="#hb">🎞 클립 카드 보기${v&&v.at&&v.at.slice(0,10)!==d.date?` (미리보기는 ${hm(v.at)} 것)`:''}</a>`:''}</div>`};
   return `<h2 class="sec" style="margin-top:14px">퇴근 채점 <span class="kv">${ask||done?`${done}/${Math.max(ask,done)} 끝`:''}</span></h2><div class="kv">${head}${g&&g.made?` · 결과 ${hm(g.made)}`:''}</div>${g&&g.bad.length?`<div class="jrw">⚠️ 채점 ${g.bad.map(esc).join('·')} 파일을 못 읽었어요</div>`:''}${g&&g.clips.length?g.clips.map(clip).join('')+(g.n>g.clips.length?`<div class="kv">그 밖에 ${g.n-g.clips.length}개</div>`:''):'<div class="kv">그날 저장한 클립 기록 없음</div>'}`}
 // 펼친 카드는 새로 그려도 그대로 · 영상이 도는 동안은 새로 그리지 않는다
