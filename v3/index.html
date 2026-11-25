@@ -188,6 +188,22 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
 #editp textarea{width:100%;background:var(--bg-row);color:var(--ivory);border:1px solid var(--line);padding:8px;font:inherit}
 #editp .ep-f .pri2{margin-left:auto}
 @media(min-width:800px){#editp{left:auto;width:420px;right:16px}}
+
+/* 퇴근 일지 (11/25) */
+.jrg{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(130px,100%),1fr));gap:10px;margin:10px 0}
+.jrt{border:1px solid #2a2a2a;padding:10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.jrt b{font-size:calc(20px*var(--s));overflow-wrap:anywhere}.jrt small{color:var(--dim);font-size:calc(13px*var(--s))}.jrt.no b{color:var(--dim);font-size:calc(16px*var(--s))}
+.jrbar{display:flex;height:14px;background:#222;margin:8px 0;overflow:hidden}.jrbar i{display:block;height:100%}
+.jrs{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:12px 0;text-align:center}.jrs u{display:flex;align-items:flex-end;height:70px;background:#1a1a1c;text-decoration:none}.jrs u i{display:block;width:100%;background:var(--blue);min-height:2px}.jrs small{font-size:calc(12px*var(--s));color:var(--dim)}
+.jrw{border-left:3px solid var(--red);padding:6px 10px;margin:8px 0}.jrl{border:1px solid var(--gold);padding:12px;margin:10px 0;line-height:1.8}
+.jrd{flex-wrap:wrap;gap:6px}.jrd .btn{padding:8px 12px}#jr .btn.on{background:var(--gold);color:#18160C}
+
+/* 11/25 눈 검수: 금색 버튼 글자 안 보임 · 커버 머리줄 겹침 · 일지 머리줄 가림 */
+.btn.bl{color:#18160C}
+#jr{scroll-margin-top:calc(76px*var(--s))}
+#rm-yt{background:#0f0f11;color:var(--ivory);border:1px solid #2a2418;border-radius:6px;padding:8px 10px;font:inherit;font-size:16px}
+@media(max-width:480px){#top .brand{min-width:0;overflow:hidden}#top .brand .cin{display:block;font-size:12px;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}#top{gap:8px;padding:0 12px}#top .brand .tag{display:none}#top .brand .sub2{font-size:11px;white-space:nowrap}#top .clock{flex:none}}
+@media(max-width:380px){#top .brand .sub2{display:none}#top .brand .cin{font-size:10.5px!important}}
 </style>
 </head>
 <body>
@@ -271,7 +287,7 @@ const api=(()=>{
       if(dev()){const out={};for(const n of names){const r=await fetch('../dev/state/'+n+'.json?v='+Date.now(),{cache:'no-store'});if(r.ok)out[n]=await r.json()}return {ok:true,state:out}}
       let b=await getBoot();
       // 새 파일이 생겼을 수 있음 — 다시 받기는 5분에 한 번만(없는 파일 때문에 매번 브리지를 부르지 않게)
-      if(names.some(n=>!b.files[n])&&Date.now()-(api._fb||0)>300000){api._fb=Date.now();b=await getBoot(true)}
+      if(names.some(n=>!b.files[n])&&Date.now()-(api._fb||0)>300000){api._fb=Date.now();b=await getBoot(true).catch(()=>b)}
       const out={};
       await Promise.all(names.map(async n=>{const id=b.files[n];if(!id)return;
         const r=await drive(DRV+'/'+id+'?alt=media&v='+Date.now(),{cache:'no-store'});if(r.ok)out[n]=await r.json()}));
@@ -389,7 +405,7 @@ document.addEventListener('click',e=>{
 });
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','hqv_a','hqv_b','hqv_c','hqv_d'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','hqv_a','hqv_b','hqv_c','hqv_d'];
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',hb:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
@@ -643,8 +659,54 @@ document.addEventListener('click',e=>{
   if(e.target.id==='cq-start'){Q.add('croquis_start',{date:today()});Sync3.flush();toast('🎨 크로키 15분 시작');return}
   if(e.target.id==='cq-open'){Q.add('croquis_open',{date:today()});Sync3.flush();toast('🧊 맥스를 여는 중…');return}
   const ox=e.target.closest&&e.target.closest('[data-cqox]');if(ox){Q.add('croquis_ox',{ox:ox.dataset.cqox});Sync3.flush();toast('기록했어요');return}
-  if(e.target.id==='o-clock'){Q.add('clockout',{date:today()});Sync3.flush();toast('🌙 퇴근 집계를 시작했어요');return}
+  if(e.target.id==='o-clock'){Q.add('clockout',{date:today()});S3.jrWant=1;S3.jrD=today();Sync3.flush();toast('🌙 퇴근 집계를 시작했어요');return}
 });
+
+// ---- 퇴근 일지·주간 (11/25): state journal(재료 숫자만). 기록이 없으면 0이 아니라 '기록 없음'. 글은 부대표·코칭팀이 쓴 것만 보여 준다 ----
+const JR_NM={worklog:'손 작업 기록',timetable:'출근·퇴근',plan:'계획',unlock:'잠금',max_compare:'맥스 비교',kp_feedback:'키포즈 피드백',croquis:'크로키'};
+const jrH=m=>m==null?'기록 없음':(m>=60?`${Math.floor(m/60)}시간 ${m%60}분`:`${m}분`);
+const jrT=s=>s?esc(String(s).slice(5,16).replace('T',' ')):'–';
+function jrTile(ic,nm,val,sub,none){return `<div class="jrt ${none?'no':''}"><span>${ic}</span><b class="num">${val}</b><small>${nm}${sub?'<br>'+sub:''}</small></div>`}
+function jrText(x){const t=x.text;if(!t)return `<div class="kv">✍️ 경고·내일 할 것·편지는 아직 안 왔어요 (부대표·코칭팀이 쓰면 여기 나와요)</div>`;
+  return `${(t.warn||[]).map(w=>`<div class="jrw">⚠️ ${esc(w)}</div>`).join('')}${(t.next||[]).map((w,i)=>`<div class="rule"><span>${i+1}</span><span>${esc(w)}</span></div>`).join('')}${t.letter?`<div class="jrl">💌 ${esc(t.letter).replace(/\n/g,'<br>')}</div>`:''}${(t.links||[]).map(l=>`<a class="btn" href="${esc(l.u)}" target="_blank" rel="noopener">📄 ${esc(l.t)}</a>`).join('')}`}
+function jrDay(d){
+  const w=d.wl,p=d.past,tot=w?Math.max(1,(w.hand_min||0)+(w.prep_min||0)+(w.off_min||0)+(w.away_min||0)):1;
+  const seg=w?[['🖐️ 손','hand_min','--blue'],['🧠 준비','prep_min','--gold'],['작업 외','off_min','--red'],['자리 비움','away_min','--dim']].filter(s=>w[s[1]]>0):[];
+  const part=d.st&&d.st.worklog==='일부',cmpOk=!!(p&&p.comparable&&p.diff_hand_min!=null);
+  return `<div class="jrg">${jrTile('🖐️','손 작업',w?jrH(w.hand_min):'기록 없음',part?'하루 일부만 기록됨':'',!w)}
+   ${jrTile('💾','맥스 저장',w&&w.max_saves!=null?w.max_saves+'번':'기록 없음','',!(w&&w.max_saves!=null))}
+   ${jrTile('🌅','출근 → 퇴근',d.in||d.out?`${d.in?esc(d.in.slice(11,16)):'–'} → ${d.out?esc(d.out.slice(11,16)):'–'}`:'기록 없음','',!(d.in||d.out))}
+   ${jrTile('🎨','크로키',d.cq?`${(d.cq.judged||0)-(d.cq.over||0)} / ${d.cq.judged||0}`:'기록 없음',d.cq?'허용 안':'',!d.cq)}
+   ${jrTile('🎓','피드백',d.fb?`${d.fb.rows}건`:'기록 없음',d.fb?`맞다 ${d.fb.agree} · 아니다 ${d.fb.disagree}`:'',!d.fb)}
+   ${jrTile('📈','지난 나와',cmpOk?(p.diff_hand_min>0?'+':'')+p.diff_hand_min+'분':'견줄 수 없음',p?esc(String(p.date).slice(5).replace('-','/')):'',!cmpOk)}</div>
+   ${w?`<div class="jrbar" aria-label="시간 나눔">${seg.map(s=>`<i style="width:${(w[s[1]]/tot*100).toFixed(1)}%;background:var(${s[2]})"></i>`).join('')}</div><div class="kv">${seg.map(s=>`${s[0]} ${w[s[1]]}분`).join(' · ')||'0분'} · 기록 ${esc(w.from)}~${esc(w.to)}</div>`:''}
+   ${(d.cmp||[]).map(c=>`<div class="rule"><span>🧊</span><span style="overflow-wrap:anywhere">${esc(c)}</span></div>`).join('')}
+   ${Object.entries(d.motion||{}).map(([k,v])=>`<div class="rule"><span>🖐️</span><span>${esc(k)} ${esc(v)}분</span></div>`).join('')}
+   ${(d.missing||[]).length?`<div class="kv">⬜ 기록 없음: ${d.missing.map(k=>esc(JR_NM[k]||k)).join(' · ')}</div>`:''}
+   ${(d.errors||[]).length?`<div class="jrw">⚠️ 재료 오류: ${d.errors.map(k=>esc(JR_NM[k]||k)).join(' · ')}</div>`:''}
+   ${jrText(d)}<div class="kv">재료 만든 때 ${jrT(d.made)}</div>`}
+function jrWeek(k){
+  const t=k.totals||{},p=k.past||{},S=k.strip||[],mx=Math.max(1,...S.map(x=>x.hand||0)),ok=!!(p.comparable&&t.hand_min!=null&&p.hand_min!=null);
+  return `<div class="kv">${esc(k.week)} · ${esc(String(k.from).slice(5))} ~ ${esc(String(k.to).slice(5))}</div><div class="jrg">
+   ${jrTile('🖐️','손 작업',t.hand_min!=null?jrH(t.hand_min):'기록 없음',`기록 ${t.days_recorded??0}일 / 지난 ${t.days_passed??0}일`,t.hand_min==null)}
+   ${jrTile('💾','맥스 저장',t.max_saves!=null?t.max_saves+'번':'기록 없음','',t.max_saves==null)}
+   ${jrTile('📈','지난주 나와',ok?`${t.hand_min-p.hand_min>0?'+':''}${t.hand_min-p.hand_min}분`:'견줄 수 없음',ok?'':'온전한 날 3일부터',!ok)}</div>
+   <div class="jrs">${S.map(x=>`<div><u>${x.hand!=null?`<i style="height:${Math.round(x.hand/mx*100)}%"></i>`:''}</u><small>${esc(x.dow||'')}<br>${x.hand!=null?x.hand+'분'+(x.st==='일부'?'*':''):'없음'}</small></div>`).join('')}</div>
+   ${S.some(x=>x.st==='일부')?'<div class="kv">* 그날 일부만 기록됨</div>':''}
+   ${(k.facts||[]).map(f=>`<div class="rule"><span>◇</span><span style="overflow-wrap:anywhere">${esc(f)}</span></div>`).join('')}
+   <h2 class="sec" style="margin-top:14px">토요일 보고서 2종</h2>${k.text?jrText(k):'<div class="kv">아직 없어요 · 토요일 09:00에 나오면 여기서 열려요</div>'}<div class="kv">재료 만든 때 ${jrT(k.made)}</div>`}
+function journalCard(){
+  const J=S3.st.journal||{},D=J.days||[],W=J.weeks||[],mode=S3.jrMode||'day';
+  const tab=`<div class="nav2 jrd" style="margin-bottom:10px"><button class="btn ${mode==='day'?'on':''}" data-jrm="day">📓 하루</button><button class="btn ${mode==='week'?'on':''}" data-jrm="week">🗓 주간</button></div>`;
+  let body;
+  if(mode==='week'){const k=W.find(x=>x.week===S3.jrW)||W[W.length-1];body=W.length?`<div class="nav2 jrd">${W.map(x=>`<button class="btn ${x===k?'on':''}" data-jrw="${esc(x.week)}">${esc(String(x.week).slice(5))}</button>`).join('')}</div>${jrWeek(k)}`:'<div class="empty">주간 재료가 아직 없어요</div>'}
+  else{const d=D.find(x=>x.date===S3.jrD)||D[D.length-1];body=D.length?`<div class="nav2 jrd">${D.map(x=>`<button class="btn ${x===d?'on':''}" data-jrd="${esc(x.date)}">${esc(String(x.date).slice(5).replace('-','/'))} ${esc(x.dow||'')}</button>`).join('')}</div>${d.date===today()&&!d.out?'<div class="kv">🕒 아직 퇴근 전 숫자예요</div>':''}${jrDay(d)}`:'<div class="empty">퇴근 버튼을 누르면 그날 일지가 여기에 열려요</div>'}
+  return `<div id="jr">${oct(`<h2 class="sec">작업 일지 <span class="cin sm">Journal</span></h2>${tab}${body}`)}</div>`}
+function jrOpen(){ // 퇴근 뒤 그날 일지가 오면 바로 펼쳐 보여 준다
+  if(!S3.jrWant)return;const d=((S3.st.journal||{}).days||[]).find(x=>x.date===today()&&x.out);
+  if(d){S3.jrWant=0;S3.jrMode='day';S3.jrD=d.date;if(S3.room==='out'){out();const e=document.getElementById('jr');e&&e.scrollIntoView({block:'start'})}toast('📓 오늘 일지가 나왔어요')}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-jrm],[data-jrd],[data-jrw]');if(!b)return;
+  if(b.dataset.jrm)S3.jrMode=b.dataset.jrm;if(b.dataset.jrd)S3.jrD=b.dataset.jrd;if(b.dataset.jrw)S3.jrW=b.dataset.jrw;const y=scrollY;out();scrollTo(0,y)});
 
 // ---- 퇴근 ----
 const today=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`};
@@ -656,8 +718,9 @@ function out(){
   const f=lg[today()]||{good:'',bad:'',next:['','','']};
   $('#r-out').innerHTML=`${stars()}<h1>퇴근</h1><p class="lead">별을 보며 하루를 정리해요 <em class="draft">초안</em></p>${hz()}
   ${oct(`<h2 class="sec">퇴근 <span class="cin sm">Clock out</span></h2><button class="btn pri2 bl" id="o-clock" ${(S3.st.unlock||{}).clocked_out?"disabled":""}>🌙 퇴근하기 (오늘 집계)</button><div class="kv">${(S3.st.unlock||{}).clocked_out?((S3.st.unlock.locked?"🔒":"🔓")+" 🖐️ "+S3.st.unlock.hand_min+"분 · "+esc(S3.st.unlock.reason||"")):"누르면 PC가 오늘 손 작업을 집계해요 · 누르기 전엔 🔒"}</div>`)}<div style="height:20px"></div>
+  ${journalCard()}<div style="height:20px"></div>
   <div class="grid g2"><div>${oct(`<h2 class="sec">오늘 기록 <span class="cin sm">Today</span></h2>
-     <div class="rule"><span>◆</span><span>손작업</span><b class="num" style="margin-left:auto">${wk.hand}분</b></div>
+     <div class="rule"><span>◆</span><span>손작업 (직접 적은 것)</span><b class="num" style="margin-left:auto">${wk.hand}분</b></div>
      <div class="rule"><span>◆</span><span>끝낸 퀘스트</span><span class="kv" style="margin-left:auto">${doneQ.length?doneQ.map(t=>esc(t.text)).join(' · '):'없음'}</span></div>
      <div class="rule"><span>◆</span><span>얻은 트로피</span><span class="kv" style="margin-left:auto">${got.length?got.map(esc).join(' · '):'없음'}</span></div>`)}
     <div style="height:20px"></div>
@@ -747,7 +810,7 @@ const Sync3={busy:false,
     try{await Q.flush();const res=await api.get(V3_STATES);if(!res.ok)throw new Error('상태 못 받음');
       S3.st=Object.assign({},S3.st,res.state);lsSet('v3_state',S3.st);$('#sync').classList.remove('bad');
       Q.applyDone(S3.st.meta&&S3.st.meta.done)}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
-    this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('input'))))render()},
+    this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('input'))))render();jrOpen()},
   flush(){Q.flush().catch(()=>{})}};
 $('#top-med').innerHTML=medallion('hex','#CEA85E',42);
 window.addEventListener('hashchange',route);clock();setInterval(clock,20000);
