@@ -216,6 +216,23 @@ body.hitstop #main{filter:brightness(1.25) saturate(.8);transition:filter .1s}
 .dexc.got{border-color:var(--gold);background:linear-gradient(#1d1a12,#111113)}.dexc.got i,.dexc.td i{color:var(--gold)}.dexc.td{border-color:var(--blue)}.dexc.lock{opacity:.55}.dexc:active{transform:scale(.97)}.dexc:focus-visible{outline:2px solid var(--ivory)}
 #r-log .in,#r-log .kv,#r-log .rule{overflow-wrap:anywhere;min-width:0}
 .rmg{grid-template-columns:1fr 1fr;gap:10px}.rmg .btn{padding:10px 12px;text-align:center}
+
+/* 📮 우체통 (11/25): 버튼은 오른쪽 가장자리, 입력 칸은 위쪽(글자판에 안 가리게) */
+body{padding-bottom:calc(84px*var(--s) + 60px)}
+#mbb{position:fixed;right:calc(4px + env(safe-area-inset-right));bottom:calc(76px + env(safe-area-inset-bottom));z-index:40;width:48px;height:48px;border-radius:50%;border:1px solid var(--gold);background:#161618ee;font-size:22px;line-height:1;padding:0;cursor:pointer;touch-action:manipulation;box-shadow:0 2px 12px #000a}
+#mbb:focus-visible{outline:2px solid var(--ivory)}#mbb:active{transform:scale(.94)}body.editing #mbb{display:none}
+body:has(#r-world.on) #mbb{bottom:auto;top:calc(60px*var(--s) + 62px)}
+#mbp{position:fixed;left:8px;right:8px;top:calc(60px*var(--s) + 8px);z-index:61;background:var(--bg-panel);border:1px solid var(--gold);padding:12px 14px;display:grid;grid-template-columns:minmax(0,1fr);gap:10px;box-shadow:0 10px 40px #000c;max-height:calc(100vh - 80px);overflow:auto;font-size:15px}
+#mbp[hidden]{display:none}.mb-h{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.mb-h .kv{flex:1;min-width:0}.mb-x{background:none;border:0;color:var(--dim);font-size:18px;min-width:44px;min-height:44px;cursor:pointer}
+.mb-r{display:flex;gap:8px}#mb-t{flex:1;min-width:0;min-height:48px;background:#0f0f11;color:var(--ivory);border:1px solid #3a3426;padding:8px 12px;font:inherit;font-size:17px}#mb-t:focus{outline:2px solid var(--gold)}
+.mb-m{width:48px;min-height:48px;border:1px solid #3a3426;background:#0f0f11;font-size:20px;cursor:pointer;padding:0}.mb-m.on{background:var(--red);border-color:var(--red)}
+.mb-c{display:flex;gap:6px;flex-wrap:wrap}.mb-c button{background:none;border:1px solid #3a3426;color:var(--dim);border-radius:22px;padding:8px 14px;min-height:44px;font:600 14px system-ui,"Malgun Gothic",sans-serif;cursor:pointer}.mb-c button[aria-checked=true]{background:var(--gold);border-color:var(--gold);color:#18160C}
+.mb-f{display:flex;align-items:center;gap:10px;justify-content:space-between}.mb-f label{display:flex;gap:6px;align-items:center;min-height:44px;flex-wrap:wrap}.mb-f small{color:var(--dim)}.mb-f input{width:20px;height:20px}
+.mb-l{color:var(--gold);padding:6px 0;text-decoration:none}
+@media(min-width:800px){#mbp{left:auto;width:440px;right:16px}}
+.mbfl{margin:4px 0 10px}.mbi{display:flex;gap:12px;padding:10px 0;border-top:1px solid #222}.mbi>div{flex:1;min-width:0;overflow-wrap:anywhere}.mbs{flex:none;width:76px;font:600 12px system-ui,"Malgun Gothic",sans-serif;color:var(--dim)}.mbs b{display:block;font-size:18px}
+.mbi.s-new .mbs{color:var(--ivory)}.mbi.s-sorted .mbs{color:#E0C050}.mbi.s-planned .mbs{color:var(--blue)}.mbi.s-done .mbs{color:var(--green)}.mbp2{color:var(--green);font-size:14px}
+.rect{grid-template-columns:repeat(4,1fr)}@media(max-width:600px){.rect{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
@@ -418,7 +435,7 @@ document.addEventListener('click',e=>{
 });
 
 // 기록 방 (11/25 HB 명령서 6번): ①작업 공간 ②변경 이력(파트별) ③도감 수집. 재료 = state workspace·history·dex. 기록이 없으면 0이 아니라 '기록 없음'.
-const REC_TABS=[['space','🧰 작업 공간'],['chg','🧾 변경 이력'],['dex','🃏 도감']];
+const REC_TABS=[['space','🧰 작업 공간'],['chg','🧾 변경 이력'],['dex','🃏 도감'],['mail','📮 내 건의']];
 const recH=m=>m>=60?`${Math.floor(m/60)}시간${m%60?' '+m%60+'분':''}`:`${m}분`;
 const recD=s=>{const d=new Date(s+'T00:00:00');return isNaN(d)?esc(s):`${d.getMonth()+1}/${d.getDate()} ${'일월화수목금토'[d.getDay()]}`};
 const recTile=(ic,nm,val,no)=>`<div class="jrt ${no?'no':''}"><span>${ic}</span><b class="num">${val}</b><small>${nm}</small></div>`;
@@ -478,14 +495,108 @@ function recDex(){
 
 function recRoom(){
   const t=REC_TABS.some(x=>x[0]===S3.recT)?S3.recT:'space';
-  $('#r-log').innerHTML=`<h1>기록</h1><p class="lead">${{space:'지금 쓰는 툴과 오늘 한 일이에요',chg:'무엇이 바뀌었는지 파트별로 봐요',dex:'하루 한 모션씩 모아요'}[t]}</p>${hz()}<div class="nav2 rect" role="tablist" style="margin-bottom:16px">${REC_TABS.map(([k,n])=>`<a class="btn ${k===t?'on':''}" role="tab" aria-selected="${k===t}" href="#log/${k}">${n}</a>`).join('')}</div>${({space:recSpace,chg:recChg,dex:recDex})[t]()}`;
+  $('#r-log').innerHTML=`<h1>기록</h1><p class="lead">${{space:'지금 쓰는 툴과 오늘 한 일이에요',chg:'무엇이 바뀌었는지 파트별로 봐요',dex:'하루 한 모션씩 모아요',mail:'적어 둔 것이 어떻게 되는지 봐요'}[t]}</p>${hz()}<div class="nav2 rect" role="tablist" style="margin-bottom:16px">${REC_TABS.map(([k,n])=>`<a class="btn ${k===t?'on':''}" role="tab" aria-selected="${k===t}" href="#log/${k}">${n}</a>`).join('')}</div>${({space:recSpace,chg:recChg,dex:recDex,mail:recMail})[t]()}`;
 }
 document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest('[data-recd],[data-recp],[data-recc],[data-recmore]');if(!b)return;const D=b.dataset,y=scrollY;
   if(D.recd)S3.recD=D.recd;if(D.recp){S3.recP=D.recp;S3.recN=12}if(D.recmore)S3.recN=(S3.recN||12)+12;if(D.recc)S3.recC=S3.recC===+D.recc?null:+D.recc;
   recRoom();scrollTo(0,y);if(D.recc&&S3.recC){const x=document.getElementById('dexd');x&&x.scrollIntoView({block:'nearest'})}});
 
+// 📮 우체통 (11/25 동현 결정): 모든 화면 오른쪽 아래 버튼 → 한 줄·음성·🚨 급함 → 저장하면 바로 닫힘. 답은 여기서 하지 않고 수요일 패치 때 반영.
+// 폰에 먼저 적고(v3_mb) 보내기는 뒤에서(Q) — PC 가 꺼져 있거나 끊겨 있어도 잃지 않는다. 캡처는 받지 않음.
+const MB_AB=[['max','맥스'],['hb','HB 제품'],['hq','HB HQ'],['class','수업'],['other','다른 앱'],['etc','기타']];
+const MB_ST={new:['⚪','새로'],sorted:['🟡','분류'],planned:['🔵','이번 패치'],done:['🟢','반영됨'],later:['⚫','나중'],dup:['↪','같은 건의']};
+const MB={open:false,card:'',rec:null,f:'all'};
+const mbLoc=()=>lsx('mb',[]),mbSave=l=>lsSet('v3_mb',l.slice(-100));
+const mbId=()=>'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const mbHide=s=>s.replace(/(^|\D)(?:\d{4}(?: \d{4}){2,}|\d(?:-?\d){9,})(?!\d)/g,'$1(번호 가림)');
+const mbDev=()=>(innerWidth<600?'커버':innerWidth<1100?'펼침':'PC')+' '+innerWidth+'x'+innerHeight;
+const mbSrv=()=>(S3.st.mailbox||{}).items||[];
+function mbCard(){   // 어느 카드를 보고 있었나: 화면 가운데에서 가장 가까운 카드 제목
+  const r=document.querySelector('.room.on');if(!r)return '';let best='',bd=1e9;const cy=innerHeight*.42;
+  r.querySelectorAll('.oct').forEach(o=>{const q=o.getBoundingClientRect(),h=o.querySelector('h2.sec,.nm,.q');if(!h||!q.height||q.bottom<60||q.top>innerHeight-60)return;
+    const d=q.top<=cy&&q.bottom>=cy?0:Math.min(Math.abs(q.top-cy),Math.abs(q.bottom-cy));if(d<bd){bd=d;best=h.textContent}});
+  return best.replace(/\s+/g,' ').trim().slice(0,60)}
+function mbWaiting(){const have=new Set(mbSrv().map(x=>x.aid).filter(Boolean));return mbLoc().filter(x=>!have.has(x.id)&&!x.ok)}
+function mbState(x){const q=Q.list().find(r=>r.id===x.id);
+  if(q&&q.st==='fail'&&q.rej)return ['🔴','못 넣었어요'];
+  return q&&(q.st==='sent'||q.st==='ok')?['⏳','PC가 받는 중']:['📤','보내는 중']}
+function mbPush(it){   // Q 에 같은 id 로 넣는다(PC 쪽이 같은 id 를 한 번만 받음)
+  const l=Q.list();if(l.some(r=>r.id===it.id))return;
+  l.push({id:it.id,t:Math.floor(it.at/1000),kind:'mailbox',data:{text:it.text,urgent:it.urgent,about:it.about,tab:it.tab,card:it.card,dev:it.dev,at:it.at},st:'pend'});Q.save(l)}
+function mbTidy(){   // 목록에 들어온 것은 폰에서 정리, 줄에서 빠져 버린 것은 다시 넣기
+  const M=S3.st.mailbox,all=mbLoc(),was=JSON.stringify(all);if(!M||!all.length)return;
+  const have=new Set(mbSrv().map(x=>x.aid).filter(Boolean)),keep=all.filter(x=>!have.has(x.id));
+  // PC 가 '넣음'이라고 답한 것은 목록이 100건을 넘어 안 보여도 다시 보내지 않는다
+  Q.list().filter(r=>r.kind==='mailbox'&&r.st==='ok').forEach(r=>{const x=keep.find(k=>k.id===r.id);if(x)x.ok=1});
+  if(JSON.stringify(keep)!==was)mbSave(keep);
+  keep.filter(x=>!x.ok&&Date.now()-x.at<30*86400000).forEach(mbPush)}
+function mbAdd(text,urgent,about){
+  text=mbHide(text.replace(/\s+/g,' ').trim()).slice(0,400);if(!text)return false;
+  const rm=ROOMS.find(r=>r[0]===S3.room),rt=REC_TABS.find(t=>t[0]===S3.recT)||REC_TABS[0];
+  const tab=S3.room==='log'?'기록/'+rt[1].replace(/^\S+ /,''):rm?rm[1]:S3.room==='title'?'타이틀':'검토 영상';
+  const it={id:mbId(),text,urgent:!!urgent,about,tab,card:MB.card,dev:mbDev(),at:Date.now()};
+  mbSave(mbLoc().concat(it));mbPush(it);return true}
+function mbClose(){mbStop();MB.open=false;const p=document.getElementById('mbp'),b=document.getElementById('mbb');if(p)p.hidden=true;if(b)b.setAttribute('aria-expanded','false')}
+function mbOpen(){
+  let p=document.getElementById('mbp');
+  if(!p){p=document.createElement('form');p.id='mbp';p.setAttribute('autocomplete','off');p.setAttribute('aria-label','우체통');document.body.appendChild(p);
+    p.addEventListener('submit',e=>{e.preventDefault();mbSend()});
+    ['keydown','keyup'].forEach(v=>p.addEventListener(v,e=>{e.stopPropagation();if(v==='keydown'&&e.key==='Escape')mbClose()}));   // 3D 조작 키와 안 섞이게
+    p.addEventListener('input',e=>{if(e.target.id==='mb-t')lsSet('v3_mb_draft',e.target.value)})}
+  MB.card=mbCard();const n=mbWaiting().length,ab=MB.ab||'hq',sr=window.SpeechRecognition||window.webkitSpeechRecognition;
+  p.innerHTML=`<div class="mb-h"><b>📮 우체통</b><span class="kv">적어 두면 수요일에 한 번에 반영해요</span><button type="button" class="mb-x" id="mb-x" aria-label="닫기">✕</button></div>
+   <div class="mb-r"><input id="mb-t" type="text" maxlength="400" enterkeyhint="send" placeholder="떠오른 것 한 줄" aria-label="건의 한 줄">${sr&&!MB.noMic?'<button type="button" class="mb-m" id="mb-m" aria-label="음성으로 적기">🎤</button>':''}</div>
+   <div class="mb-c" role="radiogroup" aria-label="어디 이야기인가요">${MB_AB.map(([k,t])=>`<button type="button" role="radio" aria-checked="${k===ab}" data-mbab="${k}">${t}</button>`).join('')}</div>
+   <div class="mb-f"><label><input type="checkbox" id="mb-u"> 🚨 급함 <small>작업을 못 할 때만</small></label><button class="btn pri2" id="mb-s">넣기</button></div>
+   <a class="kv mb-l" href="#log/mail">내 건의 보기${n?` · 보내는 중 ${n}`:''} ▸</a>`;
+  p.hidden=false;MB.open=true;MB.ab=ab;document.getElementById('mbb').setAttribute('aria-expanded','true');
+  const t=document.getElementById('mb-t');t.value=lsx('mb_draft','');t.focus({preventScroll:true})}
+function mbSend(){
+  const t=document.getElementById('mb-t');if(!MB.open||!t)return;
+  const u=document.getElementById('mb-u').checked;
+  if(!mbAdd(t.value,u,MB.ab)){toast('한 줄만 적어 주세요');t.focus();return}
+  lsSet('v3_mb_draft','');MB.ab='hq';mbClose();toast(u?'🚨 급함으로 넣었어요':'📮 넣었어요');vib(15);
+  if(S3.room==='log'&&S3.recT==='mail')recRoom();Sync3.flush()}
+// 음성: 브라우저에 있을 때만 버튼이 보인다. 안 되면 버튼을 숨긴다
+function mbStop(){if(MB.rec){const r=MB.rec;MB.rec=null;try{r.onresult=r.onend=r.onerror=null;r.abort()}catch(e){}}const b=document.getElementById('mb-m');if(b)b.classList.remove('on')}
+function mbMic(){
+  if(MB.rec){mbStop();return}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition,t=document.getElementById('mb-t'),b=document.getElementById('mb-m');if(!SR||!t)return;
+  const base=t.value?t.value.replace(/\s*$/,' '):'';let r;
+  const off=()=>{MB.noMic=true;mbStop();if(b)b.remove();toast('음성을 쓸 수 없어서 숨겼어요')};
+  try{r=new SR();r.lang='ko-KR';r.interimResults=true;r.continuous=false;
+    r.onresult=e=>{t.value=(base+Array.from(e.results).map(x=>x[0].transcript).join('')).slice(0,400);lsSet('v3_mb_draft',t.value)};
+    r.onend=()=>{MB.rec=null;b.classList.remove('on')};
+    r.onerror=e=>{if(/not-allowed|service|audio-capture|language/.test(e.error||''))off();else{mbStop();toast('다시 눌러 말해 주세요')}};
+    MB.rec=r;b.classList.add('on');r.start()}catch(e){off()}}
+// 내 건의 목록 (기록 방 4번째 칸)
+function recMail(){
+  const M=S3.st.mailbox,wait=mbWaiting();
+  if(!M&&!wait.length)return oct(recNone('아직 없어요. 오른쪽 아래 📮 로 넣으면 여기에 모여요'));
+  const L=mbSrv(),n=(M||{}).n||{},f=MB.f,show=L.filter(x=>f==='all'||x.st===f),lim=MB.n||20;
+  const at=s=>{const d=new Date(s);return isNaN(d)?'':`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`};
+  const src=x=>x.ab||({max:'맥스',hbl:'HB Library',hbm:'HB Model',hba:'HB Animation',hbr:'HB Render',hq:'HB HQ',pc:'PC',gemini:'비서'}[x.w]||(/^chat_/.test(x.w)?'채팅':x.w));
+  const row=(ic,nm,x,u,meta,extra)=>`<div class="mbi s-${esc(x.st||'wait')}"><span class="mbs"><b>${ic}</b>${esc(nm)}</span><div><div>${u?'🚨 ':''}${esc(x.tx||x.text)}</div><div class="kv">${meta}</div>${extra||''}</div></div>`;
+  return `${wait.length?oct(`<h2 class="sec">보내는 중 <span class="kv">${wait.length}건 · 폰에 저장돼 있어요</span></h2>${wait.slice().reverse().map(x=>{const [ic,nm]=mbState(x);return row(ic,nm,x,x.urgent,`${at(x.at)} · ${esc((MB_AB.find(a=>a[0]===x.about)||['',''])[1])}`,nm==='못 넣었어요'?`<button class="btn" data-mbre="${esc(x.id)}">다시 보내기</button>`:'')}).join('')}`)+'<div style="height:16px"></div>':''}
+  ${M?oct(`<h2 class="sec">내 건의 <span class="kv">${M.total||0}건</span></h2><div class="mb-c mbfl" role="radiogroup" aria-label="상태로 보기"><button role="radio" aria-checked="${f==='all'}" data-mbf="all">전체</button>${Object.keys(MB_ST).filter(k=>n[k]).map(k=>`<button role="radio" aria-checked="${f===k}" data-mbf="${k}">${MB_ST[k][0]} ${MB_ST[k][1]} <b class="num">${n[k]}</b></button>`).join('')}</div>
+   ${show.slice(0,lim).map(x=>{const [ic,nm]=MB_ST[x.st]||['⚪',x.st];return row(ic,nm,x,x.u,`${at(x.at)} · ${esc(src(x))}`,(x.pt?`<div class="mbp2">${x.st==='done'?'반영된 패치':'예정 패치'} ${esc(x.pt)}</div>`:'')+(x.nt?`<div class="kv">↳ ${esc(x.nt)}</div>`:''))}).join('')||recNone(L.length?'이 상태인 건의가 없어요':'아직 없어요')}
+   ${show.length>lim?`<div class="nav2"><button class="btn" data-mbmore="1">더 보기 (${show.length-lim})</button></div>`:M.total>L.length&&f==='all'?`<div class="kv">최근 ${L.length}건까지 보여요</div>`:''}
+   ${M.auto?`<div class="kv" style="margin-top:10px">🤖 프로그램이 스스로 적은 오류 ${M.auto}건은 따로 모여요</div>`:''}`):oct(recNone('PC 지킴이가 보내면 목록이 나타나요'))}`}
+(function(){
+  const b=document.createElement('button');b.id='mbb';b.type='button';b.setAttribute('aria-label','우체통 열기');b.setAttribute('aria-expanded','false');b.textContent='📮';document.body.appendChild(b);
+  b.addEventListener('click',()=>MB.open?mbClose():mbOpen());
+  document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('#mb-x,#mb-m,[data-mbab],.mb-l,[data-mbf],[data-mbmore],[data-mbre]');if(!t)return;const D=t.dataset;
+    if(t.id==='mb-x')mbClose();else if(t.id==='mb-m')mbMic();else if(t.classList.contains('mb-l'))mbClose();
+    else if(D.mbab){MB.ab=D.mbab;document.querySelectorAll('[data-mbab]').forEach(x=>x.setAttribute('aria-checked',x===t))}
+    else{const y=scrollY;if(D.mbf){MB.f=D.mbf;MB.n=20}if(D.mbmore)MB.n=(MB.n||20)+20;
+      if(D.mbre){const l=mbLoc(),x=l.find(q=>q.id===D.mbre);if(x){x.id=mbId();mbSave(l);mbPush(x);Sync3.flush()}}
+      recRoom();scrollTo(0,y)}});
+  window.addEventListener('hashchange',()=>{if(MB.open)mbClose()});
+  window.addEventListener('online',()=>Sync3.run());
+})();
+
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','hqv_a','hqv_b','hqv_c','hqv_d'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d'];
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['log','기록','book','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
@@ -898,7 +1009,7 @@ const Sync3={busy:false,
   async run(){if(this.busy)return;this.busy=true;
     try{await Q.flush();const res=await api.get(V3_STATES);if(!res.ok)throw new Error('상태 못 받음');
       S3.st=Object.assign({},S3.st,res.state);lsSet('v3_state',S3.st);$('#sync').classList.remove('bad');
-      Q.applyDone(S3.st.meta&&S3.st.meta.done)}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
+      Q.applyDone(S3.st.meta&&S3.st.meta.done);mbTidy()}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
     this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('input'))))render();jrOpen()},
   flush(){Q.flush().catch(()=>{})}};
 $('#top-med').innerHTML=medallion('hex','#CEA85E',42);
