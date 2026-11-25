@@ -390,7 +390,7 @@ button.lbl.qb{border-left-color:#c0564a}
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=17;
+const BUILD=18;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1448,9 +1448,12 @@ function director(){
 }
 
 // ---- 코칭실: 묻기 · 공부 카드 · 수업 ----
+// 비서(제미나이)가 '클로드에 넘겨줘'로 저장한 문서 → 코칭팀 판정
+function handoffCard(){const H=S3.st.handoff,L=(H&&H.items)||[];if(!L.length)return '';
+  return oct(`<h2 class="sec">🎃 비서 인계 <span class="kv">${L.filter(x=>!x.verdict&&x.to!=='control').length?'판정 전 '+L.filter(x=>!x.verdict&&x.to!=='control').length:''}</span></h2>${L.map(x=>`<details class="gt" data-gk="ho:${esc(x.f)}"><summary>${x.verdict?x.changed?'🔄':'✅':x.to==='control'?'🛰️':'⏳'} <b>${esc(x.name)}</b> <span class="kv">${esc(x.t)}${x.verdict?x.changed?' · 판정이 바뀌었어요':' · 판정 끝':x.to==='control'?' · 부대표가 봐요':' · 코칭팀 판정 전'}</span></summary>${x.verdict?`<div>${esc(x.verdict)}</div>${(x.lines||[]).map(l=>`<div class="kv">${esc(l)}</div>`).join('')}`:'<div class="kv">문서를 가져와 넘겼어요</div>'}</details>`).join('')}`)}
 function coach(){
   const ts=Ask.threads(S3.st).slice(0,6),un=new Set(Ask.unseen(S3.st).list.map(x=>x.t.id)),T=S3.st.tasks||{},t=T.teacher||{},fb=T.feedback||[];
-  keepOpen($('#r-coach'),()=>$('#r-coach').innerHTML=`${h1('coach')}<p class="lead">공부 카드·묻기·수업</p>${hz()}<div class="grid g2"><div class="stk">${codexCard()}${codexList()}</div><div class="stk">
+  keepOpen($('#r-coach'),()=>$('#r-coach').innerHTML=`${h1('coach')}<p class="lead">공부 카드·묻기·수업</p>${hz()}<div class="grid g2"><div class="stk">${handoffCard()}${codexCard()}${codexList()}</div><div class="stk">
    ${oct(`<h2 class="sec">묻기 <span class="num">${un.size||''}</span></h2>${ts.map(x=>`<button class="hqrow" data-goask="${esc(x.id)}" data-to="${esc(x.to)}"><b>${un.has(x.id)?'●':'💬'}</b><span>${esc(x.title)}<br><small class="kv">${esc(Ask.NAME[x.to]||'')} · ${esc(String(x.updated||'').slice(5,16))}</small></span></button>`).join('')||'<div class="empty">아직 물은 것이 없어요</div>'}<div class="nav2"><button class="btn pri2" data-askto2="anim_teacher">🎓 코칭팀에게 묻기</button></div>`)}
    ${croquisCard()}
    ${oct(`<h2 class="sec">피드백 <span class="kv">최근 ${fb.length}건</span></h2>${fb.map(f=>`<div class="rule"><span>${f.ox==='O'?'⭕':f.ox==='X'?'❌':'·'}</span><span><b>${esc(f.motion)} ${esc(f.frame)}f</b><br><span class="kv">${esc(f.issue)}${f.conf?' · 확신 '+esc(f.conf):''}</span></span></div>`).join('')||recNone('기록 없음')}`)}
@@ -1533,7 +1536,7 @@ document.getElementById('chan').hidden=IS_ROOT;
 if(IS_ROOT&&'serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{const r=String((e.data||{}).hqRoom||'');if(ROOMS.some(x=>x[0]===r.split('/')[0]))location.hash='#'+r})}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','부대표실','org','--green'],['hb','진행판','bars','--gold'],['coach','코칭실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
