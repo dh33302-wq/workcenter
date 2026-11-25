@@ -377,7 +377,7 @@ h2.sec .spk{float:right;padding:4px 12px;min-height:44px;font-size:14px;line-hei
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=14;
+const BUILD=15;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1145,7 +1145,7 @@ const Push=(()=>{
         const sid=await id(sub.endpoint),S=S3.st.push;if(!(S.ids||[]).includes(sid)&&Date.now()-lsx('push_sent',0)>600000)post(why||'list')}
       await seen()}catch(e){}
     ready=true;if(was!==true&&S3.room==='director')render()}
-  function post(why){lsSet('v3_push_sent',Date.now());Q.add('push_sub',{sub:sub.toJSON(),dev:mbDev(),did:did(),why});Sync3.flush()}
+  function post(why){lsSet('v3_push_sent',Date.now());Q.add('push_sub',{sub:sub.toJSON(),dev:mbDev(),did:did(),why,eq:same(sub.options&&sub.options.applicationServerKey,key())?1:0,kl:new Uint8Array((sub.options&&sub.options.applicationServerKey)||0).length});Sync3.flush()}
   async function seen(){if(!sub||!('caches' in window))return;const c=await caches.open('hq-push'),ks=await c.keys();if(!ks.length)return;
     const it=[];for(const k of ks.slice(0,50)){try{it.push(await (await c.match(k)).json())}catch(e){}}
     if(it.length)Q.add('push_seen',{endpoint:sub.endpoint,items:it});for(const k of ks.slice(0,50))await c.delete(k);Sync3.flush()}
