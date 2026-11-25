@@ -255,6 +255,11 @@ body:has(#r-world.on) #mbb{bottom:auto;top:calc(60px*var(--s) + 62px)}
 .twc{padding:10px 0;border-bottom:1px solid #2a2418}.twa{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin:6px 0;overflow-wrap:anywhere}.twa span{color:var(--dim)}.twa i{color:var(--gold);font-style:normal}
 .two .cxt table{width:100%}.two .cxt th,.two .cxt td{white-space:normal;overflow-wrap:anywhere;min-width:0}#r-two .q{word-break:keep-all}
 .cca{border:1px solid #3a3426;padding:12px;margin-top:12px;overflow-wrap:anywhere}#cc-extra[hidden]{display:none}
+
+/* 저장 관리자·다시 퇴근 (11/25) */
+.dkg{margin:10px 0}.dkb{position:relative;height:12px;background:#1b1b1b;border:1px solid #3a3426;overflow:hidden}.dkb i{display:block;height:100%;background:var(--green)}.dkg.warn .dkb i{background:#E0C050}.dkg.bad .dkb i{background:var(--red)}.dkb u{position:absolute;top:0;bottom:0;width:2px;background:var(--ivory);opacity:.5}
+.dks{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin:6px 0 2px}.dks i{height:8px;background:#1b1b1b;border:1px solid #3a3426}.dks i.ok{background:var(--green);border-color:var(--green)}.dks i.run{background:var(--gold);border-color:var(--gold)}.dks i.bad{background:var(--red);border-color:var(--red)}.dks i.none{border-style:dashed}
+#disk-card,#disk-card .rule>span{min-width:0;overflow-wrap:anywhere}.quitn{margin-top:8px}
 </style>
 </head>
 <body>
@@ -672,7 +677,7 @@ function gradeBasis(d,g,qt){
   const at=lvB||!req?lv.at:g.at,by=lvB?'button':req?g.by:lv.by,keep=req&&lvB&&g.by==='auto_2000';
   const s=by==='button'?`${tm(at)} 퇴근 버튼 기준`:by==='auto'||by==='auto_2000'?`${tm(at)||'20:00'} 자동 기준`:`${tm(at)} 기준 (버튼인지 자동인지 기록 없음)`;
   const pend=td&&qt&&qt.on&&qt.t&&at&&ms(qt.t.replace(' ','T')+':00')>ms(at),old=pend&&Date.now()-ms(qt.t.replace(' ','T')+':00')>600000;
-  return `<div class="grb"><b>${td?'오늘':'그날'} 채점: ${s.trim()}</b>${keep?`<br><span class="kv">20:00 자동 뒤로 바뀐 저장이 없어 채점 요청은 ${tm(g.at)||'자동'} 것 그대로예요</span>`:''}${pend?`<br><span class="kv">${old?`⚠️ ${esc(qt.t.slice(11))} 퇴근 버튼이 아직 채점에 안 걸렸어요 (PC 감지기 확인)`:`🌙 ${esc(qt.t.slice(11))} 퇴근 버튼을 받았어요 · 채점을 다시 거는 중`}</span>`:td&&by!=='button'?'<br><span class="kv">더 저장하고 퇴근 버튼을 누르면 그 저장본으로 다시 채점해요</span>':''}</div>`}
+  return `<div class="grb"><b>${td?'오늘':'그날'} 채점: ${s.trim()}</b>${keep?`<br><span class="kv">20:00 자동 뒤로 바뀐 저장이 없어 채점 요청은 ${tm(g.at)||'자동'} 것 그대로예요</span>`:''}${pend?`<br><span class="kv">${old?`⚠️ ${esc(qt.t.slice(11))} 퇴근 버튼이 아직 채점에 안 걸렸어요 (PC 감지기 확인)`:`🌙 ${esc(qt.t.slice(11))} 퇴근 버튼을 받았어요 · 채점을 다시 거는 중`}</span>`:td?`<br><span class="kv">더 저장하고 ${by==='button'?'[다시 퇴근]':'퇴근 버튼'}을 누르면 그 저장본으로 다시 채점해요</span>`:''}</div>`}
 // 채점 결과 한 묶음. 앞 저장본의 결과(btn=0)는 누르는 버튼 없이 보기만: 새 결과의 같은 줄에 표시가 옮겨 붙지 않게
 function gradeRes(d,c,r,btn){
   const bt=(k,x)=>btn?gmBtns(d.date,c.id,k,x):x.mark?`<div class="kv">내 표시: ${esc(x.mark)}</div>`:'';
@@ -816,8 +821,30 @@ document.addEventListener('input',e=>{const t=e.target;if(t.id==='tw-why'){S3.tw
   CC.set(C);const q=ccQ()[C.step||0],n=document.getElementById('cc-next');if(q&&n){n.disabled=!ccOk(q,C.card);if(!q.required&&!C.back)n.textContent=ccHas(ccGet(C.card,q.field))?'다음 ▸':'건너뛰기 ▸'}
   if(q&&q.field===f&&q.free&&q.type==='one')t.parentNode.querySelectorAll('[data-ccv]').forEach(b=>{const [bf,bv]=JSON.parse(b.dataset.ccv);if(bf===f){b.classList.toggle('on',bv===v);b.setAttribute('aria-pressed',bv===v)}})});
 
+// 저장 관리자 카드 (11/25, 순환저장_v2 2·3·5절): 물높이·오늘 창고로 보낸 것·막힌 이유 1줄. 누르면 게임별 일생 9칸. 기록이 없으면 '기록 없음'(0 아님)
+const DK_LV={d_free:['D',40,80,150],c_free:['C',60,90,120]};   // 바닥 · 주의 · 목표
+const DK_ST=['받기','풀기','풀기 검사','설치본 비움','나누기','나머지 창고로','변환(플레이어·적)','작업분 창고로','컷씬'];
+const DK_IC={ok:['✅','끝'],run:['▶️','하는 중'],no:['⚪','아직'],bad:['🔴','막힘'],none:['⬜','기록 없음']};
+const gb=v=>v==null?'기록 없음':(Math.round(v*10)/10)+'GB';
+function dkLevel(v,[,lo,mid,goal]){return v==null?['⬜','기록 없음','']:v<lo?['🔴','바닥 아래 · 풀기 멈춤','bad']:v<mid?['🟡','주의 · 보내기 먼저','warn']:v<goal?['🟢','목표까지 '+gb(goal-v),'ok']:['🟢','목표 이상','ok']}
+function dkGauge(k,v){const L=DK_LV[k],[ic,tx,cl]=dkLevel(v,L);
+  return `<div class="dkg ${cl}"><div class="rule" style="border:0;padding-bottom:4px"><span>${ic} <b>${L[0]} 여유 ${gb(v)}</b></span><span class="kv" style="margin-left:auto">${tx}</span></div><div class="dkb" role="img" aria-label="${L[0]} 여유 ${gb(v)}, 바닥 ${L[1]} 목표 ${L[3]}"><i style="width:${v==null?0:Math.min(100,v/L[3]*100)}%"></i><u style="left:${L[1]/L[3]*100}%"></u><u style="left:${L[2]/L[3]*100}%"></u></div><div class="kv">바닥 ${L[1]} · 주의 ${L[2]} · 목표 ${L[3]}GB</div></div>`}
+function dkGame(g){const s=g.steps||[],n=g.now||0;
+  return `<details class="gt" data-gk="dk:${esc(g.k)}"><summary>🎮 <b>${esc(g.t)}</b> <span class="kv">${n?`${n}/9 ${DK_ST[n-1]}`:'아직 시작 전'}</span><span class="dks" aria-hidden="true">${DK_ST.map((_,i)=>`<i class="${esc((s[i]||['none'])[0])}"></i>`).join('')}</span></summary>${DK_ST.map((t,i)=>{const [k,x]=s[i]||['none',''],[ic,nm]=DK_IC[k]||DK_IC.none;return `<div class="rule"><span>${ic}</span><span>${i+1}. ${t}${x?`<br><span class="kv">${esc(x)}</span>`:''}</span><span class="kv" style="margin-left:auto">${nm}</span></div>`}).join('')}${g.hold?`<div class="kv">📌 ${esc(g.hold)}</div>`:''}</details>`}
+function diskCard(){const D=S3.st.disk,h=`<h2 class="sec">저장 관리자 <span class="cin sm">Storage</span></h2>`;
+  if(!D)return oct(h+recNone('PC 지킴이가 보내면 나타나요'));
+  const k=D.k&&!D.k.bad?D.k:{},G=D.games||[],ms=k.at?Date.parse(k.at.replace(' ','T')):NaN,old=Date.now()-ms>45*60000,td=k.at&&k.at.slice(0,10)===today(),W=k.why;
+  return oct(h+`${D.k&&D.k.bad?'<div class="jrw">⚠️ 저장 관리자 기록을 못 읽었어요</div>':!D.k?'<div class="kv">저장 관리자 기록이 아직 없어요</div>':old?`<div class="kv cvo">⏳ 기록이 오래됐어요 (${esc(k.at.slice(5,16))})</div>`:''}
+   ${dkGauge('d_free',k.d_free)}${dkGauge('c_free',k.c_free)}
+   <div class="rule"><span>📦 ${td||!k.at?'오늘':esc(k.at.slice(5,10))} 창고로 보낸 것</span><b class="num" style="margin-left:auto">${gb(k.today_gb)}</b></div>
+   <div class="rule"><span>⏳ 창고 도착 확인 전</span><b class="num" style="margin-left:auto">${gb(k.open_gb)}${k.open_gb!=null?' / 20':''}</b></div>
+   <div class="rule"><span>☁️ 창고 사용</span><b class="num" style="margin-left:auto">${k.cloud_used_gb==null?'기록 없음':(k.cloud_used_gb/1000).toFixed(2)+'TB'} / 20TB</b></div>
+   <div class="${W&&W.length?'jrw':'kv'}" id="dk-why">${W&&W.length?'🚧 '+W.map(esc).join(' · '):W?'막힌 것 없음':'막힌 이유 기록 없음'}</div>
+   ${k.at?`<div class="kv">${esc(k.at.slice(5,16))} 기록${k.last?` · 마지막으로 보낸 때 ${esc(k.last.slice(5,16))}`:''}</div>`:''}
+   <h2 class="sec" style="margin-top:14px">게임별 일생 <span class="kv">${G.length}개 · 누르면 펼쳐져요</span></h2>${G.map(dkGame).join('')||'<div class="empty">게임 기록 없음</div>'}`)}
+
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['lobby','로비','hex','--gold'],['director','대표실','check','--gold'],['hb','현황판','org','--gold'],['studio','작업실','keys','--blue'],['log','기록','book','--blue'],['ops','운영실','org','--green'],['world','3D','cube','--gold'],['out','퇴근','moon','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2'};
@@ -1018,18 +1045,19 @@ function ops(){
     return {dept,name,c,ids,js,state,now:now.headline||now.now||'',upd:now.started||''}});
   const on=rows.filter(r=>r.state==='가동').length,off=rows.filter(r=>r.state==='정지').length;
   const stc={가동:'var(--green)',정지:'#E08A7E',대기:'var(--gold)','기록 없음':'var(--dim)'};
-  $('#r-ops').innerHTML=`<h1>운영실</h1><p class="lead">부대표가 운영하는 곳 <em class="draft">초안</em></p>${hz()}
+  keepOpen($('#r-ops'),()=>$('#r-ops').innerHTML=`<h1>운영실</h1><p class="lead">부대표가 운영하는 곳 <em class="draft">초안</em></p>${hz()}
   <div class="grid g2"><div>${oct(`<h2 class="sec">팀 구성 <span class="cin sm">Team</span> <span class="kv" style="float:right">가동 ${on}팀 · 정지 ${off}팀</span></h2>
     ${rows.map(r=>`<button class="staff ${S3.staff===r.name?'open':''}" data-staff="${esc(r.name)}" style="--sc:${r.c}"><div class="stp">${mask(r.c)}</div><div class="stt"><span class="kv">${r.dept}</span><b>${r.name}</b><small>${esc(r.now)}</small></div><span class="ss" style="color:${stc[r.state]}">◆ ${r.state}</span></button>
       ${S3.staff===r.name?`<div class="sdet">${r.js.length?r.js.slice(0,3).map(j=>`<div class="rule"><span>◇</span><span>${esc(j.headline||j.name)}<br><span class="kv">${esc(j.status)}${typeof j.pct==='number'?' · '+Math.round(j.pct)+'%':''} · ${esc(j.now||'')}</span></span></div>`).join(''):'<div class="empty">연결된 작업 기록이 없어요</div>'}<div class="kv">최근 편지 보기는 연결 전이에요 <em class="draft">초안</em></div></div>`:''}`).join('')}`)}
    ${oct(`<h2 class="sec">아침 보고 <span class="cin sm">Daily Stand-up</span></h2>${(((S3.st.notices||{}).items)||[]).filter(n=>n.source!=='Code').slice(0,3).map(n=>`<div class="rule"><span>◆</span><span>${esc(n.text)}</span><span class="kv" style="margin-left:auto">${esc(n.time||'')}</span></div>`).join('')||'<div class="empty">아침 보고가 아직 연결되지 않았어요 <em class="draft">노션 연결 전</em></div>'}`)}</div>
   <div style="display:grid;gap:20px;align-content:start">
+   <div id="disk-card">${diskCard()}</div>
    ${oct(`<h2 class="sec">감사 <span class="cin sm">Quality Assurance</span></h2>${[['I','자동 검사','링크 · 결정 충돌 · 유료 가격'],['II','교차 점검','Gemini 대량 대조 → 표본 2차'],['III','대표 표본 감사','대표실에서 주 1회']].map(a=>`<div class="aud"><div class="amed">${a[0]}</div><div><b>${a[1]}</b><br><span class="kv">${a[2]}</span></div></div>`).join('')}`)}
    ${oct(`<h2 class="sec">비용 · 한도 <span class="cin sm">Budget</span></h2>
     <div class="rule"><span>월 예산 상한</span><b style="margin-left:auto;color:var(--gold)">결재 대기</b></div>
     ${[['Claude 주간 사용량','claude'],['Gemini 무료 한도','gemini']].map(([n,k])=>{const qu=((S3.st.quit||{}).usage)||{},au=k==='claude'&&qu.st==='used'?qu.used:null,v=au!==null?au:lsx('use_'+k,null);return `<div class="lim"><div class="rule" style="border:0"><span>${n}</span><span class="kv" style="margin-left:auto">${v===null?'확인 필요':au!==null?`쓴 것 ${v}% · ${esc(String(qu.t||'').slice(5))} 기록`:v+'%'}</span></div><div class="prog"><i style="width:${v||0}%;background:${v>=80?'var(--red)':'var(--green)'}"></i></div>${au!==null?'':`<input class="pct" type="number" min="0" max="100" inputmode="numeric" placeholder="동현이 본 % 입력" data-use="${k}" value="${v===null?'':v}" aria-label="${n} 퍼센트">`}</div>`}).join('')}
     <div class="kv" style="margin-top:10px">Claude 는 기록에서 읽고, 나머지는 직접 보고 입력해요(이 기기에만 저장). 퍼플렉시티 구독 만료 11/23 <em class="draft">확인 필요</em></div>`)}
-  </div></div>`;
+  </div></div>`);
 }
 document.addEventListener('change',e=>{const i=e.target.closest('[data-use]');if(i){const v=i.value===''?null:Math.max(0,Math.min(100,+i.value));lsSet('v3_use_'+i.dataset.use,v);render()}});
 // ---- 시간표 v2 (11/22 control timetable_v2): 출근 버튼 시각 T0 기준, 지금 교시 강조 ----
@@ -1058,6 +1086,13 @@ function croquisCard(){
    ${r?`<div class="kv">채점 ${(r.top||[]).map(esc).join(' · ')||'–'} ${esc(r.score_note||'')}</div><div class="nav2"><button class="btn" data-cqox="O" ${r.ox?'disabled':''}>⭕ 맞게 채점</button><button class="btn" data-cqox="X" ${r.ox?'disabled':''}>❌ 내 의도였음</button></div>${r.ox?`<div class="kv">기록: ${esc(r.ox)}</div>`:''}`:''}`);
 }
 setInterval(()=>{const c=(S3.st||{}).croquis,el=document.getElementById('cq-t');if(!c||!el||!c.timer_start)return;const l=Math.max(0,(c.timer_min||15)*60-(Math.floor(Date.now()/1000)-c.timer_start));el.textContent=l>0?String(Math.floor(l/60)).padStart(2,'0')+':'+String(l%60).padStart(2,'0'):'⏰ 끝'},1000);
+// ---- 퇴근·다시 퇴근 (11/25 22:47 승인): 버튼이 늘 이긴다. 한 번 퇴근한 뒤에도 더 저장하고 다시 누르면 그 저장본으로(편지는 하루 1통). 보내는 중·보낸 지 2분 안에는 막는다(PC 감지기와 엇갈리지 않게)
+function quitInfo(){const qt=S3.st.quit||{},un=S3.st.unlock||{},again=!!(qt.on||un.clocked_out&&un.date===wday()),r=Q.of('clockout').filter(x=>x.data&&x.data.date===wday()).pop(),age=r?Date.now()/1000-r.t:1e9,rej=r&&r.st==='fail'&&r.rej;
+  return {again,at:qt.on?qt.at||'':'',wait:rej?'':r&&r.st!=='ok'&&age<600?(r.st==='sent'?'⏳ PC가 받는 중':'📤 보내는 중 (폰에 저장돼 있어요)'):r&&age<120?'✅ 받았어요 · 집계하는 중':'',rej:rej?r.msg||'못 넣었어요':''}}
+function quitArm(re){if(S3.qArm&&Date.now()-S3.qArm<5000){S3.qArm=0;return true}S3.qArm=Date.now();toast('한 번 더 누르면 퇴근이에요');re();setTimeout(()=>{const a=document.activeElement;if(S3.room==='hb')hbBoard();else if(S3.room==='out'&&!(a&&a.matches('#r-out input')))out()},5200);return false}
+function quitSend(){const a=quitInfo().again;Q.add('clockout',{date:wday()});S3.jrWant=Date.now();S3.jrD=wday();Sync3.flush();toast(a?'🌙 다시 퇴근을 보냈어요 · 바뀐 저장이 있으면 다시 채점해요':'🌙 퇴근을 보냈어요 · 집계와 퇴근 모드를 켜요')}
+function quitLabel(i,first){return i.wait?i.wait:S3.qArm&&Date.now()-S3.qArm<5000?'🌙 한 번 더 누르면 '+(i.again?'다시 ':'')+'퇴근':i.again?'🌙 다시 퇴근':first}
+const quitNote=i=>`${i.rej?`<div class="jrw">🔴 ${esc(i.rej)}</div>`:''}${i.again?`<div class="kv quitn">${i.at?`${esc(i.at)}에 퇴근했어요 · `:''}더 저장했으면 다시 눌러요. 그 마지막 저장본으로 다시 채점하고, 편지는 하루 1통이에요</div>`:''}`;
 // ---- 시스템 구축 잠금 (11/22 control clockout_lock): 퇴근 전 = 항상 🔒, 퇴근 집계 뒤 🖐️ 6시간 또는 진도 100%면 🔓 ----
 function lockCard(){
   const u=S3.st.unlock||{locked:true,clocked_out:false,hand_min:0,need_min:360,progress_pct:null},h=Math.floor((u.hand_min||0)/60),m=(u.hand_min||0)%60,pc=u.progress_pct==null?'미집계':u.progress_pct+'%';
@@ -1076,7 +1111,7 @@ document.addEventListener('click',e=>{
   if(e.target.id==='cq-start'){Q.add('croquis_start',{date:today()});Sync3.flush();toast('🎨 크로키 15분 시작');return}
   if(e.target.id==='cq-open'){Q.add('croquis_open',{date:today()});Sync3.flush();toast('🧊 맥스를 여는 중…');return}
   const ox=e.target.closest&&e.target.closest('[data-cqox]');if(ox){Q.add('croquis_ox',{ox:ox.dataset.cqox});Sync3.flush();toast('기록했어요');return}
-  if(e.target.id==='o-clock'){Q.add('clockout',{date:wday()});S3.jrWant=1;S3.jrD=wday();Sync3.flush();toast('🌙 퇴근 집계를 시작했어요');return}
+  if(e.target.id==='o-clock'){if(quitInfo().again&&!quitArm(out))return;quitSend();out();return}
 });
 
 // ---- 퇴근 일지·주간 (11/25): state journal(재료 숫자만). 기록이 없으면 0이 아니라 '기록 없음'. 글은 부대표·코칭팀이 쓴 것만 보여 준다 ----
@@ -1120,7 +1155,8 @@ function journalCard(){
   else{const d=D.find(x=>x.date===S3.jrD)||D[D.length-1];body=D.length?`<div class="nav2 jrd">${D.map(x=>`<button class="btn ${x===d?'on':''}" data-jrd="${esc(x.date)}">${esc(String(x.date).slice(5).replace('-','/'))} ${esc(x.dow||'')}</button>`).join('')}</div>${d.date===wday()&&!d.out?'<div class="kv">🕒 아직 퇴근 전 숫자예요</div>':''}${jrDay(d)}`:'<div class="empty">퇴근 버튼을 누르면 그날 일지가 여기에 열려요</div>'}
   return `<div id="jr">${oct(`<h2 class="sec">작업 일지 <span class="cin sm">Journal</span></h2>${tab}${body}`)}</div>`}
 function jrOpen(){ // 퇴근 뒤 그날 일지가 오면 바로 펼쳐 보여 준다
-  if(!S3.jrWant)return;const d=((S3.st.journal||{}).days||[]).find(x=>x.date===wday()&&x.out);
+  // 다시 퇴근이면 앞 퇴근의 일지로 열지 않게: 누른 때(2분 여유) 뒤의 퇴근만
+  if(!S3.jrWant)return;const d=((S3.st.journal||{}).days||[]).find(x=>x.date===wday()&&x.out&&Date.parse(String(x.out).slice(0,19))>=S3.jrWant-120000);
   if(d){S3.jrWant=0;S3.jrMode='day';S3.jrD=d.date;if(S3.room==='out'){out();const e=document.getElementById('jr');e&&e.scrollIntoView({block:'start'})}toast('📓 오늘 일지가 나왔어요')}}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-jrm],[data-jrd],[data-jrw]');if(!b)return;
   if(b.dataset.jrm)S3.jrMode=b.dataset.jrm;if(b.dataset.jrd)S3.jrD=b.dataset.jrd;if(b.dataset.jrw)S3.jrW=b.dataset.jrw;const y=scrollY;out();scrollTo(0,y)});
@@ -1133,8 +1169,9 @@ function out(){
   const doneQ=tk.filter(t=>dn[t.key||t.text]),got=[].concat(...TROPHIES.map(([id,nm,L])=>L.map((x,i)=>tr[id+i]?x:null))).filter(Boolean);
   const log=lsx('daily_'+today(),null),lg=lsx('daily_log',{}),prev=Object.keys(lg).sort().slice(-3).reverse();
   const f=lg[today()]||{good:'',bad:'',next:['','','']};
+  const IN='#r-out #o-good,#r-out #o-bad,#r-out .o-next',typed=[...document.querySelectorAll(IN)].map(i=>i.value);
   keepOpen($('#r-out'),()=>$('#r-out').innerHTML=`${stars()}<h1>퇴근</h1><p class="lead">별을 보며 하루를 정리해요 <em class="draft">초안</em></p>${hz()}
-  ${oct(`<h2 class="sec">퇴근 <span class="cin sm">Clock out</span></h2><button class="btn pri2 bl" id="o-clock" ${(S3.st.unlock||{}).clocked_out?"disabled":""}>🌙 퇴근하기 (오늘 집계)</button><div class="kv">${(S3.st.unlock||{}).clocked_out?((S3.st.unlock.locked?"🔒":"🔓")+" 🖐️ "+S3.st.unlock.hand_min+"분 · "+esc(S3.st.unlock.reason||"")):"누르면 PC가 오늘 손 작업을 집계해요 · 누르기 전엔 🔒"}</div>`)}<div style="height:20px"></div>
+  ${oct(`<h2 class="sec">퇴근 <span class="cin sm">Clock out</span></h2><button class="btn pri2 bl" id="o-clock" ${quitInfo().wait?'disabled':''}>${quitLabel(quitInfo(),'🌙 퇴근하기 (오늘 집계)')}</button>${quitNote(quitInfo())}<div class="kv">${(S3.st.unlock||{}).clocked_out?((S3.st.unlock.locked?"🔒":"🔓")+" 🖐️ "+S3.st.unlock.hand_min+"분 · "+esc(S3.st.unlock.reason||"")):"누르면 PC가 오늘 손 작업을 집계해요 · 누르기 전엔 🔒"}</div>`)}<div style="height:20px"></div>
   ${journalCard()}<div style="height:20px"></div>
   <div class="grid g2"><div>${oct(`<h2 class="sec">오늘 기록 <span class="cin sm">Today</span></h2>
      <div class="rule"><span>◆</span><span>손작업 (직접 적은 것)</span><b class="num" style="margin-left:auto">${wk.hand}분</b></div>
@@ -1148,6 +1185,7 @@ function out(){
      ${[0,1,2].map(i=>`<input class="pct o-next" style="margin-bottom:8px" maxlength="80" placeholder="${i+1}번" value="${esc(f.next[i]||'')}">`).join('')}
      <div class="nav2"><button class="btn pri2 bl" id="o-save">오늘 기록 저장</button><span class="kv">${f.saved?`✅ ${f.saved}에 저장함 (이 기기)`:'노션 데일리 리포트 연결 전 · 이 기기에만 저장'}</span></div>`)}</div>
    <div>${oct(`<h2 class="sec">지난 기록</h2>${prev.length?prev.map(d=>`<div class="rule"><span>◇</span><span><b>${d}</b><br><span class="kv">잘한 것: ${esc(lg[d].good||'—')}<br>내일: ${esc((lg[d].next||[]).filter(Boolean).join(' / ')||'—')}</span></span></div>`).join(''):'<div class="empty">아직 저장한 기록이 없어요</div>'}`)}</div></div>`);
+  document.querySelectorAll(IN).forEach((i,n)=>{if(typed[n]!=null)i.value=typed[n]});
 }
 document.addEventListener('click',e=>{
   if(e.target.id==='o-save'){const lg=lsx('daily_log',{});lg[today()]={good:$('#o-good').value,bad:$('#o-bad').value,next:[...document.querySelectorAll('.o-next')].map(i=>i.value),saved:new Date().toTimeString().slice(0,5)};lsSet('v3_daily_log',lg);toast('🌙 오늘 기록을 저장했어요');render();return}
@@ -1175,7 +1213,7 @@ function rmSend(cmd,extra){
   const r=Q.add('remote',d);const L=rmPend().filter(x=>Date.now()-x.at<900000);L.push({id:r.id,cmd,at:Date.now(),dry});lsSet('v3_rm',L);
   Sync3.flush();toast('📡 보냈어요 → 답 기다리는 중(약 30초)');if(S3.room==='hb')hbBoard()}
 function rmCard(){
-  const qt=S3.st.quit||{},us=qt.usage||{};
+  const qt=S3.st.quit||{},us=qt.usage||{},qi=quitInfo();
   const R=S3.st.remote_result||{},items=R.items||[],B=R.board||{},L=rmPend();
   const rows=L.slice().reverse().slice(0,4).map(p=>{const it=items.find(i=>i.id===p.id);
     const wait=Math.round((Date.now()-p.at)/1000);
@@ -1183,18 +1221,16 @@ function rmCard(){
   const lines=(B.lines||[]).map(x=>`<div class="kv">${esc(x)}</div>`).join('');
   return oct(`<h2 class="sec">📡 리모컨</h2>
   <div class="grid rmg"><button class="btn bl" data-rm="clockin">🌅 출근</button>
-  <button class="btn bl" id="rm-quit" ${qt.on?'disabled':''}>${qt.on?'🌙 퇴근 '+esc(qt.at||''):S3.qArm&&Date.now()-S3.qArm<5000?'🌙 한 번 더 누르면 퇴근':'🌙 퇴근'}</button>
+  <button class="btn bl" id="rm-quit" ${qi.wait?'disabled':''}>${quitLabel(qi,'🌙 퇴근')}</button>
   <button class="btn bl" data-rm="status">📋 상황판</button>
-  <button class="btn bl" data-rm="stop" id="rm-stop">${S3.rmArm&&Date.now()-S3.rmArm<5000?'🛑 한 번 더 누르면 정지':'🛑 비상정지'}</button></div>
+  <button class="btn bl" data-rm="stop" id="rm-stop">${S3.rmArm&&Date.now()-S3.rmArm<5000?'🛑 한 번 더 누르면 정지':'🛑 비상정지'}</button></div>${quitNote(qi)}
   <div class="kv" id="rm-use" style="margin-top:8px">${us.st==='used'?'이번 주 남은 Claude 사용량':'오늘 남은 Claude 사용량'} ${us.st==='used'?`<b class="num" style="color:var(--gold)">${us.left}%</b> (쓴 것 ${us.used}%)${us.t?' · '+esc(us.t.slice(5)):''}`:us.st==='ok'?`<b class="num" style="color:var(--gold)">${us.left}%</b>${us.t?' · '+esc(us.t.slice(5)):''}`:us.st==='format'?'확인 필요 (기록에 남은 % 칸이 없어요)':'기록 없음'}<br>${qt.on?'퇴근 모드예요 · 남은 사용량 채우기가 주간 97%까지 돌아요':'안 누르면 20:00에 자동으로 퇴근 모드가 돼요'}</div>
   <div style="display:flex;gap:6px;margin-top:8px"><input id="rm-yt" type="url" inputmode="url" placeholder="유튜브 주소" style="flex:1;min-width:0"><button class="btn bl" data-rm="youtube">▶</button></div>
   <label class="kv"><input type="checkbox" id="rm-dry" ${S3.rmDry?'checked':''}> 연습(PC에서 실제로 안 함)</label>
   ${rows||'<div class="kv">아직 보낸 명령 없어요</div>'}
   ${lines?`<div style="margin-top:8px">${B.t?`<div class="kv">상황판 ${typeof B.t==='number'?(d=>`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`)(new Date(B.t)):esc(String(B.t).slice(5,16).replace('T',' '))}</div>`:''}${lines}</div>`:''}`)}
 document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('#rm-quit')))return;
-  if(S3.qArm&&Date.now()-S3.qArm<5000){S3.qArm=0;if(S3.rmDry){toast('연습이라 보내지 않았어요');hbBoard();return}
-    Q.add('clockout',{date:wday()});S3.jrWant=1;S3.jrD=wday();Sync3.flush();toast('🌙 퇴근을 보냈어요 · 집계와 퇴근 모드를 켜요');hbBoard()}
-  else{S3.qArm=Date.now();toast('한 번 더 누르면 퇴근이에요');hbBoard();setTimeout(()=>{if(S3.room==='hb')hbBoard()},5200)}});
+  if(!quitArm(hbBoard))return;if(S3.rmDry){toast('연습이라 보내지 않았어요');hbBoard();return}quitSend();hbBoard()});
 document.addEventListener('change',e=>{if(e.target.id==='rm-dry')S3.rmDry=e.target.checked});
 document.addEventListener('click',e=>{const b=e.target.closest('[data-rm]');if(!b)return;const c=b.dataset.rm;
   if(c==='stop'){if(S3.rmArm&&Date.now()-S3.rmArm<5000){S3.rmArm=0;rmSend('stop',{confirm:true})}else{S3.rmArm=Date.now();toast('한 번 더 누르면 정지 표시를 만들어요');hbBoard();setTimeout(()=>{if(S3.room==='hb')hbBoard()},5200)}return}
