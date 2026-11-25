@@ -852,7 +852,7 @@ function rmCard(){
   <div style="display:flex;gap:6px;margin-top:8px"><input id="rm-yt" type="url" inputmode="url" placeholder="유튜브 주소" style="flex:1;min-width:0"><button class="btn bl" data-rm="youtube">▶</button></div>
   <label class="kv"><input type="checkbox" id="rm-dry" ${S3.rmDry?'checked':''}> 연습(PC에서 실제로 안 함)</label>
   ${rows||'<div class="kv">아직 보낸 명령 없어요</div>'}
-  ${lines?`<div style="margin-top:8px">${B.t?`<div class="kv">상황판 ${esc(String(B.t).slice(5,16).replace('T',' '))}</div>`:''}${lines}</div>`:''}`)}
+  ${lines?`<div style="margin-top:8px">${B.t?`<div class="kv">상황판 ${typeof B.t==='number'?(d=>`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`)(new Date(B.t)):esc(String(B.t).slice(5,16).replace('T',' '))}</div>`:''}${lines}</div>`:''}`)}
 document.addEventListener('click',e=>{if(!(e.target.closest&&e.target.closest('#rm-quit')))return;
   if(S3.qArm&&Date.now()-S3.qArm<5000){S3.qArm=0;if(S3.rmDry){toast('연습이라 보내지 않았어요');hbBoard();return}
     Q.add('clockout',{date:today()});S3.jrWant=1;S3.jrD=today();Sync3.flush();toast('🌙 퇴근을 보냈어요 · 집계와 퇴근 모드를 켜요');hbBoard()}
