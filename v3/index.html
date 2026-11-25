@@ -1207,6 +1207,8 @@ function gState(g){return g.pass!==true&&g.pass!==false&&/아직 안 잼/.test(S
 // ---- 리모컨 (11/25): 폰 → inbox kind=remote → PC 지킴이 → state remote_result. 4가지만(상황판·출근·비상정지·유튜브) ----
 const RM_NM={status:'📋 상황판',clockin:'🌅 출근',stop:'🛑 비상정지',youtube:'▶ 유튜브'};
 function rmPend(){return lsGet('v3_rm',[])}
+// H4 왕복: 답이 화면에 처음 닿은 때까지 걸린 초를 한 번만 PC로 돌려준다(15분 안의 것만)
+function rmSeen(){const it=((S3.st.remote_result||{}).items)||[],L=rmPend();let ch=0;L.forEach(p=>{if(p.sec!=null||!it.some(i=>i.id===p.id))return;p.sec=Math.round((Date.now()-p.at)/100)/10;ch=1;if(p.sec<=900)Q.add('remote_seen',{id:p.id,cmd:p.cmd,sec:p.sec,w:innerWidth,h:innerHeight,touch:navigator.maxTouchPoints>0})});if(ch){lsSet('v3_rm',L);Sync3.flush()}}
 function rmSend(cmd,extra){
   const dry=!!S3.rmDry;
   const d=Object.assign({cmd,t:Date.now()},extra||{});if(dry)d.dry=true;
@@ -1217,7 +1219,7 @@ function rmCard(){
   const R=S3.st.remote_result||{},items=R.items||[],B=R.board||{},L=rmPend();
   const rows=L.slice().reverse().slice(0,4).map(p=>{const it=items.find(i=>i.id===p.id);
     const wait=Math.round((Date.now()-p.at)/1000);
-    return `<div class="kv">${RM_NM[p.cmd]||esc(p.cmd)}${p.dry?' (연습)':''} · ${it?(it.ok?'✅ ':'❌ ')+esc(it.msg||''):(wait>180?'⚠️ 답 없음 ('+wait+'초 지남, PC 지킴이 확인)':'⏳ 답 기다리는 중 '+wait+'초')}</div>`}).join('');
+    return `<div class="kv">${RM_NM[p.cmd]||esc(p.cmd)}${p.dry?' (연습)':''} · ${it?(it.ok?'✅ ':'❌ ')+esc(it.msg||'')+(p.sec!=null?' · '+Math.round(p.sec)+'초':''):(wait>180?'⚠️ 답 없음 ('+wait+'초 지남, PC 지킴이 확인)':'⏳ 답 기다리는 중 '+wait+'초')}</div>`}).join('');
   const lines=(B.lines||[]).map(x=>`<div class="kv">${esc(x)}</div>`).join('');
   return oct(`<h2 class="sec">📡 리모컨</h2>
   <div class="grid rmg"><button class="btn bl" data-rm="clockin">🌅 출근</button>
@@ -1275,7 +1277,7 @@ const Sync3={busy:false,
     try{await Q.flush();const res=await api.get(V3_STATES.filter(n=>!isVid(n)));if(!res.ok)throw new Error('상태 못 받음');
       S3.st=Object.assign({},S3.st,res.state);const nv=vidNeed();if(nv.length){const r2=await api.get(nv).catch(()=>null);if(r2&&r2.ok)Object.assign(S3.st,r2.state)}
       lsSet('v3_state',Object.fromEntries(Object.entries(S3.st).filter(([k])=>!isVid(k))));$('#sync').classList.remove('bad');
-      Q.applyDone(S3.st.meta&&S3.st.meta.done);mbTidy()}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
+      Q.applyDone(S3.st.meta&&S3.st.meta.done);mbTidy();rmSeen()}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
     this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('input')))&&!vidPlaying())render();jrOpen()},
   flush(){Q.flush().catch(()=>{})}};
 $('#top-med').innerHTML=medallion('hex','#CEA85E',42);
