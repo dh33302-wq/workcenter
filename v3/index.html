@@ -505,6 +505,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 // 폰에 먼저 적고(v3_mb) 보내기는 뒤에서(Q) — PC 가 꺼져 있거나 끊겨 있어도 잃지 않는다. 캡처는 받지 않음.
 const MB_AB=[['max','맥스'],['hb','HB 제품'],['hq','HB HQ'],['class','수업'],['other','다른 앱'],['etc','기타']];
 const MB_ST={new:['⚪','새로'],sorted:['🟡','분류'],planned:['🔵','이번 패치'],done:['🟢','반영됨'],later:['⚫','나중'],dup:['↪','같은 건의']};
+const MB_KEY='Ctrl+Alt+Shift+M';   // PC 상주 입력창 단축키(부대표 11/25 12:10, Win+Shift+M 은 윈도우가 씀)
 const MB={open:false,card:'',rec:null,f:'all'};
 const mbLoc=()=>lsx('mb',[]),mbSave=l=>lsSet('v3_mb',l.slice(-100));
 const mbId=()=>'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -548,7 +549,7 @@ function mbOpen(){
    <div class="mb-r"><input id="mb-t" type="text" maxlength="400" enterkeyhint="send" placeholder="떠오른 것 한 줄" aria-label="건의 한 줄">${sr&&!MB.noMic?'<button type="button" class="mb-m" id="mb-m" aria-label="음성으로 적기">🎤</button>':''}</div>
    <div class="mb-c" role="radiogroup" aria-label="어디 이야기인가요">${MB_AB.map(([k,t])=>`<button type="button" role="radio" aria-checked="${k===ab}" data-mbab="${k}">${t}</button>`).join('')}</div>
    <div class="mb-f"><label><input type="checkbox" id="mb-u"> 🚨 급함 <small>작업을 못 할 때만</small></label><button class="btn pri2" id="mb-s">넣기</button></div>
-   <a class="kv mb-l" href="#log/mail">내 건의 보기${n?` · 보내는 중 ${n}`:''} ▸</a>`;
+   ${innerWidth>=1100&&!matchMedia("(pointer:coarse)").matches?`<div class="kv mb-k">⌨️ PC 어디서든 ${MB_KEY}</div>`:''}<a class="kv mb-l" href="#log/mail">내 건의 보기${n?` · 보내는 중 ${n}`:''} ▸</a>`;
   p.hidden=false;MB.open=true;MB.ab=ab;document.getElementById('mbb').setAttribute('aria-expanded','true');
   const t=document.getElementById('mb-t');t.value=lsx('mb_draft','');t.focus({preventScroll:true})}
 function mbSend(){
@@ -581,7 +582,7 @@ function recMail(){
   ${M?oct(`<h2 class="sec">내 건의 <span class="kv">${M.total||0}건</span></h2><div class="mb-c mbfl" role="radiogroup" aria-label="상태로 보기"><button role="radio" aria-checked="${f==='all'}" data-mbf="all">전체</button>${Object.keys(MB_ST).filter(k=>n[k]).map(k=>`<button role="radio" aria-checked="${f===k}" data-mbf="${k}">${MB_ST[k][0]} ${MB_ST[k][1]} <b class="num">${n[k]}</b></button>`).join('')}</div>
    ${show.slice(0,lim).map(x=>{const [ic,nm]=MB_ST[x.st]||['⚪',x.st];return row(ic,nm,x,x.u,`${at(x.at)} · ${esc(src(x))}`,(x.pt?`<div class="mbp2">${x.st==='done'?'반영된 패치':'예정 패치'} ${esc(x.pt)}</div>`:'')+(x.nt?`<div class="kv">↳ ${esc(x.nt)}</div>`:''))}).join('')||recNone(L.length?'이 상태인 건의가 없어요':'아직 없어요')}
    ${show.length>lim?`<div class="nav2"><button class="btn" data-mbmore="1">더 보기 (${show.length-lim})</button></div>`:M.total>L.length&&f==='all'?`<div class="kv">최근 ${L.length}건까지 보여요</div>`:''}
-   ${M.auto?`<div class="kv" style="margin-top:10px">🤖 프로그램이 스스로 적은 오류 ${M.auto}건은 따로 모여요</div>`:''}`):oct(recNone('PC 지킴이가 보내면 목록이 나타나요'))}`}
+   ${M.auto?`<div class="kv" style="margin-top:10px">🤖 프로그램이 스스로 적은 오류 ${M.auto}건은 따로 모여요</div>`:''}`):oct(recNone('PC 지킴이가 보내면 목록이 나타나요'))}<div class="kv" style="margin-top:10px">⌨️ PC에서는 ${MB_KEY} 로도 넣을 수 있어요</div>`}
 (function(){
   const b=document.createElement('button');b.id='mbb';b.type='button';b.setAttribute('aria-label','우체통 열기');b.setAttribute('aria-expanded','false');b.textContent='📮';document.body.appendChild(b);
   b.addEventListener('click',()=>MB.open?mbClose():mbOpen());
@@ -859,7 +860,7 @@ const jrH=m=>m==null?'기록 없음':(m>=60?`${Math.floor(m/60)}시간 ${m%60}�
 const jrT=s=>s?esc(String(s).slice(5,16).replace('T',' ')):'–';
 function jrTile(ic,nm,val,sub,none){return `<div class="jrt ${none?'no':''}"><span>${ic}</span><b class="num">${val}</b><small>${nm}${sub?'<br>'+sub:''}</small></div>`}
 function jrText(x){const t=x.text;if(!t)return `<div class="kv">✍️ 경고·내일 할 것·편지는 아직 안 왔어요 (부대표·코칭팀이 쓰면 여기 나와요)</div>`;
-  return `${(t.warn||[]).map(w=>`<div class="jrw">⚠️ ${esc(w)}</div>`).join('')}${(t.next||[]).map((w,i)=>`<div class="rule"><span>${i+1}</span><span>${esc(w)}</span></div>`).join('')}${t.letter?`<div class="jrl">💌 ${esc(t.letter).replace(/\n/g,'<br>')}</div>`:''}${(t.links||[]).map(l=>`<a class="btn" href="${esc(l.u)}" target="_blank" rel="noopener">📄 ${esc(l.t)}</a>`).join('')}`}
+  return `${(t.good||[]).map(w=>`<div class="recg">👍 ${esc(w)}</div>`).join('')}${(t.bad||[]).map(w=>`<div class="jrw">🔧 ${esc(w)}</div>`).join('')}${(t.warn||[]).map(w=>`<div class="jrw">⚠️ ${esc(w)}</div>`).join('')}${(t.next||[]).map((w,i)=>`<div class="rule"><span>${i+1}</span><span>${esc(w)}</span></div>`).join('')}${t.letter?`<div class="jrl">💌 ${esc(t.letter).replace(/\n/g,'<br>')}</div>`:''}${(t.links||[]).map(l=>`<a class="btn" href="${esc(l.u)}" target="_blank" rel="noopener">📄 ${esc(l.t)}</a>`).join('')}`}
 function jrDay(d){
   const w=d.wl,p=d.past,tot=w?Math.max(1,(w.hand_min||0)+(w.prep_min||0)+(w.off_min||0)+(w.away_min||0)):1;
   const seg=w?[['🖐️ 손','hand_min','--blue'],['🧠 준비','prep_min','--gold'],['작업 외','off_min','--red'],['자리 비움','away_min','--dim']].filter(s=>w[s[1]]>0):[];
@@ -935,7 +936,8 @@ function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="
 
 // ---- 틀 ----
 
-// ---- Honey Badger HQ 현황판 (11/25): hb\state\gates.json 22칸 = 제품 5묶음 + E2E ----
+// ---- Honey Badger HQ 현황판 (11/25): hb\state\gates.json(개수는 파일 값 그대로) = 제품 5묶음 + E2E ----
+const HBT={control:'부대표',code:'개발팀',ref_factory:'자료팀',anim_teacher:'코칭팀',wc_app:'앱팀',job_prep:'취업팀'};
 const HBG=[['library','HB Library(자료실)'],['model','HB Model(모델)'],['animation','HB Animation(애니)'],['render','HB Render(렌더)'],['hq','HB HQ(본부 앱)'],['e2e','E2E 전체']];
 function gState(g){return g.pass===true?['✅','통과','ok']:(g.value!=null&&g.value!==''?['🟡','재는 중','mid']:['⚪','아직','no'])}
 
@@ -979,9 +981,9 @@ function hbBoard(){
   const grp=HBG.map(([k,nm])=>{const a=G.filter(g=>g.product===k);if(!a.length)return '';
     const ok=a.filter(g=>g.pass===true).length;
     return oct(`<h2 class="sec">${nm} <span class="kv">${ok}/${a.length}</span></h2>${a.map(g=>{const [ic,tx]=gState(g);
-      return `<details class="gt"><summary>${ic} <b>${esc(g.id)}</b> ${esc(g.name||'')} <span class="kv">${tx}</span></summary><div class="kv">값: ${g.value!=null&&g.value!==''?esc(g.value):'아직 못 쟀어요'}<br>근거 파일: ${g.evidence?esc(g.evidence):'없음'}<br>잰 시각: ${g.measured_at?esc(g.measured_at):'–'} · 담당 ${esc(g.owner||'')}</div></details>`}).join('')}`)}).join('');
+      return `<details class="gt"><summary>${ic} <b>${esc(g.id)}</b> ${esc(g.name||'')} <span class="kv">${tx}</span></summary><div class="kv" style="overflow-wrap:anywhere">${g.limit?`기준: ${esc(g.limit)}<br>`:''}값: ${g.value!=null&&g.value!==''?esc(g.value):'아직 못 쟀어요'}<br>근거 파일: ${g.evidence?esc(g.evidence):'없음'}<br>잰 시각: ${g.measured_at?esc(g.measured_at):'–'} · 담당 ${esc(HBT[g.owner]||g.owner||'')}</div></details>`}).join('')}`)}).join('');
   const clips=H.clips||[];
-  $('#r-hb').innerHTML=`<h1>현황판</h1><p class="lead">통과 ${n} / ${G.length||22}${H.updated?` · 갱신 ${esc(String(H.updated).slice(5,16).replace('T',' '))}`:''}</p>${hz()}
+  $('#r-hb').innerHTML=`<h1>현황판</h1><p class="lead">${G.length?`통과 ${n} / ${G.length}`:'통과 숫자를 기다려요'}${H.updated?` · 갱신 ${esc(String(H.updated).slice(5,16).replace('T',' '))}`:''}</p>${hz()}
   ${G.length?`<div class="prog" aria-label="통과 진행"><i style="width:${Math.round(n/G.length*100)}%"></i></div>`:'<div class="empty">현황 파일을 아직 못 받았어요</div>'}
   ${rmCard()}<div class="grid g2">${grp}</div>
   ${clips.length?oct(`<h2 class="sec">클립 ${clips.length}</h2>${clips.map(c=>`<details class="gt"><summary>🎞 <b>${esc(c.name||c.id)}</b> <span class="kv">${esc(c.stage||'')}${c.frames?' · '+esc(c.frames)+'f':''}</span></summary><div class="kv">${esc(c.id||'')}${c.updated?' · 갱신 '+esc(String(c.updated).slice(5,16).replace('T',' ')):''}<br>${(c.checks||[]).map(k=>`${k.pass===true?'✅':k.pass===false?'❌':'🟡'} ${esc(k.id)} ${esc(k.value)} ${esc(k.unit)}`).join('<br>')||'검사 기록 없음'}<br>${(()=>{const q=c.vs&&S3.st[c.vs];if(q&&q.b64)return `<video class="hqvid" controls muted loop playsinline preload="metadata" style="width:100%;max-width:480px;border-radius:8px;margin-top:6px" src="data:${esc(q.mime||'video/mp4')};base64,${q.b64}"></video>`;return c.rv?`<a class="btn" href="#review/${esc(c.rv)}">▶ 영상 보기</a>`:'영상 아직 없어요(준비 중)'})()}</div></details>`).join('')}`):''}`;
