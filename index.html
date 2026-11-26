@@ -378,7 +378,12 @@ html,body,h1,h2,h3,.sec,.q,.lbl,.rc b,.dept .big,.clk2,#qc,.egain,.optb .k,.amed
 .alr{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:8px;width:100%;min-height:44px;align-items:center;padding:8px 0;border-top:1px solid #222;color:var(--ivory);text-decoration:none;overflow-wrap:anywhere}.alr span{min-width:0}.alr:focus-visible{outline:2px solid var(--ivory)}
 #r-lobby .lbl.gone{border-left-color:#3a3426;color:var(--dim)}#r-lobby button.lbl.qb{border-left-color:var(--gold);color:var(--gold)}
 #r-lobby .rc{border-left-color:#3a3426;min-height:96px}#r-lobby .rc.c-bad{border-left-color:var(--red)}#r-lobby .rc.c-me{border-left-color:var(--gold)}#r-lobby .rc svg{color:var(--dim)}#r-lobby .rc.c-bad svg{color:var(--red)}#r-lobby .rc.c-me svg{color:var(--gold)}
-#nav em.num.c-no{display:none}</style>
+#nav em.num.c-no{display:none}/* 11/27 작업실 칸 · 문서 보기 · 작업공간 */
+.wrb{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px;margin-top:8px}.wrb .btn{min-height:48px;justify-content:center;text-align:center}.wrb .btn small{font-size:11px;opacity:.7}
+.wrt{flex-wrap:wrap}.wsh{margin-top:10px;line-height:1.6}.apold{margin-top:10px;color:#9a9a9a}
+#gdv-b,#wsv-b{flex:1;min-height:0;display:flex}#gdv-b iframe,#wsv-b iframe{flex:1;border:0;width:100%;background:#fff}.gdv-n{padding:0 12px 6px;font-size:12px}
+#wsv .sh-h small{flex:none;font-size:12px}
+</style>
 </head>
 <body>
 <div id="fog"></div>
@@ -426,7 +431,7 @@ html,body,h1,h2,h3,.sec,.q,.lbl,.rc b,.dept .big,.clk2,#qc,.egain,.optb .k,.amed
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=21;
+const BUILD=22;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -926,7 +931,7 @@ function twCards(){ccTidy();const T=S3.st.chars,D=CC.get();if(!T)return oct(recN
   if(!N)return oct(recNone('카드 질문을 못 받았어요'));
   if(D){const n=Math.max(0,Math.min(N,D.step||0));return oct(`<h2 class="sec">캐릭터 카드 ${T.draft?'<em class="draft">질문 초안</em>':''}</h2>${n<N?ccStep(D,ccQ()[n],n,N):ccEnd(D)}<div class="nav2" style="margin-top:14px"><button class="btn" data-ccx="1">${S3.ccDel&&Date.now()-S3.ccDel<5000?'한 번 더 누르면 지워요':'쓰던 것 지우기'}</button></div><div class="kv">쓰는 동안은 이 폰에만 있어요</div>`)}
   const C=T.cards||[];
-  return oct(`<h2 class="sec">캐릭터 카드 ${T.draft?'<em class="draft">질문 초안</em>':''}</h2><p class="why">두 작품이 같이 받는 한 장이에요. 질문 ${N}개, 하나씩 골라요.</p><div class="nav2"><button class="btn pri2" data-ccnew="1">🪪 새 캐릭터</button></div>`)
+  return oct(`<h2 class="sec">캐릭터 카드 ${T.draft?'<em class="draft">질문 초안</em>':''}</h2><p class="why">두 작품이 같이 받는 한 장이에요. 질문 ${N}개, 하나씩 골라요.</p><div class="nav2"><button class="btn pri2" data-ccnew="1">🪪 새 캐릭터</button>${wdBtn()}</div>`)
    +C.map((x,i)=>`<div style="height:16px"></div>${oct(`<h2 class="sec">${esc(x.card.name||x.card.id)} <span class="kv">${x.card.status==='final'?'✅ 확정':'✍️ 초안'} · ${esc(x.card.rev||0)}판</span></h2>${(x.err||[]).length?`<div class="jrw">⚠️ ${x.err.map(esc).join(' · ')}</div>`:''}<div class="kv">${ccTx(x.card.words)?esc(ccTx(x.card.words))+' · ':''}${esc(x.card.job||'')}</div><details class="gt" data-gk="cc:${esc(x.card.id)}"><summary>펼쳐 보기</summary>${ccRows(x.card)}</details><div class="nav2"><button class="btn" data-ccedit="${i}">고치기</button></div>`)}`).join('')}
 // ---- 방 ----
 function twoRoom(){const t=S3.twT==='card'?'card':'works',el=$('#r-two');
@@ -1396,6 +1401,84 @@ const Push=(()=>{
     else if(t.id==='push-test'){Q.add('push_test',{});Sync3.flush();toast('📨 시험 알림을 부탁했어요 · 30초쯤 걸려요')}});
   return {card,check,hint,isOn,can}})();
 
+// ---- 🦡 작업실 칸 · HQ 안 구글 문서 보기 · 대표실 비서 결과 카드 · 🎨 HB 작업공간 (앱팀 11/27, 부대표 편지 workroom_buttons·hq_google_embed·ceo_room_gemini·canvas_host_v2) ----
+// 원칙: 한눈에(버튼 줄) → 누르면 옆 창(HQ 안 보기) · '↗'은 늘 새 창. 구글 주소는 지킴이가 확인한 id 로만 만든다.
+const GIDX=/^[\w-]{20,80}$/,TABX=/^t\.[\w-]{4,40}$/;
+const gDoc=(id,tab,mode)=>GIDX.test(id||'')?`https://docs.google.com/document/d/${id}/${mode||'edit'}${tab&&TABX.test(tab)?'?tab='+tab:''}`:'';
+const gFold=id=>GIDX.test(id||'')?'https://drive.google.com/drive/folders/'+id:'';
+const GEMINI='https://gemini.google.com/app',TRIPO='https://www.tripo3d.ai/';
+const ext=(u,t,cls)=>u?`<a class="btn ${cls||''}" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`:`<button class="btn ${cls||''}" disabled>${t}</button>`;
+const gdvB=(id,tab,title,t,cls)=>GIDX.test(id||'')?`<button class="btn ${cls||''}" data-gdv="${esc(JSON.stringify([id,tab||'',title]))}">${t}</button>`:'';
+function wdBtn(cls){const w=(S3.st.workroom||{}).workdoc;return w?ext(gDoc(w.id),'🗂️ 오늘 작업창 열기',cls||''):''}
+function wsList(){return ((S3.st.ws||{}).items)||[]}
+function wrCard(){const W=S3.st.workroom;
+  if(!W)return oct(`<h2 class="sec">🦡 작업실</h2>${recNone('PC 지킴이가 보내면 나타나요')}`);
+  const tab=n=>((W.tabs||[]).find(t=>t[0]===n)||[])[1]||'',an=tab('해부 카드'),WS=wsList().filter(x=>x.s);
+  return oct(`<h2 class="sec">🦡 작업실 <span class="kv">${esc(W.current||'')}${W.updated?' · '+esc(W.updated.slice(5)):''}</span></h2>
+   <div class="wrb">${ext(gDoc(W.doc),'📄 작업실 문서','pri2')}${ext(gFold(W.folder),'📂 폴더')}${ext(gFold(W.images),'🖼️ 이미지')}${ext(gFold(W.fbx),'🧊 3D')}${ext(an?gDoc(W.doc,an):'','🔍 해부 카드')}${ext(GEMINI,'🤖 제미나이')}${ext(TRIPO,'🧊 Tripo')}<button class="btn" disabled title="PC 쪽 허용 전">🎬 맥스 <small>허용 전</small></button></div>
+   ${GIDX.test(W.doc||'')?`<div class="kv" style="margin-top:10px">HQ 안에서 보기</div><div class="nav2 wrt">${gdvB(W.doc,'','한눈에','👁 한눈에')}${(W.tabs||[]).map(t=>gdvB(W.doc,t[1],t[0],esc(t[0]))).join('')}</div>`:''}
+   <div class="wrb" style="margin-top:12px">${wdBtn()}${WS.map(x=>`<button class="btn pri2" data-wso="${esc(x.w)}">🎨 HB 작업공간 · ${esc(x.w)}</button>`).join('')}<button class="btn" data-wshelp="1">🎃 비서와 같이 보기</button>${ext(GEMINI,'🎃 비서에게 말하기')}</div>
+   ${S3.wsHelp?'<div class="kv wsh">제미나이 앱에서 <b>Alt+Space</b> → 화면 공유를 누르면 비서가 이 화면을 같이 봐요(PC). 폰은 제미나이 앱의 화면 공유.</div>':''}`)}
+
+// ---- HQ 안 구글 문서 보기(옆 창) ----
+function gdvEl(){let el=$('#gdv');if(el)return el;el=document.createElement('div');el.id='gdv';el.className='sheet';el.hidden=true;
+  el.innerHTML='<div class="sh-h"><button id="gdv-x" class="ib" aria-label="닫기">✕</button><b id="gdv-t"></b><span id="gdv-l"></span></div><div class="kv gdv-n">안 보이면(로그인 화면·빈 화면) ↗ 새 창으로 열어 주세요</div><div id="gdv-b"></div>';document.body.appendChild(el);return el}
+function gdvOpen(id,tab,title){const u=gDoc(id,tab,'preview');if(!u)return;const el=gdvEl();$('#gdv-t').textContent=title||'문서';
+  $('#gdv-l').innerHTML=`<a class="btn" href="${esc(gDoc(id,tab))}" target="_blank" rel="noopener">↗ 편집 열기</a>`;
+  const f=document.createElement('iframe');f.title=title||'문서';f.src=u;f.setAttribute('allow','clipboard-write');f.setAttribute('referrerpolicy','no-referrer');$('#gdv-b').replaceChildren(f);el.hidden=false;
+  const sn=lsx('rpt_seen',{});if(!sn['gd:'+id]){sn['gd:'+id]=1;lsSet('v3_rpt_seen',sn)}}
+function gdvClose(){const el=$('#gdv');if(el){el.hidden=true;$('#gdv-b').replaceChildren()}if(S3.room==='director')render()}
+
+// ---- 대표실 📰 새 보고: 비서 결과 문서 카드(🔎조사 · 🤖비서 · 🧬기획) ----
+function gdocList(){return ((S3.st.gdocs||{}).items)||[]}
+const gdocTop=()=>{const sn=lsx('rpt_seen',{}),td=new Date().toLocaleDateString('sv');return gdocList().filter(x=>!sn['gd:'+x.id]||String(x.at).slice(0,10)===td).slice(0,5).map(x=>x.id)};
+function gdocRows(){const sn=lsx('rpt_seen',{}),td=new Date().toLocaleDateString('sv'),L=gdocList().filter(x=>!sn['gd:'+x.id]||String(x.at).slice(0,10)===td).slice(0,5);   // 한눈에 5개, 나머지는 '다 보기'
+  return L.map(x=>`<button class="hqrow${sn['gd:'+x.id]?' rd':''}" data-gdv="${esc(JSON.stringify([x.id,'',x.t]))}"><b>${esc(x.ic)}</b><span>${esc(x.t)}<br><small class="kv">${esc(x.kn)} · ${esc(String(x.at).slice(5).replace('-','/'))}</small></span></button>`).join('')}
+function gdocNew(){const sn=lsx('rpt_seen',{});return gdocList().filter(x=>!sn['gd:'+x.id]).length}
+function gdocMore(){const L=gdocList(),q=(S3.st.workroom||{}).queue;if(!L.length&&!q)return '';
+  return `<div class="nav2" style="margin-top:8px">${gdvB(q,'','조사 대기열','📋 조사 대기열')}${L.length?`<button class="btn" data-gdall="1">${S3.gdAll?'접기':`비서 결과 ${L.length}개 다 보기`}</button>`:''}</div>${S3.gdAll?L.filter(x=>!gdocTop().includes(x.id)).map(x=>`<button class="hqrow rd" data-gdv="${esc(JSON.stringify([x.id,'',x.t]))}"><b>${esc(x.ic)}</b><span>${esc(x.t)}<br><small class="kv">${esc(x.kn)} · ${esc(String(x.at).slice(5).replace('-','/'))}</small></span></button>`).join(''):''}`}
+
+// ---- 🎨 HB 작업공간: 비서 캔버스 코드를 HQ 안 격리 창(sandbox, 다른 출처)에서. 답(localStorage)은 PC·드라이브로 ----
+// 고정 주소 = …/workcenter/#ws/<창이름> (ws/?w=<창이름> 도 여기로). 캔버스 코드는 HQ 저장소·열쇠에 닿지 못한다(allow-same-origin 없음).
+const WS={w:'',T:null};
+function wsLocal(w){return lsx('ws_'+w,{})}   // {키:{v,t}}
+function wsShim(vals){const D=JSON.stringify(vals).replace(/</g,'\\u003c');
+  return `<script>(function(){var D=${D},P=window.parent,T=null,B={},H=Object.prototype.hasOwnProperty;function f(){T=null;var b=B;B={};P.postMessage({hbws:1,kv:b},'*')}function q(k,v){B[k]=v;if(!T)T=setTimeout(f,500)}
+var S={getItem:function(k){k=String(k);return H.call(D,k)?D[k]:null},setItem:function(k,v){k=String(k);v=String(v);D[k]=v;q(k,v)},removeItem:function(k){k=String(k);if(H.call(D,k)){delete D[k];q(k,null)}},clear:function(){Object.keys(D).forEach(function(k){q(k,null)});D={}},key:function(i){return Object.keys(D)[i]||null},get length(){return Object.keys(D).length}};
+try{Object.defineProperty(window,'localStorage',{value:S,configurable:true})}catch(e){}addEventListener('pagehide',function(){if(T){clearTimeout(T);f()}});})();<\/script>`}
+function wsDoc(html,vals){const s=wsShim(vals),m=html.match(/<head[^>]*>/i);if(m)return html.replace(m[0],m[0]+s);const d=html.match(/^\s*<!doctype[^>]*>/i);return d?html.replace(d[0],d[0]+s):s+html}
+function wsEl(){let el=$('#wsv');if(el)return el;el=document.createElement('div');el.id='wsv';el.className='sheet';el.hidden=true;
+  el.innerHTML='<div class="sh-h"><button id="wsv-x" class="ib" aria-label="닫기">✕</button><b id="wsv-t"></b><small class="kv" id="wsv-s"></small><button class="btn" data-wshelp="1">🎃 같이 보기</button></div><div id="wsv-b"></div>';document.body.appendChild(el);return el}
+async function wsOpen(w){const it=wsList().find(x=>x.w===w);const el=wsEl();$('#wsv-t').textContent='🎨 '+w;$('#wsv-s').textContent='';const b=$('#wsv-b');el.hidden=false;
+  if(!it||!it.s){b.innerHTML=`<p class="why" style="padding:30px">${it&&it.err?esc(it.err):S3.st.ws?'이 작업공간 코드가 아직 없어요':'PC 지킴이를 기다려요'}</p>`;return}
+  b.innerHTML='<p class="why" style="padding:30px">불러오는 중…</p>';
+  try{let x=(S3.wsc||{})[it.s];if(!x||x.h!==it.h){const q=await api.get([it.s,'wsc_v']);x=q.state&&q.state[it.s];if(!x||x.w!==w)throw new Error('아직 안 왔어요');S3.wsc=Object.assign(S3.wsc||{},{[it.s]:x});S3.wsv=(q.state||{}).wsc_v||S3.wsv}
+    else{const q=await api.get(['wsc_v']).catch(()=>({}));S3.wsv=(q.state||{}).wsc_v||S3.wsv}
+    const sv=((S3.wsv||{})[w])||{v:{},t:{}},lc=wsLocal(w),vals={};
+    Object.keys(sv.v||{}).forEach(k=>vals[k]=sv.v[k]);
+    Object.keys(lc).forEach(k=>{const l=lc[k];if((l.t||0)>=((sv.t||{})[k]||0)){if(l.v==null)delete vals[k];else vals[k]=l.v}});
+    const f=document.createElement('iframe');f.setAttribute('sandbox','allow-scripts allow-modals allow-popups allow-forms allow-downloads');f.title=w;f.srcdoc=wsDoc(x.html,vals);b.replaceChildren(f);WS.w=w;WS.f=f;
+    if(location.hash!=='#ws/'+encodeURIComponent(w))history.replaceState(null,'','#ws/'+encodeURIComponent(w))
+  }catch(e){b.innerHTML=`<p class="why" style="padding:30px">작업공간을 못 불러왔어요 (${esc(e.message)})</p>`}}
+function wsClose(){const el=$('#wsv');if(el){el.hidden=true;$('#wsv-b').replaceChildren()}WS.w='';WS.f=null;if(/^#ws\//.test(location.hash))history.replaceState(null,'','#studio');if(S3.room!=='studio'){location.hash='#studio'}}
+window.addEventListener('message',e=>{const d=e.data;if(!WS.f||e.source!==WS.f.contentWindow||!d||d.hbws!==1||!d.kv||typeof d.kv!=='object')return;
+  const w=WS.w,lc=wsLocal(w),kv={},t=Date.now();let n=0;
+  for(const k of Object.keys(d.kv).slice(0,200)){const v=d.kv[k];if(k.length>120||(v!=null&&(typeof v!=='string'||v.length>100000)))continue;kv[k]=v;lc[k]={v,t};n++}
+  if(!n)return;lsSet('v3_ws_'+w,lc);Q.add('ws_save',{w,kv,t});clearTimeout(WS.T);WS.T=setTimeout(()=>Sync3.flush(),1500);
+  const s=$('#wsv-s');if(s)s.textContent='💾 '+hmOf(t)+' 저장 · PC로 보냄'});
+function wsRoute(){const m=(location.hash||'').match(/^#ws\/(.+)$/);if(!m)return false;let w='';try{w=decodeURIComponent(m[1])}catch(e){}
+  if(!S3.st.ws){setTimeout(wsRoute,1500);return true}if(WS.w!==w)wsOpen(w);return true}
+window.addEventListener('hashchange',()=>{if(!/^#ws\//.test(location.hash)&&WS.w){const el=$('#wsv');if(el){el.hidden=true;$('#wsv-b').replaceChildren()}WS.w='';WS.f=null}else wsRoute()});
+setTimeout(wsRoute,0);
+
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('button');if(!t)return;const D=t.dataset;
+  if(D.gdv){const [id,tab,title]=JSON.parse(D.gdv);gdvOpen(id,tab,title);return}
+  if(t.id==='gdv-x'){gdvClose();return}
+  if(D.gdall){S3.gdAll=!S3.gdAll;render();return}
+  if(D.wso){location.hash='#ws/'+encodeURIComponent(D.wso);return}
+  if(t.id==='wsv-x'){wsClose();return}
+  if(D.wshelp){if($('#wsv')&&!$('#wsv').hidden){toast('제미나이 앱 Alt+Space → 화면 공유');return}S3.wsHelp=!S3.wsHelp;render();return}});
+
 // HB HQ 방 구성 (11/26 동현 03:39~03:44): 아래 탭 4개 + 로비 카드. 묻기·일정·내 할 일·소식은 옛 화면(BUILD 9)에서 옮김.
 const TABS4=['lobby','studio','lib','director'];
 const CARD_ROOMS=['ops','hb','coach','log','plan','out','world'];
@@ -1506,10 +1589,10 @@ function director(){
   if(it)main=oct(`<h2 class="sec">결정함 <span class="num">${list.length}</span></h2><span class="pri ${it.prio==='P0'?'p0':it.prio==='P1'?'p1':''}">${esc(it.prio||'P2')}</span><span class="kv" style="margin-left:10px">${S3.cur+1} / ${list.length}</span>
       <div class="q">${esc(nm3(it.q))}</div><p class="why">${esc(nm3(it.why))}</p>
       <div class="opts">${(it.options||[]).map((o,i)=>`<button class="optb" data-pick="${i}"><div class="oct"><div class="in"><span class="k">${esc(o.k||String.fromCharCode(65+i))}</span><div><b>${esc(nm3(o.label))}</b><small>${esc(nm3(o.hint))}</small></div></div></div></button>`).join('')}</div>
-      <div class="nav2"><button class="btn" data-skip="1" ${list.length<2?'disabled':''}>다음 건 ▸</button><span class="kv">고르면 '내 답'에 적히고, 확정은 부대표가 해요</span></div>`);
-  else{const done=Object.keys(S3.answers).length;
-    main=oct(`<h2 class="sec">결정함</h2><div class="q">지금 정할 것이 없어요</div><p class="why">${done?`💬 동현 답함 ${done}건 — 부대표가 확정할 거예요.`:S3.st.hq_approvals?'':'결정함을 아직 못 받았어요.'}</p>`)}
-  const answered=Object.entries(S3.answers).map(([id,a])=>`<div class="rule"><span>💬</span><span>${esc(nm3(a.q||id))} → <b>${esc(nm3(a.label))}</b><br><span class="kv">동현 답함 · 확정 전</span></span></div>`).join('');
+      <div class="nav2"><button class="btn" data-skip="1" ${list.length<2?'disabled':''}>다음 건 ▸</button><span class="kv">고르면 '내 답'에 적히고, 확정은 부대표가 해요</span></div>${apOld(A)}`);
+  else{const done=Object.entries(S3.answers).filter(([id,a])=>A.items.some(x=>x.id===id)||Date.now()-(a.t||0)<864e5).length;
+    main=oct(`<h2 class="sec">결정함</h2><div class="q">지금 정할 것이 없어요</div><p class="why">${done?`💬 동현 답함 ${done}건 — 부대표가 확정할 거예요.`:S3.st.hq_approvals?'':'결정함을 아직 못 받았어요.'}</p>${apOld(A)}`)}
+  const live=([id,a])=>A.items.some(x=>x.id===id)||Date.now()-(a.t||0)<864e5,answered=Object.entries(S3.answers).filter(live).map(([id,a])=>`<div class="rule"><span>💬</span><span>${esc(nm3(a.q||id))} → <b>${esc(nm3(a.label))}</b><br><span class="kv">동현 답함 · 확정 전</span></span></div>`).join('');
   const J=((S3.st.journal||{}).days||[]),g=J.slice().reverse().find(d=>d.grade&&d.grade.clips&&d.grade.clips.length),q=quitInfo(),dd=Math.ceil((new Date(JOB_DEADLINE+'T00:00:00')-Date.now())/864e5);
   keepOpen($('#r-director'),()=>$('#r-director').innerHTML=`<h1>대표실</h1><p class="lead">결정할 것 ${list.length} · 내 할 일 ${myTasks().now.length}${rptNew().length?` · 새 보고서 ${rptNew().length}`:''}</p>${A.demo?'<div class="demo">예시 데이터예요 (?demo=1)</div>':''}${hz()}
   ${rptTop()}
@@ -1577,8 +1660,10 @@ async function rptOpen(s){const r=rptList().find(x=>x.s===s);if(!r)return;const 
 // 하루 끝 '계획 대비 실제' 한 줄(동현 18:10): 퇴근하면 대표실 일지 칸에. 재료 = 작업 캘린더(✅ 제목 · ▶ hq_start · ✅ hq_done)만
 function dayLine(){const T=Focus.today();if(!T.g||!T.st.n)return '';const s=T.st;return `<div class="rule"><span>📊</span><span><b>오늘 계획 대비 실제</b><br>🎯 ${s.done}/${s.n} · 작업 ${s.real}분 / 계획 ${s.plan}분 · 쉬는 시간 넘김 ${s.over}번${s.real===0&&s.done?'<br><span class="kv">▶ 시작을 안 눌러 실제 분이 비어요</span>':''}</span></div>`}
 // 대표실 맨 위 '📰 새 보고'(동현 18:03): 안 읽은 것 전부 + 오늘 부대표 보고서(읽으면 회색). 기록실은 보관 목록
-function rptTop(){const sn=lsx('rpt_seen',{}),td=new Date().toLocaleDateString('sv'),L=rptList().filter(r=>!sn[r.f]||(r.k==='c'&&r.d===td));if(!L.length)return '';
-  return oct(`<h2 class="sec">📰 새 보고 ${L.filter(r=>!sn[r.f]).length?`<span class="num">${L.filter(r=>!sn[r.f]).length}</span>`:''}</h2>${L.map(r=>rptRow(r).replace('class="hqrow"',`class="hqrow${sn[r.f]?' rd':''}"`)).join('')}`)}
+function rptTop(){const sn=lsx('rpt_seen',{}),td=new Date().toLocaleDateString('sv'),L=rptList().filter(r=>!sn[r.f]||(r.k==='c'&&r.d===td)),G=gdocRows(),M=gdocMore(),n=L.filter(r=>!sn[r.f]).length+gdocNew();if(!L.length&&!G&&!M)return '';
+  return oct(`<h2 class="sec">📰 새 보고 ${n?`<span class="num">${n}</span>`:''}</h2>${L.map(r=>rptRow(r).replace('class="hqrow"',`class="hqrow${sn[r.f]?' rd':''}"`)).join('')}${G}${M}`)}
+// 결재함 캐시가 24시간 넘게 안 바뀜(부대표 11/27 approvals_stale) → 회색 한 줄
+function apOld(A){const a=S3.st.hq_approvals||{};return (a.old?`<div class="kv apold">⚪ 결재함 오래됨 · ${a.cache_t?esc(new Date(a.cache_t*1000).toLocaleString('sv').slice(5,16))+' 뒤로 안 바뀜':'갱신 시각 모름'}</div>`:'')+(a.hidden?`<div class="kv">✅ 확정된 ${a.hidden}건은 숨겼어요</div>`:'')}
 // 🤖 비서 규칙 바뀜(부대표 18:03): 원본 = 비서_오답노트.csv. 되돌리기 = 두 번 눌러 부대표에게 편지
 function rulesCard(){const R=S3.st.sec_rules,L=((R||{}).items)||[];if(!L.length)return '';const sent=new Set(Q.of('rule_revert').filter(r=>!(r.st==='fail'&&r.rej)).map(r=>r.data.id));
   return oct(`<h2 class="sec">🤖 비서 규칙 바뀜 <span class="kv">${L.length}</span></h2>${L.slice(0,3).map((x,i)=>`<details class="gt" data-gk="rule:${esc(x.id)}"${i?'':' open'}><summary><b>${esc(x.what)}</b> <span class="kv">${esc(recD(x.d)||x.d)}</span></summary><div class="kv">전에는: ${esc(x.was)}</div><div>이제는: <b>${esc(x.now)}</b></div><div class="kv">고친 곳: ${esc(x.where)}</div><div class="nav2">${x.asked||sent.has(x.id)?'<span class="kv">↩ 되돌리기 요청 보냄 — 부대표가 봐요</span>':`<button class="btn" data-rrev="${esc(x.id)}">↩ 되돌리기</button>`}</div></details>`).join('')}${L.length>3?`<div class="kv">지난 ${L.length-3}개는 기록에</div>`:''}`)}
@@ -1591,7 +1676,7 @@ function pushCard(){return typeof Push==='undefined'?'':Push.card()}
 
 // ---- 새 판 확인 ----
 async function checkBuild(){try{const r=await fetch('version.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();if(!(v.build>BUILD))return;
-  const a=document.activeElement,busy=a&&/INPUT|TEXTAREA/.test(a.tagName)||Ask.isOpen||MB.open||Cal.isOpen||!$('#edit').hidden||!$('#rptv').hidden||S3.room==='lib'||vidPlaying()||EDIT.on;
+  const a=document.activeElement,busy=a&&/INPUT|TEXTAREA/.test(a.tagName)||Ask.isOpen||MB.open||Cal.isOpen||!$('#edit').hidden||!$('#rptv').hidden||S3.room==='lib'||vidPlaying()||EDIT.on||WS.w||($('#gdv')&&!$('#gdv').hidden);
   const last=lsGet('wc_reload',{});if(last.b===v.build&&Date.now()-last.t<120000)return;   // 같은 새 번호로 2분 안에 다시 하지 않음
   if(!busy){lsSet('wc_reload',{b:v.build,t:Date.now()});location.reload()}else setTimeout(checkBuild,30000)}catch(e){}}
 
@@ -1623,7 +1708,7 @@ document.getElementById('chan').hidden=IS_ROOT;
 if(IS_ROOT&&'serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{const r=String((e.data||{}).hqRoom||'');if(ROOMS.some(x=>x[0]===r.split('/')[0]))location.hash='#'+r})}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','부대표실','org','--green'],['hb','진행판','bars','--gold'],['coach','코칭실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
@@ -1649,7 +1734,7 @@ function approvals(){const a=S3.st.hq_approvals;if(a&&Array.isArray(a.items)&&a.
   return DEMO?{demo:1,audit:{n:7,of:20},rules:[['돈 쓰기·결제','반드시 동현 컨펌'],['포폴 방향 바꾸기','반드시 동현 컨펌'],['삭제·공개','반드시 동현 컨펌']],items:[
    {id:'demo1',prio:'P0',q:'이번 달 AI 도구 예산 상한을 어디로 정할까요?',why:'가격 확인 뒤 정하기로 한 항목이에요. 지금 무료 범위로 몇 주 더 버틸 수 있어요.',options:[{k:'A',label:'무료 범위만 쓰기',hint:'비용 0원, 느려질 수 있어요'},{k:'B',label:'월 약 1만 원까지',hint:'Google AI Plus 수준'},{k:'C',label:'월 약 3만 원까지',hint:'작업 속도 우선'}]},
    {id:'demo2',prio:'P1',q:'포폴 릴 첫 컷은 어떤 느낌으로 갈까요?',why:'소울라이크 묵직함과 캐주얼 톤 중 비중을 정해야 해요.',options:[{k:'A',label:'묵직한 실사 위주',hint:'소울라이크 지원에 맞아요'},{k:'B',label:'반반',hint:'폭넓게 보여 줘요'}]}]}:{demo:0,items:[],audit:null,rules:[]}}
-const pending=()=>approvals().items.filter(x=>!S3.answers[x.id]&&!x.answered);
+const pending=()=>approvals().items.filter(x=>!S3.answers[x.id]&&!x.answered&&!/✅|확정/.test(String(x.status||x.state||'')));   // 11/27: 확정된 것은 숨김
 
 // 로비·대표실·코칭실·일정·HB Library = hq.js
 function auditData(){const a=S3.st.audit_sample||{};const wk=a.week,items=a.items||[],loc=lsGet('v3_aud',{}),mine=loc.week===wk?loc.a||{}:{},srv=a.answers||{};const ans=Object.assign({},srv,mine);return {wk,items,ans}}
@@ -1683,7 +1768,8 @@ function studio(){
   const st=STAGES.map((s,i)=>`<div class="stg ${i===cur?'cur':i<cur?'past':''}" data-stage="${i}"><i></i><b>${s[0]}</b><small>${i===cur?'현재 단계':s[1]}</small></div>`).join('');
   const fmt=m=>`${Math.floor(m/60)} : ${String(m%60).padStart(2,'0')}`;
   const bar=(n,m)=>`<div class="wk"><span>${n}</span><div class="prog"><i style="width:${Math.min(100,Math.round(m/480*100))}%;background:var(--blue)"></i></div><span class="num">${m}분</span></div>`;
-  $('#r-studio').innerHTML=`<h1>작업실</h1><p class="lead">대표가 직접 만드는 곳</p>${hz()}
+  keepOpen($('#r-studio'),()=>$('#r-studio').innerHTML=`<h1>작업실</h1><p class="lead">대표가 직접 만드는 곳</p>${hz()}
+  ${wrCard()}<div style="height:20px"></div>
   ${oct(`<h2 class="sec">마일스톤 · 포폴 릴 <span class="cin sm">Milestone</span></h2><div class="stages">${st}</div>`)}
   <div style="height:20px"></div>${twEntry()}
   <div class="grid g2" style="margin-top:20px">
@@ -1700,7 +1786,7 @@ function studio(){
       <div class="nav2"><button class="btn" data-add="hand">손작업 +10분</button><button class="btn" data-add="prep">준비 +10</button><button class="btn" data-add="other">작업 외 +10</button></div>
       <div class="kv" style="margin-top:8px">자동 기록(worklog)은 연결 전이라 직접 눌러 적어요. 점수 없음.</div>`)}
     ${oct(`<h2 class="sec">릴 구성 <span class="cin sm">Reel</span></h2>${[['구성','애니 릴 + 파이프라인'],['실사 : 카툰','반반'],['캐릭터 수 · 모션','조사 뒤 결정']].map(r=>`<div class="rule"><span>◆</span><span>${r[0]}</span><span class="kv" style="margin-left:auto">${r[1]}</span></div>`).join('')}`)}
-   </div></div>`;
+   </div></div>`);
 }
 let clearT;
 function questClear(){if(!lsx('fx',true)||matchMedia('(prefers-reduced-motion:reduce)').matches)return;let e=document.getElementById('qc');if(!e){e=document.createElement('div');e.id='qc';e.textContent='QUEST CLEAR';document.body.appendChild(e)}e.classList.remove('go');void e.offsetWidth;e.classList.add('go');clearTimeout(clearT);clearT=setTimeout(()=>e.classList.remove('go'),1000)}
@@ -2000,6 +2086,7 @@ function route(){
   S3.rv='';if(/^review(\/|$)/.test(h)){S3.rv=decodeURIComponent(h.slice(7));h='review'}
   if(/^log(\/|$)/.test(h)){S3.recT=h.slice(4)||S3.recT||'space';h='log'}
   if(/^ops\//.test(h)){S3.jobOpen=h.slice(4);h='ops'}
+  if(/^ws\//.test(h))h='studio';   // 🎨 작업공간 고정 주소(#ws/<창>) — 창은 room.js 가 띄움
   if(/^two(\/|$)/.test(h)){S3.twT=h.slice(4)||S3.twT||'works';h='two'}
   if(h!=='title'&&h!=='review'&&h!=='two'&&!ROOMS.some(r=>r[0]===h))h='lobby';
   S3.room=h;render();window.scrollTo(0,0);
