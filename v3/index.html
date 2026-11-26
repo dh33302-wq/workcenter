@@ -418,6 +418,19 @@ body.lvoff #r-today .lvc,body.lvoff #r-board .lvc,body.lvoff #lv-line{filter:gra
 .v4t{margin-bottom:10px}.v4n{margin:0 0 12px;padding:8px 10px;border-left:3px solid var(--gold);background:var(--bg-panel)}
 .v4f{display:flex;flex-wrap:wrap;gap:8px}.v4s{all:unset;box-sizing:border-box;cursor:pointer;min-height:44px;padding:8px 12px;border:1px solid #3a3426;color:var(--dim);font-weight:600}.v4s.past{color:#5fd38d;border-color:#2f5a44}.v4s.cur{color:var(--gold);border-color:var(--gold);background:#17140d}.v4s:focus-visible{outline:2px solid var(--ivory)}
 .lvq{margin:10px 0 2px;padding-top:8px;border-top:1px dashed #333}
+
+/* ✏ 편집 모드: 12칸 격자 · 카드 도구 줄 (11/27 설계 7절) */
+.lvgrid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:10px 12px;align-items:start}.lvgrid>.lc{min-width:0}
+.lvgrid .lvc,.lvgrid .al,.lvgrid .lvl,.lvgrid .lvs,.lvgrid .lvold{margin:0}.lvgrid .lvend{margin:4px 0}
+.lc.h-s>.lcb{max-height:62px;overflow:hidden}.lc.h-m>.lcb{max-height:320px;overflow:auto}.lc.h-l>.lcb{max-height:640px;overflow:auto}
+.lc.v-num>.lcb .in>:not(h2),.lc.v-num>.lcb h2 .kv{display:none}.lc.v-num>.lcb h2 .num{font-size:2em;margin-left:8px}
+.lc.v-line>.lcb .in>:not(h2):not(:nth-child(2)){display:none}
+.lc.ed{outline:1px dashed #6b5a35;outline-offset:2px}.lc.drag{opacity:.55;outline:2px solid var(--gold)}
+.lct{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;padding:2px 0 6px;font:600 13px system-ui,"Malgun Gothic",sans-serif;color:var(--dim)}.lct>b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.lch{flex:none;width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;user-select:none;border:1px solid #3a3426;color:var(--gold);font-size:18px}
+.lcbs{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}.lcbs button{all:unset;box-sizing:border-box;cursor:pointer;min-width:44px;min-height:44px;padding:0 8px;border:1px solid #3a3426;color:var(--ivory);text-align:center;font:600 13px system-ui,"Malgun Gothic",sans-serif;white-space:nowrap}.lcbs button:focus-visible,.lch:focus-visible{outline:2px solid var(--ivory)}
+.lcadd{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px;border:1px dashed #6b5a35}.lcadd .btn{min-height:44px}
+body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .ep-h #ep-undo{margin-left:auto}
 </style>
 </head>
 <body>
@@ -427,6 +440,7 @@ body.lvoff #r-today .lvc,body.lvoff #r-board .lvc,body.lvoff #lv-line{filter:gra
   <div class="brand"><span class="cin">HB HQ</span><em class="tag" id="chan" hidden>시험</em></div>
   <div class="clock"><b id="clk-d"></b><span id="clk-t"></span><span id="ergo" title="에르고">◈ <b id="ergo-n">0</b></span><button id="snd" title="효과음 켜기/끄기" aria-label="효과음">🔊</button><span id="sync" title="동기화">●</span></div>
   <button id="ask-open" class="tbtn" aria-label="묻기">💬<span class="tl">묻기</span><i id="ask-badge" class="bdg"></i></button>
+  <button id="ed-open" class="tbtn" type="button" aria-label="편집 모드">✏</button>
   <button id="mbb" class="tbtn" type="button" aria-label="아이디어함 열기" aria-expanded="false">💡</button>
 </header>
 <main id="main">
@@ -470,7 +484,7 @@ body.lvoff #r-today .lvc,body.lvoff #r-board .lvc,body.lvoff #lv-line{filter:gra
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=27;
+const BUILD=28;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1798,6 +1812,56 @@ function boardCard(){const now=Date.now()/1000;
   return h}
 function jobsCard(){return boardCard()}
 
+// ---- ✏ 편집 모드: 카드 배치 (부대표 설계 v1 7절, 동현 11/27 05:30 "노션처럼 직접") ----
+// 1차(BUILD 28): 순서(끌기·↑↓) · 너비(12칸 격자) · 높이 · 보기(목록·한 줄·숫자만) · 접기 · 숨기기 · ＋ 카드(숨긴 것 다시) · 되돌리기 10판 · 기본값
+// 배치 = 기기 모양별 3벌(cover·fold·pc) × 방. 기기 안(v3_layout)에 바로 저장 + PC 지킴이 layout.json 과 맞춤(새것이 이김). 앱을 새로 올려도 유지, 새 카드는 맨 아래 🆕.
+const LAY_K='v3_layout',LAY_U='v3_layout_undo',LAY_W={cover:[12,6],fold:[12,8,6,4,3],pc:[12,8,6,4,3]},LAY_WN={3:'1/4',4:'1/3',6:'1/2',8:'2/3',12:'전체'};
+const LAY_H=[['a','내용만큼'],['m','보통'],['l','크게'],['s','작게']],LAY_V=[['list','목록'],['line','한 줄'],['num','숫자만']];
+const layDev=()=>innerWidth<600?'cover':innerWidth<1100?'fold':'pc';
+const layAll=()=>lsGet(LAY_K,{});
+const layEd=()=>{try{return !!EDIT.on}catch(e){return false}};   // edit.js 가 뒤에 실리므로 처음 그릴 때는 아직 없음
+const layBlank=()=>({order:[],w:{},h:{},v:{},hide:{}});
+function layGet(room){return Object.assign(layBlank(),JSON.parse(JSON.stringify(((layAll()[layDev()]||{})[room])||{})))}
+function laySave(A){A.t=Date.now();lsSet(LAY_K,A);clearTimeout(laySave.T);laySave.T=setTimeout(()=>{Q.add('layout_save',{layout:layAll()});Sync3.flush()},1500)}
+function laySet(room,L){const A=layAll(),d=layDev();A[d]=A[d]||{};const U=lsGet(LAY_U,[]);U.push({d,room,L:A[d][room]||null});lsSet(LAY_U,U.slice(-10));A[d][room]=L;laySave(A)}
+function layUndo(){const U=lsGet(LAY_U,[]),u=U.pop();if(!u){toast('되돌릴 것이 없어요');return}const A=layAll();A[u.d]=A[u.d]||{};if(u.L)A[u.d][u.room]=u.L;else delete A[u.d][u.room];lsSet(LAY_U,U);laySave(A);toast('↩ 한 판 되돌렸어요');render()}
+function layReset(room){laySet(room,layBlank());toast('기본 배치로 돌렸어요 · ↩ 로 되돌릴 수 있어요');render()}
+// PC 에 저장된 배치가 더 새것이면 받아 온다(다른 기기에서 바꾼 것)
+function layPull(){const r=S3.st.layout;if(r&&r.layout&&+r.layout.t>(+layAll().t||0)&&!window.LAYDRAG){lsSet(LAY_K,r.layout);return true}return false}
+function layOrder(L,ids){if(!L.order.length)return {order:ids,fresh:[]};const known=L.order.filter(i=>ids.includes(i)),fresh=ids.filter(i=>!known.includes(i));return {order:[...known,...fresh],fresh}}
+// cards: [{id,name,html,view?}] — html 이 빈 카드는 뺀다
+function layGrid(room,cards){cards=cards.filter(c=>c.html);const L=layGet(room),dev=layDev(),ed=layEd(),by=Object.fromEntries(cards.map(c=>[c.id,c])),{order,fresh}=layOrder(L,cards.map(c=>c.id));
+  const vis=order.filter(i=>!L.hide[i]),hid=order.filter(i=>L.hide[i]),hn=k=>(LAY_H.find(x=>x[0]===k)||LAY_H[0])[1],vn=k=>(LAY_V.find(x=>x[0]===k)||LAY_V[0])[1];
+  const cell=i=>{const c=by[i],w=LAY_W[dev].includes(+L.w[i])?+L.w[i]:12,h=L.h[i]||'a',v=c.view?L.v[i]||'list':'list';
+    return `<div class="lc h-${h} v-${v}${ed?' ed':''}" data-card="${i}" data-w="${w}" style="grid-column:span ${w}">${ed?`<div class="lct"><span class="lch" data-lh="1" role="button" aria-label="${esc(c.name)} 끌어서 옮기기">⠿</span><b>${esc(c.name)}${fresh.includes(i)?' 🆕':''}</b><span class="lcbs"><button data-la="up" aria-label="위로">↑</button><button data-la="dn" aria-label="아래로">↓</button><button data-la="w">↔ ${LAY_WN[w]}</button><button data-la="h">↕ ${hn(h)}</button>${c.view?`<button data-la="v">👁 ${vn(v)}</button>`:''}<button data-la="fold">${h==='s'?'펴기':'접기'}</button><button data-la="hide">숨기기</button></span></div>`:''}<div class="lcb">${c.html}</div></div>`};
+  return `<div class="lvgrid${ed?' ed':''}" data-room="${room}" data-hid="${esc(hid.join(','))}">${vis.map(cell).join('')}${ed?`<div class="lcadd"><b>＋ 카드</b>${hid.length?hid.map(i=>`<button class="btn" data-ladd="${esc(i)}">＋ ${esc(by[i].name)}</button>`).join(''):'<span class="kv">숨긴 카드가 없어요 — 이 탭 카드는 모두 나와 있어요</span>'}</div>`:''}</div>`}
+function layFromDom(g){const L=layGet(g.dataset.room);L.order=[...[...g.querySelectorAll(':scope>.lc')].map(e=>e.dataset.card),...(g.dataset.hid?g.dataset.hid.split(','):[])];return L}
+document.addEventListener('click',e=>{let b;
+  if(b=e.target.closest('#ed-open')){editToggle();render();return}
+  if(b=e.target.closest('#ep-undo')){layUndo();return}
+  if(b=e.target.closest('#ep-def')){if(document.querySelector('.room.on .lvgrid'))layReset(S3.room);else toast('이 탭은 아직 카드 배치를 바꿀 수 없어요');return}
+  if(b=e.target.closest('[data-ladd]')){const g=b.closest('.lvgrid'),L=layFromDom(g),i=b.dataset.ladd;delete L.hide[i];L.order=[...L.order.filter(x=>x!==i&&!L.hide[x]),i,...L.order.filter(x=>L.hide[x])];laySet(g.dataset.room,L);render();return}
+  if(b=e.target.closest('[data-la]')){const c=b.closest('.lc'),g=b.closest('.lvgrid'),i=c.dataset.card,L=layFromDom(g),a=b.dataset.la,dev=layDev(),vis=L.order.filter(x=>!L.hide[x]),k=vis.indexOf(i);
+    const cyc=(arr,cur)=>arr[(arr.indexOf(cur)+1)%arr.length];
+    if(a==='up'||a==='dn'){const j=k+(a==='up'?-1:1);if(j<0||j>=vis.length)return;[vis[k],vis[j]]=[vis[j],vis[k]];L.order=[...vis,...L.order.filter(x=>L.hide[x])]}
+    else if(a==='w')L.w[i]=cyc(LAY_W[dev],LAY_W[dev].includes(+L.w[i])?+L.w[i]:12);
+    else if(a==='h')L.h[i]=cyc(LAY_H.map(x=>x[0]),L.h[i]||'a');
+    else if(a==='v')L.v[i]=cyc(LAY_V.map(x=>x[0]),L.v[i]||'list');
+    else if(a==='fold')L.h[i]=L.h[i]==='s'?'a':'s';
+    else if(a==='hide')L.hide[i]=1;
+    laySet(g.dataset.room,L);render();
+    if(a==='up'||a==='dn'){const n=document.querySelector(`.room.on .lc[data-card="${CSS.escape(i)}"] [data-la="${a}"]`);if(n)n.focus({preventScroll:true})}}});
+// 끌어서 순서 바꾸기(손잡이 ⠿): 마우스·터치 같은 코드. 끄는 동안은 다시 그리지 않는다(30초 갱신이 와도 튀지 않게)
+(function(){let D=null;
+  document.addEventListener('pointerdown',e=>{const h=e.target.closest('.lch');if(!h||!EDIT.on)return;const c=h.closest('.lc'),g=c.closest('.lvgrid');e.preventDefault();D={c,g,id:e.pointerId,n:0,t:0};window.LAYDRAG=1;c.classList.add('drag');try{h.setPointerCapture(e.pointerId)}catch(x){}});
+  document.addEventListener('pointermove',e=>{if(!D||e.pointerId!==D.id)return;const t0=performance.now(),el=document.elementFromPoint(e.clientX,e.clientY),o=el&&el.closest('.lc');
+    if(o&&o!==D.c&&o.parentNode===D.g){const r=o.getBoundingClientRect(),after=r.width<D.g.clientWidth*.9?e.clientX>r.left+r.width/2:e.clientY>r.top+r.height/2;D.g.insertBefore(D.c,after?o.nextSibling:o)}
+    if(e.clientY<90)scrollBy(0,-14);else if(e.clientY>innerHeight-110)scrollBy(0,14);
+    D.n++;D.t=Math.max(D.t,performance.now()-t0)});
+  const end=e=>{if(!D||e.pointerId!==D.id)return;const {c,g}=D;window.__laydrag={moves:D.n,max_ms:Math.round(D.t*10)/10};D=null;window.LAYDRAG=0;c.classList.remove('drag');const ad=g.querySelector(':scope>.lcadd');if(ad)g.appendChild(ad);laySet(g.dataset.room,layFromDom(g));render()};
+  document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end)})();
+window.addEventListener('resize',()=>{clearTimeout(layGrid.R);layGrid.R=setTimeout(()=>{if(layGrid.D!==layDev()){layGrid.D=layDev();render()}},200)});layGrid.D=layDev();
+
 // ---- HB HQ 실시간 두 탭 (부대표 11/27 04:47 p1_hq_live): 🏠 오늘 · 📊 진행판 ----
 // 숫자(일·팀·막힘·비서·Claude)는 status.json(S3.st.status, 모양 hq_status_v1 — 개발팀 hub\tools\status_feed.py)에서만 읽는다.
 // 원본 바꿔 끼우기(C2): Live 의 raw·at·pcAt 만 고친다. 화면(오늘·진행판)은 그대로.
@@ -1870,15 +1934,13 @@ function lvBlockedCard(now){const B=lvBlocked(now);
 function trophyN(){const tr=lsx('trophy',{}),tot=TROPHIES.reduce((a,t)=>a+t[2].length,0);return [Object.keys(tr).filter(k=>tr[k]).length,tot]}
 function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=quitInfo(),dd=Math.ceil((new Date(JOB_DEADLINE+'T00:00:00')-Date.now())/864e5),[tg,tt]=trophyN();
   const L=$('#r-lobby');if(L.firstElementChild)L.replaceChildren();   // 지금 카드(#fx)는 한 곳에만
-  keepOpen($('#r-today'),()=>$('#r-today').innerHTML=`<h1 class="sr">오늘</h1>
-  ${Focus.box()}${x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:''}
-  ${lvTodoCard()}
-  ${lvBlockedCard(now)}
-  ${oct(`<h2 class="sec">팀 신호등 <span class="kv">눌러서 진행판으로</span></h2>${lvTeams(now)}`,'lvc')}
-  <div class="nav2 lvl"><a class="btn" href="#plan">📅 오늘 시간표 · 일정 ${x.n}</a><a class="btn" href="#board">📊 진행판</a><a class="btn" href="#v4/ws">🆕 새 화면 미리보기</a></div>
-  ${Focus.quitBtn()}${Push.hint()}
-  <div class="lvend"><a class="btn" href="#out">🌙 퇴근·채점${q.again?' · 퇴근했어요':''}</a><span class="kv">입사 목표까지 ${dd}일 · 🏆 ${tg}/${tt}</span></div>
-  <details class="gt lvold" data-gk="oldrooms"><summary>🗂️ 옛 화면 ${OLD_ROOMS.length}개 <span class="kv">새 화면으로 옮기는 중 — 그대로 쓸 수 있어요</span></summary><div class="rcs">${OLD_ROOMS.map(id=>{const [n,ds,c]=roomStat(id),r=ROOMS.find(q=>q[0]===id);return `<a class="rc c-${c}" href="#${id}" data-room="${id}">${icon(r[2])}<b>${r[1]}</b>${n!==''?`<span class="num">${n}</span>`:''}<small>${ds}</small></a>`}).join('')}</div></details>`);
+  const C=[{id:'now',name:'지금 블록',html:Focus.box()+(x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:'')},
+    {id:'todo',name:'🙋 결재·할 일',view:1,html:lvTodoCard()},{id:'blk',name:'🔴 막힌 일',view:1,html:lvBlockedCard(now)},
+    {id:'teams',name:'팀 신호등',html:oct(`<h2 class="sec">팀 신호등 <span class="kv">눌러서 진행판으로</span></h2>${lvTeams(now)}`,'lvc')},
+    {id:'links',name:'바로 가기',html:`<div class="nav2 lvl"><a class="btn" href="#plan">📅 오늘 시간표 · 일정 ${x.n}</a><a class="btn" href="#board">📊 진행판</a><a class="btn" href="#v4/ws">🆕 새 화면 미리보기</a></div>`},
+    {id:'end',name:'하루 마무리',html:`${Focus.quitBtn()}${Push.hint()}<div class="lvend"><a class="btn" href="#out">🌙 퇴근·채점${q.again?' · 퇴근했어요':''}</a><span class="kv">입사 목표까지 ${dd}일 · 🏆 ${tg}/${tt}</span></div>`},
+    {id:'old',name:'옛 화면',html:`<details class="gt lvold" data-gk="oldrooms"><summary>🗂️ 옛 화면 ${OLD_ROOMS.length}개 <span class="kv">새 화면으로 옮기는 중 — 그대로 쓸 수 있어요</span></summary><div class="rcs">${OLD_ROOMS.map(id=>{const [n,ds,c]=roomStat(id),r=ROOMS.find(q=>q[0]===id);return `<a class="rc c-${c}" href="#${id}" data-room="${id}">${icon(r[2])}<b>${r[1]}</b>${n!==''?`<span class="num">${n}</span>`:''}<small>${ds}</small></a>`}).join('')}</div></details>`}];
+  keepOpen($('#r-today'),()=>$('#r-today').innerHTML=`<h1 class="sr">오늘</h1>${layGrid('today',C)}`);
   Focus.tick();lvBar();lvCount('today',t0)}
 
 // ---- 📊 진행판 ----
@@ -1887,18 +1949,13 @@ function lvStatusLine(){const s=Live.raw();if(!s)return '';const Sc=s.secretary|
   return `<div class="lvs" id="lv-line">${b(Sc.state==='정상',`🎃 비서 <b>${esc(Sc.state||'–')}</b> · 오늘 ${+Sc.calls_today||0}${cap}회`)}${b(!C.state||C.state==='정상',`Claude <b>${esc(C.state||'정상')}</b>`)}${b(C.dispatch!=='red',`배달원 <b>${C.dispatch==='red'?'빨강':C.dispatch==='yellow'?'주의':'정상'}</b>`)}${(s.flags||[]).map(f=>b(false,'⏸️ '+esc(f))).join('')}</div>`}
 function board2(){const now=Date.now()/1000,t0=performance.now(),s=Live.raw();
   if(!s){keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">실시간 상태를 기다리는 동안 앞 방식(파일 시각)으로 보여요</p>${hz()}${boardCard()}${healthCard()}`);lvBar();lvCount('board',t0);return}
-  const run=Live.jobs('run'),blk=Live.jobs('blocked'),quiet=Live.jobs('quiet'),stall=Live.jobs('stall'),done=Live.jobs('done_today'),C=s.counts||{},er=s.errors||[];
+  const run=Live.jobs('run'),blk=Live.jobs('blocked'),quiet=Live.jobs('quiet'),stall=Live.jobs('stall'),done=Live.jobs('done_today'),C0=s.counts||{},er=s.errors||[];
   const stopN=blk.length+stall.length+er.length,G=(S3.st.hb_gates||{}).gates||[],gp=G.filter(g=>g.pass===true).length;
   const sec=(id,h,body)=>oct(`<h2 class="sec" id="${id}">${h}</h2>${body}`,'bv2c lvc');
-  keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">잘 돌아가고 있나 · 모든 일 ${(+C.run||0)+(+C.quiet||0)+(+C.stall||0)+(+C.blocked||0)+(+C.done||0)}개</p>${hz()}
-  ${lvStatusLine()}
-  ${sec('lv-run',`🟢 지금 도는 일 <span class="num" id="lv-n-run">${run.length}</span> <span class="kv">30분 안에 내용이 바뀐 것</span>`,(run.map(x=>lvRow(x,'run',now)).join('')||'<div class="empty">지금 도는 일이 없어요</div>')+(quiet.length?`<div class="kv lvq" id="lv-quiet">조용한 일 <b class="num" id="lv-n-quiet">${quiet.length}</b> · 30분 넘게 소식 없음(하루 안)</div>${quiet.map(x=>lvRow(x,'quiet',now)).join('')}`:''))}
-  ${sec('lv-stop',`🔴 멈춘 일 <span class="num" id="lv-n-stop">${stopN}</span> <span class="kv">막힘 · 하루 넘게 그대로 · 읽기 실패</span>`,er.map(e=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(e.file)}</b><span class="fr"></span></div></div>`).join('')+[...blk.map(x=>lvRow(x,'blocked',now)),...stall.map(x=>lvRow(x,'stall',now))].join('')||'<div class="ok">멈춘 일이 없어요</div>')}
-  ${oct(`<details class="bdone" data-gk="lvdone"><summary><h2 class="sec" style="display:inline">✅ 오늘 끝난 일 <span class="num" id="lv-n-done">${+C.done_today||0}</span></h2> <span class="kv">눌러서 보기 · 지금까지 모두 ${+C.done||0}개</span></summary>${done.map(x=>lvRow(x,'done',now)).join('')||'<div class="empty">오늘 끝난 일은 아직 없어요</div>'}${(+C.done_today||0)>done.length?`<div class="kv">최근 ${done.length}개만 보여요</div>`:''}</details>`,'bv2c lvc')}
-  ${sec('lv-teams','팀 신호등 <span class="kv">🟢 30분 안 진행 · 🟡 편지 기다림 · 🔴 실패·막힘 · ⚪ 쉼</span>',lvTeams(now,1))}
-  <div id="lv-news">${rptTop()||oct('<h2 class="sec">📰 보고 · 🎃 비서 결과</h2><div class="empty">새 보고가 없어요</div>','lvc')}</div>
-  ${oct(`<div class="hqrow"><b>🎯</b><span><b>통과 기준</b> ${G.length?`${gp} / ${G.length} 통과`:'기다리는 중'}<br><small class="kv">제품별 품질 관문 · 클립</small></span><a class="btn" href="#hb">열기</a></div><div class="hqrow"><b>🗂️</b><span><b>끝난 일 전체 · 일 자세히</b><br><small class="kv">옛 부대표실</small></span><a class="btn" href="#ops">열기</a></div>`,'lvc')}
-  ${healthCard()}`);
+  const C=[{id:'line',name:'상태 줄',html:lvStatusLine()},{id:'run',name:'🟢 지금 도는 일',view:1,html:sec('lv-run',`🟢 지금 도는 일 <span class="num" id="lv-n-run">${run.length}</span> <span class="kv">30분 안에 내용이 바뀐 것</span>`,(run.map(x=>lvRow(x,'run',now)).join('')||'<div class="empty">지금 도는 일이 없어요</div>')+(quiet.length?`<div class="kv lvq" id="lv-quiet">조용한 일 <b class="num" id="lv-n-quiet">${quiet.length}</b> · 30분 넘게 소식 없음(하루 안)</div>${quiet.map(x=>lvRow(x,'quiet',now)).join('')}`:''))},{id:'stop',name:'🔴 멈춘 일',view:1,html:sec('lv-stop',`🔴 멈춘 일 <span class="num" id="lv-n-stop">${stopN}</span> <span class="kv">막힘 · 하루 넘게 그대로 · 읽기 실패</span>`,er.map(e=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(e.file)}</b><span class="fr"></span></div></div>`).join('')+[...blk.map(x=>lvRow(x,'blocked',now)),...stall.map(x=>lvRow(x,'stall',now))].join('')||'<div class="ok">멈춘 일이 없어요</div>')},
+    {id:'done',name:'✅ 오늘 끝난 일',html:oct(`<details class="bdone" data-gk="lvdone"><summary><h2 class="sec" style="display:inline">✅ 오늘 끝난 일 <span class="num" id="lv-n-done">${+C0.done_today||0}</span></h2> <span class="kv">눌러서 보기 · 지금까지 모두 ${+C0.done||0}개</span></summary>${done.map(x=>lvRow(x,'done',now)).join('')||'<div class="empty">오늘 끝난 일은 아직 없어요</div>'}${(+C0.done_today||0)>done.length?`<div class="kv">최근 ${done.length}개만 보여요</div>`:''}</details>`,'bv2c lvc')},{id:'teams',name:'팀 신호등',html:sec('lv-teams','팀 신호등 <span class="kv">🟢 30분 안 진행 · 🟡 편지 기다림 · 🔴 실패·막힘 · ⚪ 쉼</span>',lvTeams(now,1))},
+    {id:'news',name:'📰 보고',html:`<div id="lv-news">${rptTop()||oct('<h2 class="sec">📰 보고 · 🎃 비서 결과</h2><div class="empty">새 보고가 없어요</div>','lvc')}</div>`},{id:'gates',name:'🎯 통과 기준',html:oct(`<div class="hqrow"><b>🎯</b><span><b>통과 기준</b> ${G.length?`${gp} / ${G.length} 통과`:'기다리는 중'}<br><small class="kv">제품별 품질 관문 · 클립</small></span><a class="btn" href="#hb">열기</a></div><div class="hqrow"><b>🗂️</b><span><b>끝난 일 전체 · 일 자세히</b><br><small class="kv">옛 부대표실</small></span><a class="btn" href="#ops">열기</a></div>`,'lvc')},{id:'health',name:'🩺 팀 건강',html:healthCard()}];
+  keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">잘 돌아가고 있나 · 모든 일 ${(+C0.run||0)+(+C0.quiet||0)+(+C0.stall||0)+(+C0.blocked||0)+(+C0.done||0)}개</p>${hz()}${layGrid('board',C)}`);
   if(S3.bdJump){const e=$('#lv-'+S3.bdJump);S3.bdJump='';if(e)setTimeout(()=>e.scrollIntoView({block:'start'}),30)}
   lvBar();lvCount('board',t0)}
 // 시험·점검용 숫자: 그린 시간(ms) · 신선도 판정 개수 · 메뉴 수
@@ -1924,7 +1981,7 @@ function v4Room(){const t=V4T.some(x=>x[0]===S3.v4T)?S3.v4T:'ws',cur=lsx('v4stag
 document.addEventListener('click',e=>{const b=e.target.closest('[data-v4s]');if(!b)return;const i=+b.dataset.v4s;lsSet('v3_v4stage',lsx('v4stage',-1)===i?-1:i);render()});
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['status','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['status','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','부대표실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','코칭실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={v4:'#CEA85E',today:'#CEA85E',board:'#CEA85E',lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
@@ -2288,6 +2345,7 @@ function nav(){const el=$('#nav');el.style.display=S3.room==='title'?'none':'';d
   tn=todoN(),item=(id,sub)=>{const [,nm,k]=ROOMS.find(r=>r[0]===id),c=sub?roomStat(id):null;return `<a href="#${id}" style="--c:${COLOR[id]}" class="${sub?'sub':''} ${cur===id?'on':''}" ${cur===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span>${id==='today'&&tn?`<i class="bdg" aria-label="결재·할 일 ${tn}">${tn>99?'99+':tn}</i>`:''}${c&&c[0]!==''?`<em class="num c-${c[2]}">${c[0]}</em>`:''}</a>`};
   el.innerHTML=TABS4.map(id=>item(id)).join('')+`<div class="sub hr"></div><div class="sub navl">옛 화면</div>`+OLD_ROOMS.map(id=>item(id,1)).join('')}
 function render(){
+  if(window.LAYDRAG)return;   // 카드를 끄는 동안은 다시 그리지 않는다
   {const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('cxin')&&ae.value&&(S3.room==='studio'||S3.room==='coach'||S3.room==='v4'))return}
   document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
@@ -2316,7 +2374,7 @@ const Sync3={busy:false,
     try{await Q.flush();const res=await api.get(V3_STATES.filter(n=>!isVid(n)));if(!res.ok)throw new Error('상태 못 받음');
       S3.st=Object.assign({},S3.st,res.state);const nv=vidNeed();if(nv.length){const r2=await api.get(nv).catch(()=>null);if(r2&&r2.ok)Object.assign(S3.st,r2.state)}
       lsSet('v3_state',Object.fromEntries(Object.entries(S3.st).filter(([k])=>!isVid(k))));$('#sync').classList.remove('bad');
-      Q.applyDone(S3.st.meta&&S3.st.meta.done);mbTidy();rmSeen();Ask.render(S3.st);Push.check();if(S3.st.cal_cfg&&JSON.stringify(S3.st.cal_cfg)!==S3.calCfg){S3.calCfg=JSON.stringify(S3.st.cal_cfg);Cal.load(true)}}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
+      Q.applyDone(S3.st.meta&&S3.st.meta.done);layPull();mbTidy();rmSeen();Ask.render(S3.st);Push.check();if(S3.st.cal_cfg&&JSON.stringify(S3.st.cal_cfg)!==S3.calCfg){S3.calCfg=JSON.stringify(S3.st.cal_cfg);Cal.load(true)}}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
     this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('.room input,.room textarea')))&&!vidPlaying())render();jrOpen()},
   flush(){Q.flush().catch(()=>{})}};
 window.addEventListener('hashchange',route);clock();setInterval(clock,20000);
@@ -2386,11 +2444,12 @@ function editPanel(){
   if(!el){el=document.createElement('div');el.id='editp';document.body.appendChild(el)}
   const v=uiPrefs()[uiDev()],room=S3.room,m=lsGet(MEMO_K,{}),list=memoList(),sent=lsGet(SENT_K,{}),same=list.length&&sent.h===memoHash(list);
   const nm=(ROOMS.find(r=>r[0]===room)||[room,room])[1];
-  el.innerHTML=`<div class="ep-h"><b>✏ 편집 모드</b><span class="kv">${uiDev()==='cover'?'커버 화면':'펼친 화면'}용 설정이에요</span><button class="btn" id="ep-x">닫기</button></div>
+  el.innerHTML=`<div class="ep-h"><b>✏ 편집 모드</b><span class="kv">${({cover:'커버',fold:'펼친',pc:'PC'})[layDev()]} 화면 배치 · 카드 위 버튼으로 옮기고 크기를 바꿔요</span><button class="btn" id="ep-undo">↩ 되돌리기</button><button class="btn" id="ep-def">기본값</button><button class="btn pri2" id="ep-x">완료</button></div>
+  <details class="gt" data-gk="epmore"><summary class="kv">글씨·카드 크기 · 이 탭에 바라는 것</summary>
   <label>글씨 크기 <b id="ep-fv">${Math.round(v.font*100)}%</b><input type="range" id="ep-f" min="70" max="160" step="5" value="${Math.round(v.font*100)}"></label>
   <label>카드 크기 <b id="ep-cv">${Math.round(v.card*100)}%</b><input type="range" id="ep-c" min="70" max="160" step="5" value="${Math.round(v.card*100)}"></label>
   <label>‘${esc(nm)}’ 탭에 바라는 것<textarea id="ep-m" rows="2" placeholder="예: 이 화면에서 ○○이 더 컸으면 좋겠어요">${esc(m[room]||'')}</textarea></label>
-  <div class="ep-f"><span class="kv">적어 둔 탭 ${list.length}개</span><button class="btn" id="ep-r">비율 되돌리기</button><button class="btn pri2" id="ep-s" ${!list.length||same?'disabled':''}>${same?'✅ 보냄':'업데이트 요청 보내기'}</button></div>`;
+  <div class="ep-f"><span class="kv">적어 둔 탭 ${list.length}개</span><button class="btn" id="ep-r">비율 되돌리기</button><button class="btn pri2" id="ep-s" ${!list.length||same?'disabled':''}>${same?'✅ 보냄':'업데이트 요청 보내기'}</button></div></details>`;
 }
 function editToggle(on){EDIT.on=on===undefined?!EDIT.on:on;editPanel();toast(EDIT.on?'✏ 편집 모드 켬':'편집 모드 끔')}
 document.addEventListener('input',e=>{
@@ -2402,7 +2461,7 @@ document.addEventListener('input',e=>{
 document.addEventListener('change',e=>{if(e.target.id==='ep-m')editPanel()});
 document.addEventListener('click',e=>{
   const id=e.target.closest('button')?.id;
-  if(id==='ep-x')editToggle(false);
+  if(id==='ep-x'){editToggle(false);render()}
   else if(id==='ep-r'){const p=uiPrefs();p[uiDev()]={font:1,card:1};lsSet(UI_K,p);uiApply();editPanel()}
   else if(id==='ep-s'){
     const list=memoList();if(!list.length)return;const h=memoHash(list);
