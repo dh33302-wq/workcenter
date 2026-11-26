@@ -464,6 +464,20 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 .msl{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 2px}.msl .cur{color:var(--gold);font-weight:700}.msl .past{color:#5fd38d}
 .fx-tl{font-size:12px;margin-top:4px}a.tl1{display:block;text-decoration:none;color:inherit;min-height:44px;box-sizing:border-box;padding:12px 14px;font-weight:600}
 .bv2>summary{min-height:44px;box-sizing:border-box}
+
+/* BUILD 35 · 동현 11/27 06:55 ⑤ 버튼 모양: 테두리 4면 + 배경 + 눌림, 아이콘+글자 한 줄(좁으면 아이콘만 — tip.js btnFit, 설명은 title), 최소 44px */
+.btn,.ib2,.v4s,.chip,.ths button,.mb-c button,.gmb button,.lcbs button{clip-path:none!important;border:1px solid #6b5a35;border-radius:8px;background:#1c1a14;box-shadow:0 2px 0 #000;min-height:44px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;box-sizing:border-box;transition:background .12s,transform .06s,box-shadow .06s}
+.btn{line-height:22px;padding:10px 16px}
+.btn:hover,.ib2:hover,.v4s:hover,.chip:hover,.ths button:hover,.mb-c button:hover,.gmb button:hover,.lcbs button:hover{background:#2a261b}
+.btn:active,.ib2:active,.v4s:active,.chip:active,.ths button:active,.mb-c button:active,.gmb button:active,.lcbs button:active{transform:translateY(2px);box-shadow:none;background:#121109}
+.btn.pri2,.btn.on,.chip.on{background:var(--gold);color:#18160C;border-color:var(--gold)}.btn.pri2:hover,.btn.on:hover{background:#dcb86e}
+.btn:disabled,.btn[disabled],button.ib2:disabled{opacity:.45;cursor:not-allowed;box-shadow:none;transform:none}
+.v4s.cur{background:#2a2312}.v4s.past{background:#13201a}
+.btn.wsbig{white-space:nowrap;min-height:72px;display:flex}
+.ico{font-size:0!important;line-height:0!important;padding:0 10px!important;min-width:44px;height:44px;display:inline-flex!important;align-items:center;justify-content:center}.ico::before{content:attr(data-ic);font-size:20px;line-height:1}
+/* 누르는 줄(보고·조사·트로피 목록)도 글씨와 구별되게: 칸 테두리 + 배경 + 눌림 */
+button.hqrow,.trow,.qrow{border:1px solid #2c2820!important;border-radius:8px;background:var(--bg-row);padding:10px 12px;margin-top:6px;box-shadow:0 2px 0 #000;transition:background .12s,transform .06s}
+button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:active,.trow:active,.qrow:active{transform:translateY(2px);box-shadow:none;background:#101010}
 </style>
 </head>
 <body>
@@ -517,7 +531,7 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=34;
+const BUILD=35;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2610,8 +2624,17 @@ function tipText(el){
   return lab&&txt&&lab!==txt?lab+' — '+txt:nm==='✕'?'닫기':nm;
 }
 function tipFill(root){(root||document).querySelectorAll('button:not([title]),a[href]:not([title]),summary:not([title]),[role=button]:not([title]),[data-tipa]').forEach(el=>{const t=tipText(el);if(el.title!==t)el.title=t;el.dataset.tipa='1'})}   // data-tipa = 자동으로 붙인 것(글자가 바뀌면 다시 씀)
-(function(){let q=false;const run=()=>{q=false;tipFill()};
-  new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(run)}}).observe(document.documentElement,{childList:true,subtree:true});run()})();
+// ---- 버튼 한 줄(동현 06:55 ⑤): 글자가 넘치면 아이콘만 보이게(.ico, 맨 앞 그림 글자 = data-ic). 설명은 위 title 이 그대로 한다 ----
+const BTN_FIT='.btn,.ib2,.v4s,.chip,.ths button,.mb-c button,.gmb button,.lcbs button';
+function btnIcon(t){t=(t||'').trim();if(!/^\p{Extended_Pictographic}/u.test(t))return '';try{return [...new Intl.Segmenter().segment(t)][0].segment}catch(e){return [...t][0]}}
+function btnFit(root,all){(root||document).querySelectorAll(BTN_FIT).forEach(e=>{
+  if(all&&e.classList.contains('ico'))e.classList.remove('ico');
+  if(e.classList.contains('ico')||!e.offsetWidth)return;
+  if(e.scrollWidth>e.clientWidth+1){const ic=btnIcon(e.textContent);if(ic){e.dataset.ic=ic;e.classList.add('ico')}}})}
+(function(){let q=false;const run=()=>{q=false;tipFill();btnFit()};
+  new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(run)}}).observe(document.documentElement,{childList:true,subtree:true});run();
+  let rt=0;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>btnFit(document,true),150)});
+  addEventListener('hashchange',()=>setTimeout(()=>btnFit(),60))})();
 // ---- 보이는 글자만 새 팀 이름으로(용어집 v3): 데이터·파일 이름·속성은 그대로 두고 화면 글자(text node)만 nm3 로 바꾼다 ----
 (function(){const SKIP=/^(SCRIPT|STYLE|TEXTAREA|INPUT|CODE|PRE)$/,OLD=/\uBD80\uB300\uD45C|\uCF54\uCE6D|\uBE44\uC11C|\uAC1C\uBC1C\uD300|\uC790\uB8CC\uD300|\uCDE8\uC5C5\uD300|\uC790\uB3D9\uC124\uBE44|\uAD00\uC81C\uC13C\uD130|(?<![가-힣])\uC571\uD300/;
   const fix=n=>{if(n.nodeType===3){const p=n.parentNode;if(!p||SKIP.test(p.nodeName)||p.isContentEditable)return;const v=n.nodeValue;if(OLD.test(v)){const t=nm3(v);if(t!==v)n.nodeValue=t}return}
