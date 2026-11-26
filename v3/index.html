@@ -430,7 +430,7 @@ html,body,h1,h2,h3,.sec,.q,.lbl,.rc b,.dept .big,.clk2,#qc,.egain,.optb .k,.amed
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=22;
+const BUILD=23;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1478,6 +1478,15 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
   if(t.id==='wsv-x'){wsClose();return}
   if(D.wshelp){if($('#wsv')&&!$('#wsv').hidden){toast('제미나이 앱 Alt+Space → 화면 공유');return}S3.wsHelp=!S3.wsHelp;render();return}});
 
+// ---- 진행판 🩺 팀 건강(개발팀 11/27 team_health.json → 지킴이 state team_health). 한눈에 한 줄씩 → 누르면 숫자 ----
+const thT=s=>{const t=Date.parse(String(s||'').replace(' ','T'));return isNaN(t)?0:t/1000};
+function thIc(t){const ok=thT(t.last_ok),fl=thT(t.last_fail);return (t.fail_today>0&&fl>=ok)?['🔴','실패']:(t.empty_today>0||t.oldpan_today>0)?['🟡','확인']:t.last_ok?['🟢','좋음']:['⚪','기록 없음']}
+function healthCard(){const H=S3.st.team_health;if(!H||!(H.teams||[]).length&&!(H.dispatch||{}).health)return '';const D=H.dispatch||{},T=H.teams||[],red=D.health==='red';
+  const n=k=>T.reduce((a,t)=>a+(+t[k]||0),0);
+  return oct(`<h2 class="sec">🩺 팀 건강 <span class="kv">${T.length}팀 · 오늘 실행 ${n('runs_today')} · 실패 ${n('fail_today')}${H.updated?' · '+esc(H.updated.slice(5,16)):''}</span></h2>
+   <div class="rule"><span>${red?'🔴':'🟢'}</span><span><b>배달원 ${red?'막힘':'정상'}</b>${D.line?`<br><span class="kv">${esc(nm3(D.line))}</span>`:''}${red&&D.red_since?`<br><span class="kv">${esc(D.red_since)}부터</span>`:''}</span></div>
+   ${T.map(t=>{const [ic,tx]=thIc(t);return `<details class="gt" data-gk="th:${esc(t.id)}"><summary>${ic} <b>${esc(nm3(t.name||t.id))}</b> <span class="kv">${tx} · 성공 ${agoT(thT(t.last_ok))} · 오늘 ${+t.runs_today||0}회${t.fail_today?` · 실패 ${t.fail_today}`:''}</span></summary><div class="kv" style="overflow-wrap:anywhere">실패 오늘 ${+t.fail_today||0} / 전체 ${+t.fail_total||0} · 빈 실행 ${+t.empty_today||0} / ${+t.empty_total||0} · 옛 지침 ${+t.oldpan_today||0} / ${+t.oldpan_total||0} · 실행 ${+t.runs_total||0}회<br>마지막 실행 ${esc(String(t.last_run||'기록 없음').slice(5,16))}${t.last_sec!=null?` · ${Math.round(t.last_sec/60)}분`:''}${t.last_model?' · '+esc(t.last_model):''}${t.pan?' · 지침판 '+esc(t.pan):''}${t.last_fail_why?`<br>🔴 마지막 실패: ${esc(nm3(t.last_fail_why))} (${esc(String(t.last_fail||'').slice(5,16))})`:''}</div></details>`}).join('')}`)}
+
 // HB HQ 방 구성 (11/26 동현 03:39~03:44): 아래 탭 4개 + 로비 카드. 묻기·일정·내 할 일·소식은 옛 화면(BUILD 9)에서 옮김.
 const TABS4=['lobby','studio','lib','director'];
 const CARD_ROOMS=['ops','hb','coach','log','plan','out','world'];
@@ -1707,7 +1716,7 @@ document.getElementById('chan').hidden=IS_ROOT;
 if(IS_ROOT&&'serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{const r=String((e.data||{}).hqRoom||'');if(ROOMS.some(x=>x[0]===r.split('/')[0]))location.hash='#'+r})}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','부대표실','org','--green'],['hb','진행판','bars','--gold'],['coach','코칭실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
@@ -2064,7 +2073,7 @@ function hbBoard(){
   const clips=H.clips||[];
   keepOpen($('#r-hb'),()=>$('#r-hb').innerHTML=`${h1('hb')}<p class="lead">${G.length?`통과 ${n} / ${G.length}`:'통과 숫자를 기다려요'}${H.updated?` · 갱신 ${esc(String(H.updated).slice(5,16).replace('T',' '))}`:''}</p>${hz()}
   ${G.length?`<div class="prog" aria-label="통과 진행"><i style="width:${Math.round(n/G.length*100)}%"></i></div>`:'<div class="empty">현황 파일을 아직 못 받았어요</div>'}
-  ${mcpLine()}${rmCard()}<div class="grid g2">${grp}</div>
+  ${mcpLine()}${rmCard()}${healthCard()}<div class="grid g2">${grp}</div>
   ${clips.length?`<div id="clips">${oct(`<h2 class="sec">클립 ${clips.length} <span class="kv">🎬 미리보기(맥스) · 🏁 완성(언리얼)</span></h2>${clips.map(clipCard).join('')}`)}</div>`:''}`);
 }
 function nav(){const el=$('#nav');el.style.display=S3.room==='title'?'none':'';document.body.classList.toggle('notab',S3.room==='title');const n=badgeN(),cur=S3.room==='two'?'studio':S3.room,
