@@ -441,6 +441,8 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 .tci{display:grid;gap:4px;margin-top:8px}.tc.idle{display:flex;justify-content:space-between;gap:8px;align-items:center;border-left-color:#3a3426;color:#8a8a8a;padding:6px 12px;min-height:36px;filter:grayscale(1);font-size:calc(14px*var(--s))}
 .lvsys{display:flex;flex-wrap:wrap;gap:6px 8px;margin:0 0 4px}.sy{padding:0 10px;background:var(--bg-panel);border-left:3px solid #3a3426;font-size:calc(14px*var(--s));min-width:0;max-width:100%}.sy.bad{border-left-color:var(--red)}.sy>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;overflow-wrap:anywhere}.sy>.kv{padding:0 0 8px}
 .lvhl>summary{min-height:44px;display:flex;gap:8px;align-items:center;cursor:pointer}
+
+.syl{display:inline-flex;align-items:center;min-height:44px}
 </style>
 </head>
 <body>
@@ -494,7 +496,7 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=30;
+const BUILD=31;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1904,7 +1906,7 @@ setInterval(()=>{if(!document.hidden)lvBar()},5000);
 // ---- 공통 줄 ----
 function lvRow(x,k,now){const p=typeof x.pct==='number'?Math.round(x.pct):null,c={run:'run',blocked:'blk',stall:'stale',quiet:'quiet',done:'done'}[k];
   const ic=k==='run'?'🟢':k==='blocked'?'🔴':k==='done'?'✅':'⏸️';
-  const sub=k==='stall'?`<b class="bdays">${Math.max(1,Math.floor((x.stalled_h||0)/24))}일째 멈춤</b>`:k==='blocked'?'<b class="bblk">막힘</b>':k==='quiet'?`<span class="kv">${x.status==='대기'?'기다림':x.status==='멈춤'?'멈춤':'조용'}</span>`:k==='run'&&p!=null?`<span class="kv num">${p}%</span>`:'';
+  const sub=k==='stall'?`<b class="bdays">${lvT(x.changed)?Math.max(1,Math.floor((now-lvT(x.changed))/86400))+'일째 멈춤':'멈춤'}</b>`:k==='blocked'?'<b class="bblk">막힘</b>':k==='quiet'?`<span class="kv">${x.status==='대기'?'기다림':x.status==='멈춤'?'멈춤':'조용'}</span>`:k==='run'&&p!=null?`<span class="kv num">${p}%</span>`:'';
   const tm=TEAM_NM(x.owner);
   return `<details class="bv2 jobd s-${c}" data-gk="lv:${esc(x.id)}"><summary><span class="bi">${ic}</span><b class="bt">${esc(lvNoIc(nm3(x.notify_title||x.title||x.id)))}</b>${sub}${lvF(lvT(x.changed),now,x.conf==='unknown')}${k==='run'&&p!=null?`<span class="prog"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></span>`:''}</summary>
     <div class="bful">${esc(nm3(x.title||x.id))}</div><div class="kv">${x.now?esc(nm3(x.now))+'<br>':''}${x.eta_min!=null&&k!=='done'?`남은 시간 약 ${esc(jrH(Math.round(x.eta_min)))}<br>`:''}${esc(x.status||'')}${p!=null?' · '+p+'%':''}${tm?' · '+esc(tm):''} · 내용이 바뀐 때 ${esc(String(x.changed||'').slice(5,16))}${x.conf==='seed'?' (추정)':''}</div></details>`}
@@ -1969,13 +1971,14 @@ function lvTeamCard(t,now){const ic=TEAM_IC[t.key]||'',at=lvT(t.updated)||lvT(t.
     <div class="kv">열린 편지 ${+t.inbox_open||0}${t.inbox_new?' · 새 편지 '+t.inbox_new:''} · 도는 일 ${+t.jobs_run||0}${t.jobs_blocked?' · 막힌 일 '+t.jobs_blocked:''}</div></details>`}
 function lvTeamCards(now){const T=Live.get('teams',[]);if(!T.length)return '';const busy=T.filter(t=>t.task||t.light==='🔴'||t.light==='🟡'||t.running),idle=T.filter(t=>!busy.includes(t));
   return `<div class="tcs" id="lv-tcs">${busy.map(t=>lvTeamCard(t,now)).join('')}</div>${idle.length?`<div class="tci">${idle.map(t=>lvTeamCard(t,now)).join('')}</div>`:''}`}
-function lvSystem(now){const S=Live.get('system',[]);if(!S.length)return '';
-  return `<div class="lvsys" id="lv-sys">${S.map(x=>`<details class="sy ${x.bucket==='blocked'?'bad':''}" data-gk="sy:${esc(x.id)}"><summary>${esc(nm3(x.title||x.id))}</summary><div class="kv">${esc(nm3(x.now||''))}<br>${esc(x.status||'')} · ${lvFresh(lvT(x.changed),now)[0]}</div></details>`).join('')}</div>`}
+function lvSystem(now){const S=Live.get('system',[]);if(!S.length&&!Live.get('auto_jobs',[]).length)return '';
+  const AJ=Live.get('auto_jobs',[]),aj=AJ.length?`<div class="lvsys" id="lv-auto"><span class="kv syl">⚙️ 자동 작업 ${AJ.length}</span>${AJ.map(x=>{const p=typeof x.pct==='number'?Math.round(x.pct):null;return `<details class="sy ${x.bucket==='blocked'?'bad':''}" data-gk="aj:${esc(x.id)}"><summary>${esc(nm3(x.title||x.id))}${p!=null?` <b class="num">&nbsp;${p}%</b>`:''}</summary><div class="kv">${esc(nm3(x.now||''))}<br>${esc(x.status||'')}${x.eta_min!=null?' · 남은 시간 약 '+esc(jrH(Math.round(+x.eta_min))):''} · ${lvFresh(lvT(x.changed),now)[0]}</div></details>`}).join('')}</div>`:'';
+  return `<div class="lvsys" id="lv-sys"><span class="kv syl">🖥️ 시스템</span>${S.map(x=>`<details class="sy ${x.bucket==='blocked'?'bad':''}" data-gk="sy:${esc(x.id)}"><summary>${esc(nm3(x.title||x.id))}</summary><div class="kv">${esc(nm3(x.now||''))}<br>${esc(x.status||'')} · ${lvFresh(lvT(x.changed),now)[0]}</div></details>`).join('')}</div>${aj}`}
 
 // ---- 📊 진행판 ----
 function lvStatusLine(){const s=Live.raw();if(!s)return '';const Sc=s.secretary||{},C=s.claude||{},cap=Sc.cap?`/${+Sc.cap}`:'';
   const b=(ok,t)=>`<span class="sl ${ok?'':'bad'}">${t}</span>`;
-  return `<div class="lvs" id="lv-line">${b(Sc.state==='정상',`🎃 비서 <b>${esc(Sc.state||'–')}</b> · 오늘 ${+Sc.calls_today||0}${cap}회`)}${b(!C.state||C.state==='정상',`Claude <b>${esc(C.state||'정상')}</b>`)}${b(C.dispatch!=='red',`배달원 <b>${C.dispatch==='red'?'빨강':C.dispatch==='yellow'?'주의':'정상'}</b>`)}${(s.disk||[]).length?b(!(s.disk||[]).some(d=>+d.used_pct>=95),'💾 '+(s.disk||[]).map(d=>`${esc(String(d.drive||'').slice(0,2))} <b>${Math.round(+d.free_gb||0)}GB</b>`).join(' · ')+' 남음'):''}${(s.flags||[]).map(f=>b(false,'⏸️ '+esc(f))).join('')}</div>`}
+  return `<div class="lvs" id="lv-line">${b(Sc.state==='정상',`🎃 비서 <b>${esc(Sc.state||'–')}</b> · ${Sc.split&&Sc.split.line?esc(nm3(Sc.split.line)):`오늘 ${+Sc.calls_today||0}${cap}회`}`)}${b(!C.state||C.state==='정상',`Claude <b>${esc(C.state||'정상')}</b>`)}${b(C.dispatch!=='red',`배달원 <b>${C.dispatch==='red'?'빨강':C.dispatch==='yellow'?'주의':'정상'}</b>`)}${(s.disk||[]).length?b(!(s.disk||[]).some(d=>+d.used_pct>=95),'💾 '+(s.disk||[]).map(d=>`${esc(String(d.drive||'').slice(0,2))} <b>${Math.round(+d.free_gb||0)}GB</b>`).join(' · ')+' 남음'):''}${(s.flags||[]).map(f=>b(false,'⏸️ '+esc(f))).join('')}</div>`}
 function board2(){const now=Date.now()/1000,t0=performance.now(),s=Live.raw();
   if(!s){keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">실시간 상태를 기다리는 동안 앞 방식(파일 시각)으로 보여요</p>${hz()}${boardCard()}${healthCard()}`);lvBar();lvCount('board',t0);return}
   const run=Live.jobs('run'),blk=Live.jobs('blocked'),quiet=Live.jobs('quiet'),stall=Live.jobs('stall'),done=Live.jobs('done_today'),C0=s.counts||{},er=s.errors||[];
