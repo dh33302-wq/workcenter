@@ -462,6 +462,8 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 .wsf a.v4s{text-decoration:none}.wsf .v4s{white-space:nowrap}
 .wsi{margin-top:12px;gap:6px}.ib2{min-height:44px;white-space:nowrap;font-size:calc(14px*var(--s))}
 .msl{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 2px}.msl .cur{color:var(--gold);font-weight:700}.msl .past{color:#5fd38d}
+.fx-tl{font-size:12px;margin-top:4px}a.tl1{display:block;text-decoration:none;color:inherit;min-height:44px;box-sizing:border-box;padding:12px 14px;font-weight:600}
+.bv2>summary{min-height:44px;box-sizing:border-box}
 </style>
 </head>
 <body>
@@ -515,7 +517,7 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=33;
+const BUILD=34;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1244,6 +1246,11 @@ const Cal=(()=>{
     for(let i=0;i<lead;i++)h+='<span></span>';
     for(let d=1;d<=n;d++){const D=y+'-'+pad(m)+'-'+pad(d),L=day(D).list.filter(e=>!cancelled(e));h+=`<button class="md ${D===td?'td':''}" data-pday="${D}" aria-label="${m}월 ${d}일 일정 ${L.length}개"><b>${d}</b>${L.slice(0,3).map(e=>`<i class="k-${e.k}">${esc(e.summary)}</i>`).join('')}${L.length>3?`<small>+${L.length-3}</small>`:''}</button>`}
     return `<div class="nav2" style="margin:0 0 10px"><button class="btn" data-calm="-1" aria-label="앞 달">◂</button><b>${y}년 ${m}월</b><button class="btn" data-calm="1" aria-label="다음 달">▸</button></div><div class="mgrid">${'월화수목금토일'.split('').map(x=>`<small>${x}</small>`).join('')}${h}</div>`}
+  // ③ 동현 11/27 06:55: 🏠 오늘 시간표는 그 자리에서 펼침 · 원본은 '🎬 동현 작업' 캘린더 하나
+  function workHtml(date){if(!cid('work'))return `${status()}<div class="sub" style="padding:8px 0">🎬 동현 작업 캘린더가 아직 연결 전이에요 — 연결되면 여기에 바로 나와요</div>`;
+    const L=day(date).list.filter(e=>e.k==='work');
+    return `${status()}${L.map(e=>row(e,true)).join('')||'<div class="sub" style="padding:8px 0">🎬 오늘 동현 작업 일정이 없어요</div>'}<div class="nav2"><button class="btn pri2" data-calnew="${esc(date)}" title="🎬 동현 작업 캘린더에 일정을 더해요">＋ 일정 추가</button><a class="btn" href="#plan" title="하루·주·달 보기와 다른 갈래 일정">하루·주·달 보기</a></div>`}
+  const workN=date=>cid('work')?day(date).list.filter(e=>e.k==='work'&&!cancelled(e)).length:0;
   function planHtml(date){
     const d=day(date);
     return `${status()}${d.list.map(e=>row(e,true)).join('')||'<div class="sub" style="padding:8px 0">📅 이날 캘린더 일정 없어요</div>'}<div class="nav2"><button class="btn pri2" data-calnew="${esc(date)}">＋ 캘린더에 일정 추가</button></div>`;
@@ -1291,7 +1298,7 @@ const Cal=(()=>{
     if(t.id==='cal-close'){$('#cal').hidden=true;editId=null;return true}
     return false;
   }
-  return {load,patch,planDay,hasWork:()=>!!cid('work'),day,planHtml,chips,month,click,cancelled,get isOpen(){return !$('#cal').hidden},get data(){return c}};
+  return {load,patch,planDay,hasWork:()=>!!cid('work'),day,planHtml,workHtml,workN,chips,month,click,cancelled,get isOpen(){return !$('#cal').hidden},get data(){return c}};
 })();
 
 // ⏱ 집중 타이머 · 오늘 🎬 블록 체크 · 퇴근 버튼 (11/26 동현 06:21·06:30, 기준 hub\control\하루패턴_v1_261126.md)
@@ -1347,12 +1354,12 @@ const Focus=(()=>{
   const nxt=o=>o.nx?`<div class="fx-n">다음 <b class="num">${hmOf(o.nx.s)}</b> ${esc(o.nx.c)}</div>`:'';
   const li=b=>`<div class="hqrow fxr${b.draft?' dr':''}${b.done?' rd':''}">${/^(rest|sleep)$/.test(b.k)?'<b class="fxk"></b>':`<button class="fxk" data-fxk="${esc(b.id)}" aria-pressed="${b.done}" aria-label="${b.done?'끝 표시 지우기':'끝 표시'}" ${busy?'disabled':''}>${b.done?'✅':'⬜'}</button>`}<span>${esc(b.c)}<br><small class="kv">${hmOf(b.s)}~${hmOf(b.e)}${b.draft?' · 📝 초안':''}${b.on&&!b.done?' · ▶ 시작함':''}${b.ext?' · +30분':''}</small></span>${b.draft?`<button class="btn" data-fxd="${esc(b.id)}" ${busy?'disabled':''}>확정</button>`:''}</div>`;
   // ---- 로비 맨 위 카드(동현 18:07): 지금 블록 + 남은 시간 + 얇은 막대 + 작게 '다음' · 🎯 칩 · 오늘 흐름 띠(18:10) ----
-  const pcBtns=()=>IS_PC?`<div class="fx-b fx-pc">${pip&&!pip.closed?'<button class="btn sm" data-fx="pipx">작은 창 닫기</button>':`${'documentPictureInPicture' in window?'<button class="btn sm" data-fx="pip">📌 작은 창</button>':''}<button class="btn sm" data-fx="pop">🗔 보통 창</button>`}</div>`:'';
+  const pcBtns=()=>IS_PC?`<div class="fx-b fx-pc">${pip&&!pip.closed?'<button class="btn sm" data-fx="pipx">작은 창 닫기</button>':`${'documentPictureInPicture' in window?'<button class="btn sm" data-fx="pip" title="남은 시간만 보이는 작은 창을 늘 위에 띄워요(PC)">📌 작은 창</button>':''}<button class="btn sm" data-fx="pop" title="남은 시간만 보이는 창을 따로 띄워요(PC · 다른 창 뒤로 갈 수 있음)">🗔 보통 창</button>`}</div>`:'';
   function card(){const o=snap(),D=o.B.filter(b=>b.k==='focus');
     if(!o.B.length){const x=nowNext();   // 작업 블록이 없으면 캘린더 지금·다음
       return `<div class="fx-h"><small>지금</small><b>${x.cur||(x.all.length?esc(x.all[0])+' <span class="kv">종일</span>':Cal.data.err?'캘린더를 못 읽었어요':'오늘 🎬 블록이 없어요')}</b></div><div class="fx-n"><small>다음</small> ${x.nx||'<span class="kv">오늘은 더 없어요</span>'}</div>${pcBtns()}`}
     const b=o.b,p=b?Math.min(1,Math.max(0,(now()-b.s)/(b.e-b.s))):0;
-    return `<div class="fx-h"><small>지금</small>${head(o).replace('<div class="fx-h">','').replace(/<\/div>$/,'')}</div><div class="fx-t num">${tm(o)}</div>${b?`<div class="fx-bar" role="progressbar" aria-label="지금 블록 진행" aria-valuenow="${Math.round(p*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${(p*100).toFixed(1)}%"></i></div>`:''}${b&&b.crit?`<div class="kv">✅ ${esc(b.crit)}</div>`:''}${nxt(o)||'<div class="fx-n kv">다음 블록 없음</div>'}${btns(o)}
+    return `<div class="fx-h"><small>지금</small>${head(o).replace('<div class="fx-h">','').replace(/<\/div>$/,'')}</div><div class="fx-tl kv">${o.ph==='over'?'쉬는 시간을 넘긴 시간':o.b?'이 블록 끝까지 남은 시간':o.nx?'다음 블록까지 남은 시간':''}</div><div class="fx-t num" title="${o.ph==='over'?'쉬는 시간을 넘긴 시간':o.b?'지금 블록이 끝날 때까지 남은 시간':'다음 블록이 시작할 때까지 남은 시간'}">${tm(o)}</div>${b?`<div class="fx-bar" role="progressbar" aria-label="지금 블록 진행" aria-valuenow="${Math.round(p*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${(p*100).toFixed(1)}%"></i></div>`:''}${b&&b.crit?`<div class="kv">✅ ${esc(b.crit)}</div>`:''}${nxt(o)||'<div class="fx-n kv">다음 블록 없음</div>'}${btns(o)}
       ${D.length?`<div class="fxcs" role="group" aria-label="오늘 🎯 ${D.filter(b=>b.done).length}/${D.length}">${D.map(d=>{const s=d.done?'done':d===b||d.on?'now':'wait';return `<button class="fxc s-${s}" data-flb="${esc(d.id)}" aria-pressed="${S3.flSel===d.id}" title="${esc(d.c)}">${s==='done'?'✅':s==='now'?'▶':'🎯'} <span>${esc(d.c.replace(/^🎯\s*/u,'').slice(0,14))}</span></button>`}).join('')}</div>`:''}
       ${flow(o)}${pcBtns()}${o.B.some(b=>b.draft)||S3.fxOpen?`<div class="fx-b"><button class="btn sm" data-fx="list" aria-expanded="${!!S3.fxOpen}">✅ 체크 목록${o.B.some(b=>b.draft)?' · 📝 초안 '+o.B.filter(b=>b.draft).length:''} ${S3.fxOpen?'▴':'▾'}</button></div>`:`<div class="fx-b"><button class="btn sm" data-fx="list" aria-expanded="false">✅ 체크 목록 ▾</button></div>`}${S3.fxOpen?o.B.map(li).join(''):''}`}
   // 실제: ▶시작(hq_start) ~ ✅끝(hq_done, 없으면 계획 끝) · 아직 안 끝났으면 지금까지. 쉬는 시간 넘김 = 쉬는 블록 끝 뒤 1분 넘어 ▶ (또는 아직 안 누름)
@@ -1948,6 +1955,9 @@ function lvRow(x,k,now){const p=typeof x.pct==='number'?Math.round(x.pct):null,c
     <div class="bful">${esc(nm3(x.title||x.id))}</div><div class="kv">${x.now?esc(nm3(x.now))+'<br>':''}${x.eta_min!=null&&k!=='done'?`남은 시간 약 ${esc(jrH(Math.round(x.eta_min)))}<br>`:''}${esc(x.status||'')}${p!=null?' · '+p+'%':''}${tm?' · '+esc(tm):''} · 내용이 바뀐 때 ${esc(String(x.changed||'').slice(5,16))}${x.conf==='seed'?' (추정)':''}</div></details>`}
 const TEAM_NM=k=>{const t=Live.get('teams',[]).find(t=>t.key===k);return t?nm3(t.name):''};
 // 팀 신호등 한 줄: 팀마다 신호(🟢 30분 안 진행 · 🟡 편지 기다림 · 🔴 실패·막힘 · ⚪ 쉼) + 마지막 진행 신선도
+function lvTeamsLine(now){const T=Live.get('teams',[]),C=Live.get('claude',{});if(!Live.raw())return `<div class="al al-ok" id="lv-tl1">⚪ 팀 신호등 · 실시간 상태를 기다려요</div>`;
+  const n=k=>T.filter(t=>(t.light||'⚪')===k).length,bad=T.filter(t=>t.light==='🔴'||t.light==='🟡'),cl=C.state&&C.state!=='정상';
+  return `<a class="al tl1 ${bad.some(t=>t.light==='🔴')||cl?'al-r':'al-ok'}" id="lv-tl1" href="#board/teams" title="팀별 자세한 상태는 진행판에서">🚦 팀 ${T.length} · 🟢 ${n('🟢')}${n('🟡')?' · 🟡 '+n('🟡'):''}${n('🔴')?' · 🔴 '+n('🔴'):''}${T.length-n('🟢')-n('🟡')-n('🔴')?' · ⚪ '+(T.length-n('🟢')-n('🟡')-n('🔴')):''}${bad.length?' — '+bad.map(t=>esc(t.light)+' '+esc(nm3(t.name))).join(' · '):''}${cl?' · Claude 🔴 '+esc(C.state):''} <span class="kv">진행판 ›</span></a>`}
 function lvTeams(now,full){const T=Live.get('teams',[]),C=Live.get('claude',{});if(!Live.raw())return recNone('실시간 상태를 기다려요');
   const cl=C.state&&C.state!=='정상';
   if(!full)return `<a class="tls" href="#board/teams">${T.map(t=>`<span class="tl"><b>${TEAM_IC[t.key]||''} ${esc(nm3(t.name))}</b> ${esc(t.light||'⚪')}${lvF(lvT(t.last_progress),now)}</span>`).join('')}<span class="tl"><b>Claude</b> ${cl?'🔴':'🟢'}<span class="fr">${esc(C.state||'정상')}</span></span></a>`;
@@ -1984,9 +1994,9 @@ function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=q
   const L=$('#r-lobby');if(L.firstElementChild)L.replaceChildren();   // 지금 카드(#fx)는 한 곳에만
   const C=[{id:'now',name:'지금 블록',html:Focus.box()+(x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:'')},
     {id:'todo',name:'🙋 결재·할 일',view:1,html:lvTodoCard()},{id:'blk',name:'🔴 막힌 일',view:1,html:lvBlockedCard(now)},
-    {id:'teams',name:'팀 신호등',html:oct(`<h2 class="sec">팀 신호등 <span class="kv">눌러서 진행판으로</span></h2>${lvTeams(now)}`,'lvc')},
-    {id:'links',name:'바로 가기',html:`<div class="nav2 lvl"><a class="btn" href="#plan">📅 오늘 시간표 · 일정 ${x.n}</a><a class="btn" href="#board">📊 진행판</a></div>`},
-    {id:'end',name:'하루 마무리',html:`${Focus.quitBtn()}${Push.hint()}<div class="lvend"><a class="btn" href="#out">🌙 퇴근·채점${q.again?' · 퇴근했어요':''}</a><span class="kv">입사 목표까지 ${dd}일 · 🏆 ${tg}/${tt}</span></div>`}];
+    {id:'teams',name:'팀 신호등',html:lvTeamsLine(now)},
+    {id:'links',name:'오늘 시간표',html:oct(`<details class="gt ttd" data-gk="ttday"><summary>📅 <b>오늘 시간표</b> <span class="kv">🎬 동현 작업 ${Cal.workN(pday())}개 · 눌러서 펼치기</span></summary>${Cal.workHtml(pday())}</details>`,'lvc')},
+    {id:'end',name:'하루 마무리',html:`${Push.hint()}<div class="lvend">${Focus.quitBtn()||`<a class="btn" href="#out" title="오늘 기록을 보고 퇴근·채점해요">🌙 퇴근·채점${q.again?' · 퇴근했어요':''}</a>`}<span class="kv">입사 목표까지 ${dd}일 · 🏆 ${tg}/${tt}</span></div>`}];
   keepOpen($('#r-today'),()=>$('#r-today').innerHTML=`<h1 class="sr">오늘</h1>${layGrid('today',C)}`);
   Focus.tick();lvBar();lvCount('today',t0)}
 
