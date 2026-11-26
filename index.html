@@ -432,6 +432,16 @@ body.lvoff #r-today .lvc,body.lvoff #r-board .lvc,body.lvoff #lv-line{filter:gra
 .lcbs{display:flex;flex-wrap:wrap;gap:4px;margin-left:auto}.lcbs button{all:unset;box-sizing:border-box;cursor:pointer;min-width:44px;min-height:44px;padding:0 8px;border:1px solid #3a3426;color:var(--ivory);text-align:center;font:600 13px system-ui,"Malgun Gothic",sans-serif;white-space:nowrap}.lcbs button:focus-visible,.lch:focus-visible{outline:2px solid var(--ivory)}
 .lcadd{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px;border:1px dashed #6b5a35}.lcadd .btn{min-height:44px}
 body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .ep-h #ep-undo{margin-left:auto}
+
+/* 팀별 지금 하는 일 카드 · 시스템 띠 (11/27 urgent_team_cards) */
+.tcs{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:10px}
+.tc{border:1px solid #2a2a2e;border-left:4px solid var(--gold);background:var(--bg-row);padding:10px 12px;min-width:0}.tc>summary{list-style:none;cursor:pointer;min-height:44px}.tc>summary::-webkit-details-marker{display:none}
+.tch{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:calc(15px*var(--s))}.tct{font:700 calc(19px*var(--s)) system-ui,"Malgun Gothic",sans-serif;margin:6px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ivory)}.tct small{font-weight:500}
+.tst{display:flex;flex-wrap:wrap;gap:4px 6px;margin:4px 0 6px}.ts{padding:3px 7px;border:1px dashed #3a3426;font-size:calc(13px*var(--s));white-space:nowrap;color:var(--dim)}.ts-done{color:#5fd38d;border-color:#2f5a44}.ts-now{color:var(--gold);border:1px solid var(--gold);background:#17140d;font-weight:700}
+.tcm{font-size:calc(13px*var(--s))}.tcq{margin-top:8px;padding-top:6px;border-top:1px solid #222;overflow-wrap:anywhere}.tcq b{font-size:calc(14px*var(--s))}
+.tci{display:grid;gap:4px;margin-top:8px}.tc.idle{display:flex;justify-content:space-between;gap:8px;align-items:center;border-left-color:#3a3426;color:#8a8a8a;padding:6px 12px;min-height:36px;filter:grayscale(1);font-size:calc(14px*var(--s))}
+.lvsys{display:flex;flex-wrap:wrap;gap:6px 8px;margin:0 0 4px}.sy{padding:0 10px;background:var(--bg-panel);border-left:3px solid #3a3426;font-size:calc(14px*var(--s));min-width:0;max-width:100%}.sy.bad{border-left-color:var(--red)}.sy>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;overflow-wrap:anywhere}.sy>.kv{padding:0 0 8px}
+.lvhl>summary{min-height:44px;display:flex;gap:8px;align-items:center;cursor:pointer}
 </style>
 </head>
 <body>
@@ -485,7 +495,7 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=29;
+const BUILD=30;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1944,6 +1954,25 @@ function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=q
   keepOpen($('#r-today'),()=>$('#r-today').innerHTML=`<h1 class="sr">오늘</h1>${layGrid('today',C)}`);
   Focus.tick();lvBar();lvCount('today',t0)}
 
+// ---- 팀별 지금 하는 일 (부대표 11/27 05:58, 동현 06:00 "팀이 뭘 몇 단계까지 했는지 안 보임") ----
+// status.teams[] 의 task · steps[{n,s:todo|doing|done}] · step · eta_min · queue · updated · results(결과 편지 최근 3, 지킴이가 붙임)
+const STEP_NO='①②③④⑤⑥⑦⑧';
+function lvSteps(t){const S=t.steps||[];if(!S.length)return '';const cur=S.findIndex(x=>x.s==='doing'),ci=cur>=0?cur:(S.every(x=>x.s==='done')?-1:Math.max(0,Math.min(S.length-1,(+t.step||1)-1)));
+  return `<div class="tst">${S.map((x,i)=>{const k=x.s==='done'?'done':i===ci?'now':'todo';return `<span class="ts ts-${k}">${STEP_NO[i]||i+1} ${esc(nm3(x.n))} ${k==='done'?'✅':k==='now'?'▶':'⬜'}</span>`}).join('')}</div>`}
+function lvTeamCard(t,now){const ic=TEAM_IC[t.key]||'',at=lvT(t.updated)||lvT(t.last_progress),R=t.results||[],Q=t.queue||[],busy=!!t.task||t.light==='🔴'||t.light==='🟡'||t.running;
+  if(!busy)return `<div class="tc idle" data-team="${esc(t.key)}"><span>${esc(t.light||'⚪')} ${ic} <b>${esc(t.name)}</b> · ${esc(nm3(t.why||'쉼'))}</span>${lvF(lvT(t.last_progress),now)}</div>`;
+  const alld=(t.steps||[]).length&&t.steps.every(x=>x.s==='done');
+  return `<details class="tc" data-team="${esc(t.key)}" data-gk="tc:${esc(t.key)}"><summary><div class="tch"><span>${ic} <b>${esc(t.name)}</b> ${esc(t.light||'⚪')}</span>${lvF(at,now)}</div>
+    <div class="tct">${t.task?esc(nm3(t.task)):'<span class="f-old">⚠ 단계 기록 없음</span>'}${t.src==='auto'&&t.task?' <small class="kv">열린 편지로 채움</small>':''}</div>${lvSteps(t)}
+    <div class="kv tcm">${alld?'끝났어요':t.eta_min!=null&&+t.eta_min>0?`약 ${esc(jrH(Math.round(+t.eta_min)))} 남음`:'남은 시간 모름'} · ${esc(nm3(t.why||''))}${Q.length?` · 다음 할 일 ${Q.length}`:''} · 눌러서 자세히</div></summary>
+    ${Q.length?`<div class="tcq"><b>다음 할 일 ${Q.length}</b>${Q.map(q=>`<div class="kv">· ${esc(nm3(q))}</div>`).join('')}</div>`:''}
+    <div class="tcq"><b>결과 편지 최근 ${R.length}</b>${R.map(r=>`<div class="kv">${esc(r.t)} → ${esc(TEAM_NM(r.to)||r.to)} · ${esc(lvNoIc(nm3(r.title)))}</div>`).join('')||'<div class="kv">아직 없어요</div>'}</div>
+    <div class="kv">열린 편지 ${+t.inbox_open||0}${t.inbox_new?' · 새 편지 '+t.inbox_new:''} · 도는 일 ${+t.jobs_run||0}${t.jobs_blocked?' · 막힌 일 '+t.jobs_blocked:''}</div></details>`}
+function lvTeamCards(now){const T=Live.get('teams',[]);if(!T.length)return '';const busy=T.filter(t=>t.task||t.light==='🔴'||t.light==='🟡'||t.running),idle=T.filter(t=>!busy.includes(t));
+  return `<div class="tcs" id="lv-tcs">${busy.map(t=>lvTeamCard(t,now)).join('')}</div>${idle.length?`<div class="tci">${idle.map(t=>lvTeamCard(t,now)).join('')}</div>`:''}`}
+function lvSystem(now){const S=Live.get('system',[]);if(!S.length)return '';
+  return `<div class="lvsys" id="lv-sys">${S.map(x=>`<details class="sy ${x.bucket==='blocked'?'bad':''}" data-gk="sy:${esc(x.id)}"><summary>${esc(nm3(x.title||x.id))}</summary><div class="kv">${esc(nm3(x.now||''))}<br>${esc(x.status||'')} · ${lvFresh(lvT(x.changed),now)[0]}</div></details>`).join('')}</div>`}
+
 // ---- 📊 진행판 ----
 function lvStatusLine(){const s=Live.raw();if(!s)return '';const Sc=s.secretary||{},C=s.claude||{},cap=Sc.cap?`/${+Sc.cap}`:'';
   const b=(ok,t)=>`<span class="sl ${ok?'':'bad'}">${t}</span>`;
@@ -1953,9 +1982,8 @@ function board2(){const now=Date.now()/1000,t0=performance.now(),s=Live.raw();
   const run=Live.jobs('run'),blk=Live.jobs('blocked'),quiet=Live.jobs('quiet'),stall=Live.jobs('stall'),done=Live.jobs('done_today'),C0=s.counts||{},er=s.errors||[];
   const stopN=blk.length+stall.length+er.length,G=(S3.st.hb_gates||{}).gates||[],gp=G.filter(g=>g.pass===true).length;
   const sec=(id,h,body)=>oct(`<h2 class="sec" id="${id}">${h}</h2>${body}`,'bv2c lvc');
-  const C=[{id:'line',name:'상태 줄',html:lvStatusLine()},{id:'run',name:'🟢 지금 도는 일',view:1,html:sec('lv-run',`🟢 지금 도는 일 <span class="num" id="lv-n-run">${run.length}</span> <span class="kv">30분 안에 내용이 바뀐 것</span>`,(run.map(x=>lvRow(x,'run',now)).join('')||'<div class="empty">지금 도는 일이 없어요</div>')+(quiet.length?`<div class="kv lvq" id="lv-quiet">조용한 일 <b class="num" id="lv-n-quiet">${quiet.length}</b> · 30분 넘게 소식 없음(하루 안)</div>${quiet.map(x=>lvRow(x,'quiet',now)).join('')}`:''))},{id:'stop',name:'🔴 멈춘 일',view:1,html:sec('lv-stop',`🔴 멈춘 일 <span class="num" id="lv-n-stop">${stopN}</span> <span class="kv">막힘 · 하루 넘게 그대로 · 읽기 실패</span>`,er.map(e=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(e.file)}</b><span class="fr"></span></div></div>`).join('')+[...blk.map(x=>lvRow(x,'blocked',now)),...stall.map(x=>lvRow(x,'stall',now))].join('')||'<div class="ok">멈춘 일이 없어요</div>')},
-    {id:'done',name:'✅ 오늘 끝난 일',html:oct(`<details class="bdone" data-gk="lvdone"><summary><h2 class="sec" style="display:inline">✅ 오늘 끝난 일 <span class="num" id="lv-n-done">${+C0.done_today||0}</span></h2> <span class="kv">눌러서 보기 · 지금까지 모두 ${+C0.done||0}개</span></summary>${done.map(x=>lvRow(x,'done',now)).join('')||'<div class="empty">오늘 끝난 일은 아직 없어요</div>'}${(+C0.done_today||0)>done.length?`<div class="kv">최근 ${done.length}개만 보여요</div>`:''}</details>`,'bv2c lvc')},{id:'teams',name:'팀 신호등',html:sec('lv-teams','팀 신호등 <span class="kv">🟢 30분 안 진행 · 🟡 편지 기다림 · 🔴 실패·막힘 · ⚪ 쉼</span>',lvTeams(now,1))},
-    {id:'news',name:'📰 보고',html:`<div id="lv-news">${rptTop()||oct('<h2 class="sec">📰 보고 · 🎃 비서 결과</h2><div class="empty">새 보고가 없어요</div>','lvc')}</div>`},{id:'gates',name:'🎯 통과 기준',html:oct(`<div class="hqrow"><b>🎯</b><span><b>통과 기준</b> ${G.length?`${gp} / ${G.length} 통과`:'기다리는 중'}<br><small class="kv">제품별 품질 관문 · 클립</small></span><a class="btn" href="#hb">열기</a></div><div class="hqrow"><b>🗂️</b><span><b>끝난 일 전체 · 일 자세히</b><br><small class="kv">옛 부대표실</small></span><a class="btn" href="#ops">열기</a></div>`,'lvc')},{id:'health',name:'🩺 팀 건강',html:healthCard()}];
+  const C=[{id:'line',name:'상태 줄 · 시스템',html:lvStatusLine()+lvSystem(now)},{id:'tcards',name:'팀별 지금 하는 일',html:oct(`<h2 class="sec" id="lv-teams">팀별 지금 하는 일 <span class="kv">눌러서 다음 할 일·결과 편지</span></h2>${lvTeamCards(now)}`,'lvc')},{id:'run',name:'🟢 지금 도는 일',view:1,html:sec('lv-run',`🟢 지금 도는 일 <span class="num" id="lv-n-run">${run.length}</span> <span class="kv">30분 안에 내용이 바뀐 것</span>`,(run.map(x=>lvRow(x,'run',now)).join('')||'<div class="empty">지금 도는 일이 없어요</div>')+(quiet.length?`<div class="kv lvq" id="lv-quiet">조용한 일 <b class="num" id="lv-n-quiet">${quiet.length}</b> · 30분 넘게 소식 없음(하루 안)</div>${quiet.map(x=>lvRow(x,'quiet',now)).join('')}`:''))},{id:'stop',name:'🔴 멈춘 일',view:1,html:sec('lv-stop',`🔴 멈춘 일 <span class="num" id="lv-n-stop">${stopN}</span> <span class="kv">막힘 · 하루 넘게 그대로 · 읽기 실패</span>`,er.map(e=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(e.file)}</b><span class="fr"></span></div></div>`).join('')+[...blk.map(x=>lvRow(x,'blocked',now)),...stall.map(x=>lvRow(x,'stall',now))].join('')||'<div class="ok">멈춘 일이 없어요</div>')},
+    {id:'done',name:'✅ 오늘 끝난 일',html:oct(`<details class="bdone" data-gk="lvdone"><summary><h2 class="sec" style="display:inline">✅ 오늘 끝난 일 <span class="num" id="lv-n-done">${+C0.done_today||0}</span></h2> <span class="kv">눌러서 보기 · 지금까지 모두 ${+C0.done||0}개</span></summary>${done.map(x=>lvRow(x,'done',now)).join('')||'<div class="empty">오늘 끝난 일은 아직 없어요</div>'}${(+C0.done_today||0)>done.length?`<div class="kv">최근 ${done.length}개만 보여요</div>`:''}</details>`,'bv2c lvc')},{id:'news',name:'📰 보고',html:`<div id="lv-news">${rptTop()||oct('<h2 class="sec">📰 보고 · 🎃 비서 결과</h2><div class="empty">새 보고가 없어요</div>','lvc')}</div>`},{id:'gates',name:'🎯 통과 기준',html:oct(`<div class="hqrow"><b>🎯</b><span><b>통과 기준</b> ${G.length?`${gp} / ${G.length} 통과`:'기다리는 중'}<br><small class="kv">제품별 품질 관문 · 클립</small></span><a class="btn" href="#hb">열기</a></div><div class="hqrow"><b>🗂️</b><span><b>끝난 일 전체 · 일 자세히</b><br><small class="kv">옛 부대표실</small></span><a class="btn" href="#ops">열기</a></div>`,'lvc')},{id:'health',name:'🩺 배달 기록(팀 건강)',html:healthCard()?`<details class="gt lvhl" data-gk="lvhealth"><summary>🩺 배달 기록 · 팀 건강 <span class="kv">눌러서 보기</span></summary>${healthCard()}</details>`:''}];
   keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">잘 돌아가고 있나 · 모든 일 ${(+C0.run||0)+(+C0.quiet||0)+(+C0.stall||0)+(+C0.blocked||0)+(+C0.done||0)}개</p>${hz()}${layGrid('board',C)}`);
   if(S3.bdJump){const e=$('#lv-'+S3.bdJump);S3.bdJump='';if(e)setTimeout(()=>e.scrollIntoView({block:'start'}),30)}
   lvBar();lvCount('board',t0)}
