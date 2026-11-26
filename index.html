@@ -416,6 +416,8 @@ body.lvoff #r-today .lvc,body.lvoff #r-board .lvc,body.lvoff #lv-line{filter:gra
 .lvold{margin:18px 0 8px}.lvold>summary{min-height:44px;display:flex;flex-wrap:wrap;gap:4px 10px;align-items:center;cursor:pointer}.lvold .rcs{margin-top:10px}.lvold .rc{border-left-color:#3a3426;min-height:84px}.lvold .rc svg{color:var(--dim)}.lvold .rc.c-bad{border-left-color:var(--red)}.lvold .rc.c-me{border-left-color:var(--gold)}
 #r-today .lbl.gone{border-left-color:#3a3426;color:var(--dim)}#r-today button.lbl.qb{border-left-color:var(--gold);color:var(--gold)}
 #nav .navl{display:none}@media(min-width:700px){#nav .navl{display:block;padding:2px 12px 4px;font:600 12px system-ui,"Malgun Gothic",sans-serif;color:var(--dim);flex:none}}
+.v4t{margin-bottom:10px}.v4n{margin:0 0 12px;padding:8px 10px;border-left:3px solid var(--gold);background:var(--bg-panel)}
+.v4f{display:flex;flex-wrap:wrap;gap:8px}.v4s{all:unset;box-sizing:border-box;cursor:pointer;min-height:44px;padding:8px 12px;border:1px solid #3a3426;color:var(--dim);font-weight:600}.v4s.past{color:#5fd38d;border-color:#2f5a44}.v4s.cur{color:var(--gold);border-color:var(--gold);background:#17140d}.v4s:focus-visible{outline:2px solid var(--ivory)}
 </style>
 </head>
 <body>
@@ -432,6 +434,7 @@ body.lvoff #r-today .lvc,body.lvoff #r-board .lvc,body.lvoff #lv-line{filter:gra
   <section id="r-title" class="room"></section>
   <section id="r-today" class="room"></section>
   <section id="r-board" class="room"></section>
+  <section id="r-v4" class="room"></section>
   <section id="r-lobby" class="room"></section>
   <section id="r-director" class="room"></section>
   <section id="r-hb" class="room"></section>
@@ -467,7 +470,7 @@ body.lvoff #r-today .lvc,body.lvoff #r-board .lvc,body.lvoff #lv-line{filter:gra
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=25;
+const BUILD=26;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1861,7 +1864,7 @@ function lvBlocked(now){const s=Live.raw();if(!s)return {rows:[],n:0,none:1};con
 function lvBlockedCard(now){const B=lvBlocked(now);
   if(B.none)return `<div class="al al-ok" id="lv-blk">⚪ 막힌 일 · 실시간 상태를 기다려요</div>`;
   if(!B.all)return `<div class="al al-ok" id="lv-blk" data-n="0">🟢 막힌 일 없음</div>`;
-  return oct(`<h2 class="sec">🔴 막힌 일 <span class="num" id="lv-n-blk">${B.all}</span></h2>${B.rows.map(r=>`<div class="hqrow"><b>${r.ic}</b><span>${esc(r.t)}${r.s||r.w?`<br><small class="kv">${esc([r.w,r.s].filter(Boolean).join(' · ')).slice(0,160)}</small>`:''}</span>${r.at?lvF(lvT(r.at),now):''}${r.x?`<a class="btn" href="${esc(r.x)}" target="_blank" rel="noopener">제미나이 ↗</a>`:r.h?`<a class="btn" href="${r.h}">보기</a>`:''}</div>`).join('')}`,'lvc'+(B.n?' lv-bad':''))}
+  return oct(`<h2 class="sec">🔴 막힌 일 <span class="num" id="lv-n-blk">${B.all}</span></h2>${B.rows.map(r=>`<div class="hqrow"><b>${r.ic}</b><span>${esc(lvNoIc(r.t))}${r.s||r.w||r.at?`<br><small class="kv">${r.at?lvF(lvT(r.at),now)+' · ':''}${esc([r.w,r.s].filter(Boolean).join(' · ').slice(0,140))}</small>`:''}</span>${r.x?`<a class="btn" href="${esc(r.x)}" target="_blank" rel="noopener">제미나이 ↗</a>`:r.h?`<a class="btn" href="${r.h}">보기</a>`:''}</div>`).join('')}`,'lvc'+(B.n?' lv-bad':''))}
 
 // ---- 🏠 오늘 ----
 function trophyN(){const tr=lsx('trophy',{}),tot=TROPHIES.reduce((a,t)=>a+t[2].length,0);return [Object.keys(tr).filter(k=>tr[k]).length,tot]}
@@ -1872,7 +1875,7 @@ function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=q
   ${lvTodoCard()}
   ${lvBlockedCard(now)}
   ${oct(`<h2 class="sec">팀 신호등 <span class="kv">눌러서 진행판으로</span></h2>${lvTeams(now)}`,'lvc')}
-  <div class="nav2 lvl"><a class="btn" href="#plan">📅 오늘 시간표 · 일정 ${x.n}</a><a class="btn" href="#board">📊 진행판</a></div>
+  <div class="nav2 lvl"><a class="btn" href="#plan">📅 오늘 시간표 · 일정 ${x.n}</a><a class="btn" href="#board">📊 진행판</a><a class="btn" href="#v4/ws">🆕 새 화면 미리보기</a></div>
   ${Focus.quitBtn()}${Push.hint()}
   <div class="lvend"><a class="btn" href="#out">🌙 퇴근·채점${q.again?' · 퇴근했어요':''}</a><span class="kv">입사 목표까지 ${dd}일 · 🏆 ${tg}/${tt}</span></div>
   <details class="gt lvold" data-gk="oldrooms"><summary>🗂️ 옛 화면 ${OLD_ROOMS.length}개 <span class="kv">새 화면으로 옮기는 중 — 그대로 쓸 수 있어요</span></summary><div class="rcs">${OLD_ROOMS.map(id=>{const [n,ds,c]=roomStat(id),r=ROOMS.find(q=>q[0]===id);return `<a class="rc c-${c}" href="#${id}" data-room="${id}">${icon(r[2])}<b>${r[1]}</b>${n!==''?`<span class="num">${n}</span>`:''}<small>${ds}</small></a>`}).join('')}</div></details>`);
@@ -1902,11 +1905,29 @@ function board2(){const now=Date.now()/1000,t0=performance.now(),s=Live.raw();
 function lvCount(room,t0){const f={live:0,gray:0,old:0};document.querySelectorAll('#r-'+room+' [data-fk]').forEach(e=>f[e.dataset.fk]++);
   window.__lv=Object.assign(window.__lv||{},{[room]:{ms:Math.round((performance.now()-t0)*10)/10,fresh:f,kind:Live.kind(Date.now()/1000)},menus:document.querySelectorAll('#nav a:not(.sub)').length})}
 
+// ---- 🆕 새 화면 미리보기(#v4/ws · #v4/study · #v4/trophy) — 동현 11/27 05:10 "말로는 모르겠다, 눌러 보고 정하겠다" ----
+// 실데이터 · 기존 카드(작업실 칸·두 작품·내 모션·공부 카드·묻기·트로피)를 새 자리로 옮겨 본 것. 정해지면 메뉴로 올린다. 옛 화면은 그대로.
+const V4T=[['ws','🎨 작업공간'],['study','📚 공부·자료'],['trophy','🏆 트로피·3D']];
+const V4_FLOW=['기획','원화','3D','HBM 검수','모션 기획','키·애니','언리얼'];
+function v4Room(){const t=V4T.some(x=>x[0]===S3.v4T)?S3.v4T:'ws',cur=lsx('v4stage',-1),[tg,tt]=trophyN(),tr=lsx('trophy',{}),gap='<div style="height:14px"></div>';
+  const un=Ask.unseen(S3.st).n,fb=((S3.st.tasks||{}).feedback)||[];
+  const body=t==='ws'?[oct(`<h2 class="sec">단계 흐름 <span class="kv">눌러서 지금 단계 표시 · 자동 연결 전(이 기기에만 저장)</span></h2><div class="v4f">${V4_FLOW.map((s,i)=>`<button class="v4s ${i===cur?'cur':i<cur?'past':''}" data-v4s="${i}">${i+1} ${s}${i<cur?' ✅':i===cur?' ◀ 지금':''}</button>`).join('')}</div>`),
+      wrCard(),twEntry(),motionCard(),oct(`<h2 class="sec">매일</h2><div class="nav2"><a class="btn" href="#log/mail">💡 아이디어</a><a class="btn" href="#v4/study">📖 공부</a><button class="btn" data-askto2="anim_teacher">🎓 코칭팀에 묻기</button></div>`)].join(gap)
+   :t==='study'?[codexCard(),oct(`<h2 class="sec">🎓 코칭팀에 묻기 <span class="num">${un||''}</span></h2><div class="nav2"><button class="btn pri2" data-askto2="anim_teacher">질문하기</button><a class="btn" href="#coach">최근 피드백 ${fb.length}개 · 묻기 기록</a></div>`),
+      oct(`<h2 class="sec">📚 HB Library</h2><div class="nav2"><a class="btn pri2" href="#lib">자료 열기</a><span class="kv">레퍼런스 클립 검색 · 영상</span></div>`),handoffCard(),codexList(),
+      oct(`<h2 class="sec">📓 기록</h2><div class="nav2"><a class="btn" href="#log/space">🧰 작업 공간</a><a class="btn" href="#log">일지 · 주간 · 변경 이력</a></div>`)].filter(Boolean).join(gap)
+   :[oct(`<h2 class="sec">🏆 트로피 <span class="num">${tg}/${tt}</span> <em class="draft">초안 · 동현 확인 전</em></h2>${tg?'':'<div class="kv">아직 0개예요 — 첫 화면에는 숫자 한 줄만 나와요</div>'}<details class="gt" data-gk="v4tr" ${tg?'open':''}><summary>트로피 판 ${tt}개 <span class="kv">눌러서 달성 표시(이 기기에만)</span></summary>${TROPHIES.map(([id,nm,L])=>`<div class="tgrp"><b>${nm}</b>${L.map((x,i)=>{const k=id+i;return `<button class="trow ${tr[k]?'got':''}" data-t="${k}"><i></i>${esc(x)}</button>`}).join('')}</div>`).join('')}</details>`),
+      oct(`<h2 class="sec">🧊 3D 걸어서 보기</h2><div class="nav2"><a class="btn" href="#world">3D 열기</a><span class="kv">퀘스트·두 작품 칸은 0개일 때 숨겨요</span></div>`)].join(gap);
+  keepOpen($('#r-v4'),()=>$('#r-v4').innerHTML=`<h1>새 화면 미리보기</h1><p class="lead">눌러 보고 정해 주세요 — 옛 화면은 그대로 있어요</p>${hz()}
+  <div class="nav2 jrd v4t">${V4T.map(([k,n])=>`<a class="btn ${t===k?'on':''}" href="#v4/${k}">${n}</a>`).join('')}<a class="btn" href="#today">🏠 오늘</a><a class="btn" href="#board">📊 진행판</a></div>
+  <div class="kv v4n">🆕 시안이에요. 메뉴 5개 안(🏠 오늘 · 🎨 작업공간 · 📊 진행판 · 📚 공부·자료 · 🏆 트로피·3D) 가운데 아직 안 올린 세 화면 — 마음에 들면 부대표에게 "○○ 올려"라고만 말하면 돼요.</div>${body}`);lvBar()}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-v4s]');if(!b)return;const i=+b.dataset.v4s;lsSet('v3_v4stage',lsx('v4stage',-1)===i?-1:i);render()});
+
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
 const V3_STATES=['status','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','부대표실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','코칭실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
-const COLOR={today:'#CEA85E',board:'#CEA85E',lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
+const COLOR={v4:'#CEA85E',today:'#CEA85E',board:'#CEA85E',lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
 let worldLoad=null;   // route() 보다 먼저(3D 탭을 바로 열 때)
 // 옛 이름 → 용어집 v2 이름(보여 줄 때만 바꿈, 데이터는 그대로)
@@ -2267,11 +2288,11 @@ function nav(){const el=$('#nav');el.style.display=S3.room==='title'?'none':'';d
   tn=todoN(),item=(id,sub)=>{const [,nm,k]=ROOMS.find(r=>r[0]===id),c=sub?roomStat(id):null;return `<a href="#${id}" style="--c:${COLOR[id]}" class="${sub?'sub':''} ${cur===id?'on':''}" ${cur===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span>${id==='today'&&tn?`<i class="bdg" aria-label="결재·할 일 ${tn}">${tn>99?'99+':tn}</i>`:''}${c&&c[0]!==''?`<em class="num c-${c[2]}">${c[0]}</em>`:''}</a>`};
   el.innerHTML=TABS4.map(id=>item(id)).join('')+`<div class="sub hr"></div><div class="sub navl">옛 화면</div>`+OLD_ROOMS.map(id=>item(id,1)).join('')}
 function render(){
-  {const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('cxin')&&ae.value&&(S3.room==='studio'||S3.room==='coach'))return}
+  {const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('cxin')&&ae.value&&(S3.room==='studio'||S3.room==='coach'||S3.room==='v4'))return}
   document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
   if(S3.room!=='world'&&window.World&&World.on)World.stop();if(S3.room!=='lib')libPause();document.body.classList.toggle('libon',S3.room==='lib');
-  ({today:today2,board:board2,lobby,director,studio,ops:()=>{ops();jobJump()},out,title,world,review,log:recRoom,hb:hbBoard,two:twoRoom,lib:libRoom,coach,plan})[S3.room]?.();
+  ({today:today2,board:board2,v4:v4Room,lobby,director,studio,ops:()=>{ops();jobJump()},out,title,world,review,log:recRoom,hb:hbBoard,two:twoRoom,lib:libRoom,coach,plan})[S3.room]?.();
   nav();lvBar();
 }
 function route(){
@@ -2281,10 +2302,11 @@ function route(){
   S3.rv='';if(/^review(\/|$)/.test(h)){S3.rv=decodeURIComponent(h.slice(7));h='review'}
   if(/^log(\/|$)/.test(h)){S3.recT=h.slice(4)||S3.recT||'space';h='log'}
   if(/^ops\//.test(h)){S3.jobOpen=h.slice(4);h='ops'}
+  if(/^v4(\/|$)/.test(h)){S3.v4T=h.slice(3)||S3.v4T||'ws';h='v4'}
   if(/^board\//.test(h)){S3.bdJump=h.slice(6).replace(/[^a-z]/g,'');h='board'}
   if(/^ws\//.test(h))h='studio';   // 🎨 작업공간 고정 주소(#ws/<창>) — 창은 room.js 가 띄움
   if(/^two(\/|$)/.test(h)){S3.twT=h.slice(4)||S3.twT||'works';h='two'}
-  if(h!=='title'&&h!=='review'&&h!=='two'&&!ROOMS.some(r=>r[0]===h))h='today';
+  if(h!=='title'&&h!=='review'&&h!=='two'&&h!=='v4'&&!ROOMS.some(r=>r[0]===h))h='today';
   S3.room=h;render();window.scrollTo(0,0);
 }
 function clock(){const d=new Date(),z=n=>String(n).padStart(2,'0');$('#clk-d').textContent=`${d.getMonth()+1}/${d.getDate()}`;$('#clk-t').textContent=`${z(d.getHours())}:${z(d.getMinutes())}`}
