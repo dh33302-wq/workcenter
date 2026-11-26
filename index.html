@@ -261,6 +261,7 @@ body:has(#r-world.on) #mbb{bottom:auto;top:calc(60px*var(--s) + 62px)}
 .dkg{margin:10px 0}.dkb{position:relative;height:12px;background:#1b1b1b;border:1px solid #3a3426;overflow:hidden}.dkb i{display:block;height:100%;background:var(--green)}.dkg.warn .dkb i{background:#E0C050}.dkg.bad .dkb i{background:var(--red)}.dkb u{position:absolute;top:0;bottom:0;width:2px;background:var(--ivory);opacity:.5}
 .dks{display:grid;grid-template-columns:repeat(9,1fr);gap:3px;margin:6px 0 2px}.dks i{height:8px;background:#1b1b1b;border:1px solid #3a3426}.dks i.ok{background:var(--green);border-color:var(--green)}.dks i.run{background:var(--gold);border-color:var(--gold)}.dks i.bad{background:var(--red);border-color:var(--red)}.dks i.none{border-style:dashed}
 #disk-card,#disk-card .rule>span{min-width:0;overflow-wrap:anywhere}.quitn{margin-top:8px}
+.idc summary b{font-weight:700}.idf{padding:8px 0;border-top:1px solid #222;line-height:1.55;overflow-wrap:anywhere}.idf>b{display:block;color:var(--gold);font-size:.92em;margin-bottom:2px}.idtb{display:grid;gap:8px;margin-top:6px}.idr{border:1px solid #2a2a2a;border-radius:8px;padding:8px 10px;min-width:0}.idr>b{display:block;margin-bottom:4px}.idr>div{margin:2px 0;overflow-wrap:anywhere}@media(min-width:900px){.idtb{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 /* ==== HB HQ 11/26: 탭 4개 + 로비 카드, 넓으면 왼쪽 메뉴, 묻기·일정 ==== */
 :root{--navh:calc(66px + env(safe-area-inset-bottom));--toph:calc(60px*var(--s));--side:0px}
@@ -425,7 +426,7 @@ html,body,h1,h2,h3,.sec,.q,.lbl,.rc b,.dept .big,.clk2,#qc,.egain,.optb .k,.amed
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=20;
+const BUILD=21;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -738,8 +739,15 @@ function mbMic(){
     r.onend=()=>{MB.rec=null;b.classList.remove('on')};
     r.onerror=e=>{if(/not-allowed|service|audio-capture|language/.test(e.error||''))off();else{mbStop();toast('다시 눌러 말해 주세요')}};
     MB.rec=r;b.classList.add('on');r.start()}catch(e){off()}}
+// 💡 아이디어함 카드(control 11/26 21:28): 원본 = hub\control\아이디어함.md(부대표가 디벨롭). 읽기 전용 — 고치는 건 부대표
+const IDEA_ST={'💭':'씨앗','🔧':'다듬는 중','✅':'채택','📦':'보관'};
+function ideaTb(T){const h=T[0]||[];return `<div class="idtb">${T.slice(1).map(r=>`<div class="idr"><b>${esc(r[0]||'')}</b>${r.slice(1).map((c,i)=>`<div><span class="kv">${esc(h[i+1]||'')}</span> ${esc(c)}</div>`).join('')}</div>`).join('')}</div>`}
+function ideaCards(){const I=S3.st.idea;if(!I)return oct(`<h2 class="sec">💡 아이디어함 카드</h2>${recNone('PC 지킴이가 보내면 나타나요')}`);const L=I.items||[];
+  return oct(`<h2 class="sec">💡 아이디어함 카드 <span class="kv">${L.length}장${Object.keys(IDEA_ST).filter(k=>(I.n||{})[k]).map(k=>' · '+k+' '+I.n[k]).join('')}</span></h2><div class="kv" style="margin-bottom:8px">부대표가 다듬어 넣어요 · 여기서는 읽기만${I.mt?' · 고친 때 '+agoT(I.mt):''}</div>
+   ${L.map((x,i)=>`<details class="gt idc" data-gk="idea:${esc(x.no)}"${i?'':' open'}><summary><b>${esc(x.st||'⚪')} #${esc(x.no)} ${esc(x.t)}</b> <span class="kv">${esc(IDEA_ST[x.st]||x.stn||'확인 필요')}</span></summary>${(x.f||[]).map(f=>`<div class="idf">${f.k?`<b>${esc(f.k)}</b>`:''}${f.v?`<div>${esc(f.v)}</div>`:''}${f.tb&&f.tb.length>1?ideaTb(f.tb):''}</div>`).join('')}</details>`).join('')||recNone(I.err?'아이디어함 파일을 못 찾았어요':'아직 카드가 없어요')}`)}
 // 내 건의 목록 (기록 방 4번째 칸)
-function recMail(){
+function recMail(){return ideaCards()+'<div style="height:16px"></div>'+recMail0()}
+function recMail0(){
   const M=S3.st.mailbox,wait=mbWaiting();
   if(!M&&!wait.length)return oct(recNone('아직 없어요. 오른쪽 위 💡 로 넣으면 여기에 모여요'));
   const L=mbSrv(),n=(M||{}).n||{},f=MB.f,show=L.filter(x=>f==='all'||x.st===f),lim=MB.n||20;
@@ -1615,7 +1623,7 @@ document.getElementById('chan').hidden=IS_ROOT;
 if(IS_ROOT&&'serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{const r=String((e.data||{}).hqRoom||'');if(ROOMS.some(x=>x[0]===r.split('/')[0]))location.hash='#'+r})}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','부대표실','org','--green'],['hb','진행판','bars','--gold'],['coach','코칭실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
