@@ -389,7 +389,7 @@ button.lbl.qb{border-left-color:#c0564a}
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=18;
+const BUILD=19;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1402,7 +1402,7 @@ function roomStat(id){
   if(id==='ops'){const b=blocked().length,r=jobs().filter(j=>j.status==='진행').length;return S3.st.jobs?b?[b,'막힌 일','bad']:[r,'도는 일','ok']:['–','기다리는 중','no']}
   if(id==='hb'){const G=(S3.st.hb_gates||{}).gates||[],n=G.filter(g=>g.pass===true).length;return G.length?[n,`/ ${G.length} 통과`,'gold']:['–','기다리는 중','no']}
   if(id==='coach'){const u=Ask.unseen(S3.st).n;if(u)return [u,'새 답','me'];const C=S3.st.dex?dexCards():[],g=C.filter(c=>c.got).length;return S3.st.dex?[g,`/ ${C.length} 공부 카드`,'blue']:['–','기다리는 중','no']}
-  if(id==='log'){const u=rptNew().length;if(u)return [u,'새 보고서','me'];const H=S3.st.history;return H?[(H.parts||[]).reduce((a,p)=>a+(p.total||0),0),`최근 ${H.days}일 바뀐 것`,'blue']:['–','기다리는 중','no']}
+  if(id==='log'){const H=S3.st.history;return H?[(H.parts||[]).reduce((a,p)=>a+(p.total||0),0),`최근 ${H.days}일 바뀐 것`,'blue']:['–','기다리는 중','no']}
   if(id==='plan'){const x=nowNext();return x.err&&!x.n?['–',x.err==='perm'?'캘린더 허용 전':'캘린더 못 읽음','no']:[x.n,'오늘 일정','blue']}
   if(id==='out'){const q=quitInfo(),t=S3.st.timetable||{};return q.again?[q.at?esc(String(q.at).slice(-5)):'끝','퇴근했어요','ok']:t.clocked_in?[esc(t.t0||''),'출근','gold']:['–','출근 전','no']}
   return ['▶','걸어서 보기','no']}
@@ -1435,8 +1435,9 @@ function director(){
   const answered=Object.entries(S3.answers).map(([id,a])=>`<div class="rule"><span>💬</span><span>${esc(nm3(a.q||id))} → <b>${esc(nm3(a.label))}</b><br><span class="kv">동현 답함 · 확정 전</span></span></div>`).join('');
   const J=((S3.st.journal||{}).days||[]),g=J.slice().reverse().find(d=>d.grade&&d.grade.clips&&d.grade.clips.length),q=quitInfo(),dd=Math.ceil((new Date(JOB_DEADLINE+'T00:00:00')-Date.now())/864e5);
   keepOpen($('#r-director'),()=>$('#r-director').innerHTML=`<h1>대표실</h1><p class="lead">결정할 것 ${list.length} · 내 할 일 ${myTasks().now.length}${rptNew().length?` · 새 보고서 ${rptNew().length}`:''}</p>${A.demo?'<div class="demo">예시 데이터예요 (?demo=1)</div>':''}${hz()}
+  ${rptTop()}
   <div class="grid g2"><div class="stk">${scrCard()}${main}${taskCard()}${newsCard()}</div><div class="stk">
-   ${rptNew().length?oct(`<h2 class="sec">📰 새 보고서</h2>${rptNew().map(rptRow).join('')}`):''}
+   ${rulesCard()}
    ${oct(`<h2 class="sec">퇴근 채점</h2><div class="kv">${q.again?`${q.at?esc(q.at)+'에 ':''}퇴근했어요`:'아직 퇴근 전이에요'}</div>${g?`<div class="rule"><span>🎓</span><span>${recD(g.date)} · 클립 ${g.grade.clips.length}개 · 채점 끝 ${g.grade.clips.filter(c=>c.res&&!c.re).length}개</span></div>`:'<div class="kv">채점 기록이 아직 없어요</div>'}<div class="nav2"><a class="btn pri2" href="#out">🌙 퇴근 · 채점 열기</a></div>`)}
    ${oct(`<div class="rule" style="border:0"><span>🎯</span><span><b>입사 목표까지 ${dd}일</b><br><span class="kv">${JOB_DEADLINE.slice(0,4)}년 ${+JOB_DEADLINE.slice(5,7)}월</span></span></div>`)}
    ${pushCard()}
@@ -1449,7 +1450,7 @@ function director(){
 // ---- 코칭실: 묻기 · 공부 카드 · 수업 ----
 // 비서(제미나이)가 '클로드에 넘겨줘'로 저장한 문서 → 코칭팀 판정
 function handoffCard(){const H=S3.st.handoff,L=(H&&H.items)||[];if(!L.length)return '';
-  return oct(`<h2 class="sec">🎃 비서 인계 <span class="kv">${L.filter(x=>!x.verdict&&x.to!=='control').length?'판정 전 '+L.filter(x=>!x.verdict&&x.to!=='control').length:''}</span></h2>${L.map(x=>`<details class="gt" data-gk="ho:${esc(x.f)}"><summary>${x.verdict?x.changed?'🔄':'✅':x.to==='control'?'🛰️':'⏳'} <b>${esc(x.name)}</b> <span class="kv">${esc(x.t)}${x.verdict?x.changed?' · 판정이 바뀌었어요':' · 판정 끝':x.to==='control'?' · 부대표가 봐요':' · 코칭팀 판정 전'}</span></summary>${x.verdict?`<div>${esc(x.verdict)}</div>${(x.lines||[]).map(l=>`<div class="kv">${esc(l)}</div>`).join('')}`:'<div class="kv">문서를 가져와 넘겼어요</div>'}</details>`).join('')}`)}
+  return oct(`<h2 class="sec">🎃 비서 인계 <span class="kv">${L.filter(x=>!x.verdict&&x.to!=='control').length?'판정 전 '+L.filter(x=>!x.verdict&&x.to!=='control').length:''}</span></h2>${L.map(x=>`<details class="gt" data-gk="ho:${esc(x.f)}"><summary>${x.verdict?x.changed?'🔄':'✅':x.to==='control'?'🛰️':'⏳'} <b>${esc(x.name)}</b> <span class="kv">${esc(x.t)}${x.verdict?x.changed?' · 판정이 바뀌었어요':' · 판정 끝':x.to==='control'?' · 부대표가 봐요':' · 코칭팀 판정 전'}${x.part?' · ✂️ 앞부분만':''}</span></summary>${x.verdict?`<div>${esc(x.verdict)}</div>${(x.lines||[]).map(l=>`<div class="kv">${esc(l)}</div>`).join('')}`:'<div class="kv">문서를 가져와 넘겼어요</div>'}${x.part&&/^https:\/\/docs\.google\.com\/document\/d\/[\w-]+\/edit$/.test(x.u||'')?`<div class="kv">✂️ 앞부분만 가져왔어요 — <a href="${esc(x.u)}" target="_blank" rel="noopener" style="color:var(--gold);font-weight:700;display:inline-block;padding:10px 0">원문 열기 ↗</a></div>`:''}</details>`).join('')}`)}
 function coach(){
   const ts=Ask.threads(S3.st).slice(0,6),un=new Set(Ask.unseen(S3.st).list.map(x=>x.t.id)),T=S3.st.tasks||{},t=T.teacher||{},fb=T.feedback||[];
   keepOpen($('#r-coach'),()=>$('#r-coach').innerHTML=`${h1('coach')}<p class="lead">공부 카드·묻기·수업</p>${hz()}<div class="grid g2"><div class="stk">${handoffCard()}${codexCard()}${codexList()}</div><div class="stk">
@@ -1488,7 +1489,7 @@ window.addEventListener('message',e=>{const f=document.getElementById('lib-f'),d
 
 // ---- 주간 보고(기록실 맨 위 · 로비 새 보고서) ----
 const rptList=()=>((S3.st.reports||{}).items)||[];
-const rptNew=()=>{const s=lsx('rpt_seen',{});return rptList().filter(r=>r.k!=='c'&&!s[r.f]).slice(0,4)};
+const rptNew=()=>{const s=lsx('rpt_seen',{});return rptList().filter(r=>!s[r.f])};
 const rptRow=r=>`<button class="hqrow" data-rpt="${esc(r.s)}"><b>${lsx('rpt_seen',{})[r.f]?'📄':'🆕'}</b><span>${esc(r.t)}<br><small class="kv">${r.d?recD(r.d)+' · ':''}${esc(r.x||'')}</small></span></button>`;
 async function rptOpen(s){const r=rptList().find(x=>x.s===s);if(!r)return;const el=$('#rptv');$('#rptv-t').textContent=r.t;$('#rptv-l').innerHTML=r.u?`<a class="btn" href="${esc(r.u)}" target="_blank" rel="noopener">↗</a>`:'';
   const b=$('#rptv-b');b.innerHTML='<p class="why" style="padding:30px">불러오는 중…</p>';el.hidden=false;
@@ -1496,6 +1497,12 @@ async function rptOpen(s){const r=rptList().find(x=>x.s===s);if(!r)return;const 
     const f=document.createElement('iframe');f.setAttribute('sandbox','allow-popups');f.title=r.t;f.srcdoc=x.html;b.replaceChildren(f);
     const sn=lsx('rpt_seen',{});sn[r.f]=1;lsSet('v3_rpt_seen',sn);nav();if(['lobby','log','director'].includes(S3.room))render()
   }catch(e){b.innerHTML=`<p class="why" style="padding:30px">보고서를 못 불러왔어요 (${esc(e.message)})</p>`}}
+// 대표실 맨 위 '📰 새 보고'(동현 18:03): 안 읽은 것 전부 + 오늘 부대표 보고서(읽으면 회색). 기록실은 보관 목록
+function rptTop(){const sn=lsx('rpt_seen',{}),td=new Date().toLocaleDateString('sv'),L=rptList().filter(r=>!sn[r.f]||(r.k==='c'&&r.d===td));if(!L.length)return '';
+  return oct(`<h2 class="sec">📰 새 보고 ${L.filter(r=>!sn[r.f]).length?`<span class="num">${L.filter(r=>!sn[r.f]).length}</span>`:''}</h2>${L.map(r=>rptRow(r).replace('class="hqrow"',`class="hqrow${sn[r.f]?' rd':''}"`)).join('')}`)}
+// 🤖 비서 규칙 바뀜(부대표 18:03): 원본 = 비서_오답노트.csv. 되돌리기 = 두 번 눌러 부대표에게 편지
+function rulesCard(){const R=S3.st.sec_rules,L=((R||{}).items)||[];if(!L.length)return '';const sent=new Set(Q.of('rule_revert').filter(r=>!(r.st==='fail'&&r.rej)).map(r=>r.data.id));
+  return oct(`<h2 class="sec">🤖 비서 규칙 바뀜 <span class="kv">${L.length}</span></h2>${L.slice(0,3).map((x,i)=>`<details class="gt" data-gk="rule:${esc(x.id)}"${i?'':' open'}><summary><b>${esc(x.what)}</b> <span class="kv">${esc(recD(x.d)||x.d)}</span></summary><div class="kv">전에는: ${esc(x.was)}</div><div>이제는: <b>${esc(x.now)}</b></div><div class="kv">고친 곳: ${esc(x.where)}</div><div class="nav2">${x.asked||sent.has(x.id)?'<span class="kv">↩ 되돌리기 요청 보냄 — 부대표가 봐요</span>':`<button class="btn" data-rrev="${esc(x.id)}">↩ 되돌리기</button>`}</div></details>`).join('')}${L.length>3?`<div class="kv">지난 ${L.length-3}개는 기록에</div>`:''}`)}
 function recTop(){const R=rptList().filter(r=>r.k!=='c'),V=rptList().filter(r=>r.k==='c'),d=((S3.st.journal||{}).days||[]).slice(-1)[0];
   return `<div class="grid g2 rect2"><div>${oct(`<h2 class="sec">📰 주간 보고</h2>${S3.st.reports?R.length?rptRow(R[0])+(R.length>1?`<details class="gt" data-gk="rptold"><summary>지난 보고 ${R.length-1}개</summary>${R.slice(1).map(rptRow).join('')}</details>`:''):'<div class="kv">아직 없어요 · 화요일 09:13에 나와요</div>':recNone('PC 지킴이가 보내면 나타나요')}`)}</div>
    <div>${oct(`<h2 class="sec">📓 일지</h2>${d?`<div class="kv">${recD(d.date)}${d.date===wday()?' · 오늘':''}</div><div class="rule"><span>🖐️</span><span>손 작업</span><b class="num" style="margin-left:auto">${d.wl?jrH(d.wl.hand_min):'기록 없음'}</b></div><div class="rule"><span>🎓</span><span>퇴근 채점</span><b class="num" style="margin-left:auto">${d.grade&&d.grade.clips&&d.grade.clips.length?`${d.grade.clips.filter(c=>c.res&&!c.re).length}/${d.grade.clips.length} 끝`:'기록 없음'}</b></div>`:recNone('일지가 아직 없어요')}<div class="nav2"><a class="btn pri2" href="#log/jr">일지 펼치기</a></div>`)}</div>${V.length?`<div style="grid-column:1/-1">${oct(`<h2 class="sec">🛰️ 부대표 보고서</h2>${V.map(rptRow).join('')}`)}</div>`:''}</div>`}
@@ -1511,6 +1518,8 @@ async function checkBuild(){try{const r=await fetch('version.json?v='+Date.now()
 
 // ---- 누르기 ----
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('button');if(!t)return;const D=t.dataset;
+  if(D.rrev){const b=e.target.closest('[data-rrev]');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='한 번 더 누르면 부대표에게 보내요';setTimeout(()=>{if(b.isConnected){b.dataset.arm='';b.textContent='↩ 되돌리기'}},4000);return}
+    Q.add('rule_revert',{id:D.rrev});Sync3.flush();toast('↩ 되돌리기 요청을 보냈어요');render();return}
   if(D.tdone){Q.add('task_done',{key:D.tdone,text:D.ttext});Sync3.flush();toast('✅ 끝으로 적었어요');render();return}
   if(D.scr){const [id,v,key]=JSON.parse(D.scr);Q.add('screen_answer',{id,answer:v,key});Sync3.flush();toast('🖥️ '+v);render();return}
   if(D.nread){Q.add('notice_read',{key:D.nread});Sync3.flush();render();return}
@@ -1535,7 +1544,7 @@ document.getElementById('chan').hidden=IS_ROOT;
 if(IS_ROOT&&'serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{const r=String((e.data||{}).hqRoom||'');if(ROOMS.some(x=>x[0]===r.split('/')[0]))location.hash='#'+r})}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','부대표실','org','--green'],['hb','진행판','bars','--gold'],['coach','코칭실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
