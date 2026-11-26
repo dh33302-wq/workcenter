@@ -455,6 +455,12 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 #sidev .sd-h .btn{min-height:44px;min-width:44px}
 #sidev iframe{flex:1;width:100%;border:0;background:#fff}
 @media (min-width:1000px){#sidev{left:auto;top:0;bottom:0;width:50vw;height:auto;border-radius:0}}
+
+/* BUILD 33 · 동현 11/27 06:55 ① 작업공간 큰 카드 + 단계 7칸 · ⑨ 메뉴 5개 */
+.wsbw{margin:6px 0 12px}.wsbig{display:flex;align-items:center;justify-content:center;width:100%;min-height:72px;font-size:calc(19px*var(--s));box-sizing:border-box;white-space:nowrap}
+.wsf a.v4s{text-decoration:none}.wsf .v4s{white-space:nowrap}
+.wsi{margin-top:12px;gap:6px}.ib2{min-height:44px;white-space:nowrap;font-size:calc(14px*var(--s))}
+.msl{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:6px 2px}.msl .cur{color:var(--gold);font-weight:700}.msl .past{color:#5fd38d}
 </style>
 </head>
 <body>
@@ -508,7 +514,7 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=32;
+const BUILD=33;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1488,14 +1494,22 @@ const ext=(u,t,cls)=>u?`<a class="btn ${cls||''}" href="${esc(u)}" target="_blan
 const gdvB=(id,tab,title,t,cls)=>GIDX.test(id||'')?`<button class="btn ${cls||''}" data-gdv="${esc(JSON.stringify([id,tab||'',title]))}">${t}</button>`:'';
 function wdBtn(cls){const w=(S3.st.workroom||{}).workdoc;return w?ext(gDoc(w.id),'🗂️ 오늘 작업창 열기',cls||''):''}
 function wsList(){return ((S3.st.ws||{}).items)||[]}
-function wrCard(){const W=S3.st.workroom;
-  if(!W)return oct(`<h2 class="sec">🦡 작업실</h2>${recNone('PC 지킴이가 보내면 나타나요')}`);
-  const tab=n=>((W.tabs||[]).find(t=>t[0]===n)||[])[1]||'',an=tab('해부 카드'),WS=wsList().filter(x=>x.s);
-  return oct(`<h2 class="sec">🦡 작업실 <span class="kv">${esc(W.current||'')}${W.updated?' · '+esc(W.updated.slice(5)):''}</span></h2>
-   <div class="wrb">${ext(gDoc(W.doc),'📄 작업실 문서','pri2')}${ext(gFold(W.folder),'📂 폴더')}${ext(gFold(W.images),'🖼️ 이미지')}${ext(gFold(W.fbx),'🧊 3D')}${ext(an?gDoc(W.doc,an):'','🔍 해부 카드')}${ext(GEMINI,'🤖 제미나이')}${ext(TRIPO,'🧊 Tripo')}<button class="btn" disabled title="PC 쪽 허용 전">🎬 맥스 <small>허용 전</small></button></div>
-   ${GIDX.test(W.doc||'')?`<div class="kv" style="margin-top:10px">HQ 안에서 보기</div><div class="nav2 wrt">${gdvB(W.doc,'','한눈에','👁 한눈에')}${(W.tabs||[]).map(t=>gdvB(W.doc,t[1],t[0],esc(t[0]))).join('')}</div>`:''}
-   <div class="wrb" style="margin-top:12px">${wdBtn()}${WS.map(x=>`<button class="btn pri2" data-wso="${esc(x.w)}">🎨 HB 작업공간 · ${esc(x.w)}</button>`).join('')}<button class="btn" data-wshelp="1">🎃 어시스턴트와 같이 보기</button>${ext(GEMINI,'🎃 어시스턴트에게 말하기')}</div>
+// ① 동현 11/27 06:55: 작업실 = HB 작업공간 웹 하나로. 큰 카드 1장 + 단계 7칸(그 웹의 해당 칸으로) + 드라이브는 작은 아이콘 줄. 작업실 문서·해부 카드·'HQ 안에서 보기' 6칸·오늘 작업창은 없앰
+const WS_FLOW=[['기획','plan'],['원화','concept'],['3D','tripo'],['HBM 검수','hbm'],['모션 기획',''],['키·애니',''],['언리얼','']];
+const MAX_WHY='맥스 열기는 아직 허용 전이에요 — PC 쪽 맥스 연결(개발팀)이 허용되면 켜져요';
+function wrCard(){const W=S3.st.workroom||{},WS=wsList().filter(x=>x.s),w0=(WS[0]||{}).w||'',cur=lsx('v4stage',-1);
+  const go=(t)=>w0?'#ws/'+encodeURIComponent(w0)+(t?'/'+t:''):'';
+  const big=w0?`<a class="btn pri2 wsbig" href="${go('')}" title="HB 작업공간(${esc(w0)})을 HQ 안에서 전체 화면으로 열어요">🎨 HB 작업공간 열기</a>`
+    :`<button class="btn wsbig" disabled title="${S3.st.ws?'작업공간 코드가 아직 없어요':'PC 지킴이를 기다려요'}">🎨 HB 작업공간 열기</button>`;
+  const flow=WS_FLOW.map(([n,t],i)=>{const k=i===cur?'cur':i<cur?'past':'',lab=`${i+1} ${n}${i<cur?' ✅':i===cur?' ◀':''}`;
+    return t&&w0?`<a class="v4s ${k}" href="${go(t)}" data-v4go="${i}" title="작업공간의 '${n}' 칸으로 바로 가요">${lab}</a>`:`<button class="v4s ${k}" data-v4s="${i}" title="${t?'작업공간이 아직 없어요':'작업공간 웹에 아직 이 칸이 없어요 — 눌러서 지금 단계로 표시만'}">${lab}</button>`}).join('');
+  const ic=(u,t,tip)=>u?`<a class="btn ib2" href="${esc(u)}" target="_blank" rel="noopener" title="${tip}">${t}</a>`:'';
+  return oct(`<h2 class="sec">🎨 HB 작업공간 <span class="kv">${esc(W.current||w0||'')}${W.updated?' · '+esc(W.updated.slice(5)):''}</span></h2>
+   <div class="wsbw">${big}</div>
+   <div class="v4f wsf">${flow}</div>
+   <div class="wrb wsi">${ic(gFold(W.folder),'📂 폴더','드라이브 작업 폴더를 옆 창으로')}${ic(gFold(W.images),'🖼️ 이미지','드라이브 이미지 폴더를 옆 창으로')}${ic(gFold(W.fbx),'🧊 3D','드라이브 3D 폴더를 옆 창으로')}<button class="btn ib2" data-wshelp="1" title="제미나이 화면 공유로 어시스턴트가 이 화면을 같이 봐요">🎃 같이 보기</button>${ic(GEMINI,'🤖 제미나이','제미나이 앱을 새 탭으로(HQ 안에 못 넣어요)')}${ic(TRIPO,'🧊 Tripo','Tripo 를 새 탭으로(HQ 안에 못 넣어요)')}<button class="btn ib2" disabled title="${MAX_WHY}">🎬 맥스 <small>허용 전</small></button></div>
    ${S3.wsHelp?'<div class="kv wsh">제미나이 앱에서 <b>Alt+Space</b> → 화면 공유를 누르면 어시스턴트가 이 화면을 같이 봐요(PC). 폰은 제미나이 앱의 화면 공유.</div>':''}`)}
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('[data-v4go]');if(a)lsSet('v3_v4stage',+a.dataset.v4go)});
 
 // ---- HQ 안 구글 문서 보기(옆 창) ----
 function gdvEl(){let el=$('#gdv');if(el)return el;el=document.createElement('div');el.id='gdv';el.className='sheet';el.hidden=true;
@@ -1526,9 +1540,10 @@ function wsShim(vals){const D=JSON.stringify(vals).replace(/</g,'\\u003c');
 var S={getItem:function(k){k=String(k);return H.call(D,k)?D[k]:null},setItem:function(k,v){k=String(k);v=String(v);D[k]=v;q(k,v)},removeItem:function(k){k=String(k);if(H.call(D,k)){delete D[k];q(k,null)}},clear:function(){Object.keys(D).forEach(function(k){q(k,null)});D={}},key:function(i){return Object.keys(D)[i]||null},get length(){return Object.keys(D).length}};
 try{Object.defineProperty(window,'localStorage',{value:S,configurable:true})}catch(e){}addEventListener('pagehide',function(){if(T){clearTimeout(T);f()}});})();<\/script>`}
 function wsDoc(html,vals){const s=wsShim(vals),m=html.match(/<head[^>]*>/i);if(m)return html.replace(m[0],m[0]+s);const d=html.match(/^\s*<!doctype[^>]*>/i);return d?html.replace(d[0],d[0]+s):s+html}
+function wsTab(vals,w,tab){try{const ix=JSON.parse(vals['hbws.'+w+'.__index']||'null'),cur=ix&&ix.current;if(!cur)return;const k='hbws.'+w+'.'+cur,o=JSON.parse(vals[k]||'null');if(!o||!o.meta)return;o.meta.activeMainTab='tab-'+tab;vals[k]=JSON.stringify(o)}catch(e){}}   // 단계 칸 → 그 웹의 탭(저장값의 지금 탭만 바꿔서 연다)
 function wsEl(){let el=$('#wsv');if(el)return el;el=document.createElement('div');el.id='wsv';el.className='sheet';el.hidden=true;
   el.innerHTML='<div class="sh-h"><button id="wsv-x" class="ib" aria-label="닫기">✕</button><b id="wsv-t"></b><small class="kv" id="wsv-s"></small><button class="btn" data-wshelp="1">🎃 같이 보기</button></div><div id="wsv-b"></div>';document.body.appendChild(el);return el}
-async function wsOpen(w){const it=wsList().find(x=>x.w===w);const el=wsEl();$('#wsv-t').textContent='🎨 '+w;$('#wsv-s').textContent='';const b=$('#wsv-b');el.hidden=false;
+async function wsOpen(w,tab){WS.tab=tab||'';const it=wsList().find(x=>x.w===w);const el=wsEl();$('#wsv-t').textContent='🎨 '+w;$('#wsv-s').textContent='';const b=$('#wsv-b');el.hidden=false;
   if(!it||!it.s){b.innerHTML=`<p class="why" style="padding:30px">${it&&it.err?esc(it.err):S3.st.ws?'이 작업공간 코드가 아직 없어요':'PC 지킴이를 기다려요'}</p>`;return}
   b.innerHTML='<p class="why" style="padding:30px">불러오는 중…</p>';
   try{let x=(S3.wsc||{})[it.s];if(!x||x.h!==it.h){const q=await api.get([it.s,'wsc_v']);x=q.state&&q.state[it.s];if(!x||x.w!==w)throw new Error('아직 안 왔어요');S3.wsc=Object.assign(S3.wsc||{},{[it.s]:x});S3.wsv=(q.state||{}).wsc_v||S3.wsv}
@@ -1536,17 +1551,18 @@ async function wsOpen(w){const it=wsList().find(x=>x.w===w);const el=wsEl();$('#
     const sv=((S3.wsv||{})[w])||{v:{},t:{}},lc=wsLocal(w),vals={};
     Object.keys(sv.v||{}).forEach(k=>vals[k]=sv.v[k]);
     Object.keys(lc).forEach(k=>{const l=lc[k];if((l.t||0)>=((sv.t||{})[k]||0)){if(l.v==null)delete vals[k];else vals[k]=l.v}});
+    if(tab)wsTab(vals,w,tab);
     const f=document.createElement('iframe');f.setAttribute('sandbox','allow-scripts allow-modals allow-popups allow-forms allow-downloads');f.title=w;f.srcdoc=wsDoc(x.html,vals);b.replaceChildren(f);WS.w=w;WS.f=f;
-    if(location.hash!=='#ws/'+encodeURIComponent(w))history.replaceState(null,'','#ws/'+encodeURIComponent(w))
+    if(!location.hash.startsWith('#ws/'+encodeURIComponent(w)))history.replaceState(null,'','#ws/'+encodeURIComponent(w))
   }catch(e){b.innerHTML=`<p class="why" style="padding:30px">작업공간을 못 불러왔어요 (${esc(e.message)})</p>`}}
-function wsClose(){const el=$('#wsv');if(el){el.hidden=true;$('#wsv-b').replaceChildren()}WS.w='';WS.f=null;if(/^#ws\//.test(location.hash))history.replaceState(null,'','#studio');if(S3.room!=='studio'){location.hash='#studio'}}
+function wsClose(){const el=$('#wsv');if(el){el.hidden=true;$('#wsv-b').replaceChildren()}WS.w='';WS.f=null;if(/^#ws\//.test(location.hash))history.replaceState(null,'','#work');if(S3.room!=='v4'){location.hash='#work'}}
 window.addEventListener('message',e=>{const d=e.data;if(!WS.f||e.source!==WS.f.contentWindow||!d||d.hbws!==1||!d.kv||typeof d.kv!=='object')return;
   const w=WS.w,lc=wsLocal(w),kv={},t=Date.now();let n=0;
   for(const k of Object.keys(d.kv).slice(0,200)){const v=d.kv[k];if(k.length>120||(v!=null&&(typeof v!=='string'||v.length>100000)))continue;kv[k]=v;lc[k]={v,t};n++}
   if(!n)return;lsSet('v3_ws_'+w,lc);Q.add('ws_save',{w,kv,t});clearTimeout(WS.T);WS.T=setTimeout(()=>Sync3.flush(),1500);
   const s=$('#wsv-s');if(s)s.textContent='💾 '+hmOf(t)+' 저장 · PC로 보냄'});
-function wsRoute(){const m=(location.hash||'').match(/^#ws\/(.+)$/);if(!m)return false;let w='';try{w=decodeURIComponent(m[1])}catch(e){}
-  if(!S3.st.ws){setTimeout(wsRoute,1500);return true}if(WS.w!==w)wsOpen(w);return true}
+function wsRoute(){const m=(location.hash||'').match(/^#ws\/([^/]+)(?:\/([a-z]+))?$/);if(!m)return false;let w='';try{w=decodeURIComponent(m[1])}catch(e){}
+  if(!S3.st.ws){setTimeout(wsRoute,1500);return true}if(WS.w!==w||(m[2]&&WS.tab!==m[2]))wsOpen(w,m[2]||'');return true}
 window.addEventListener('hashchange',()=>{if(!/^#ws\//.test(location.hash)&&WS.w){const el=$('#wsv');if(el){el.hidden=true;$('#wsv-b').replaceChildren()}WS.w='';WS.f=null}else wsRoute()});
 setTimeout(wsRoute,0);
 
@@ -1568,7 +1584,11 @@ function healthCard(){const H=S3.st.team_health;if(!H||!(H.teams||[]).length&&!(
    ${T.map(t=>{const [ic,tx]=thIc(t);return `<details class="gt" data-gk="th:${esc(t.id)}"><summary>${ic} <b>${esc(nm3(t.name||t.id))}</b> <span class="kv">${tx} · 성공 ${agoT(thT(t.last_ok))} · 오늘 ${+t.runs_today||0}회${t.fail_today?` · 실패 ${t.fail_today}`:''}</span></summary><div class="kv" style="overflow-wrap:anywhere">실패 오늘 ${+t.fail_today||0} / 전체 ${+t.fail_total||0} · 빈 실행 ${+t.empty_today||0} / ${+t.empty_total||0} · 옛 지침 ${+t.oldpan_today||0} / ${+t.oldpan_total||0} · 실행 ${+t.runs_total||0}회<br>마지막 실행 ${esc(String(t.last_run||'기록 없음').slice(5,16))}${t.last_sec!=null?` · ${Math.round(t.last_sec/60)}분`:''}${t.last_model?' · '+esc(t.last_model):''}${t.pan?' · 지침판 '+esc(t.pan):''}${t.last_fail_why?`<br>🔴 마지막 실패: ${esc(nm3(t.last_fail_why))} (${esc(String(t.last_fail||'').slice(5,16))})`:''}</div></details>`}).join('')}`)}
 
 // HB HQ 방 구성 (11/26 동현 03:39~03:44): 아래 탭 4개 + 로비 카드. 묻기·일정·내 할 일·소식은 옛 화면(BUILD 9)에서 옮김.
-const TABS4=['today','board','studio','lib'];   // 11/27 P1: 🏠 오늘 · 📊 진행판이 앞 두 칸(live.js). 나머지는 옮기는 중
+const TABS4=['today','board','studio','lib'];   // (옛) BUILD 32 까지의 아래 탭 — 지금 메뉴는 NAV5
+// 메뉴 5개(설계_HQv4_v1 1절 · 동현 11/27 06:55 ⑨ '옛 화면 메뉴 9개 없앰'). 옛 방은 지우지 않고 주소로만 열림(새 탭 안 버튼이 데려감) — 메뉴는 그 방의 부모 탭에 불이 켜짐
+const NAV5=[['today','오늘','hex','#today'],['work','작업공간','keys','#work'],['board','진행판','bars','#board'],['study','공부·자료','book','#study'],['fun','트로피·3D','cube','#fun']];
+const NAV_UP={lobby:'today',plan:'today',out:'today',director:'today',title:'today',studio:'work',two:'work',ops:'board',hb:'board',lib:'study',coach:'study',log:'study',review:'study',world:'fun'};
+const navCur=()=>S3.room==='v4'?({ws:'work',study:'study',trophy:'fun'})[S3.v4T]||'work':NAV_UP[S3.room]||S3.room;
 const CARD_ROOMS=['ops','hb','coach','log','plan','out','world'];
 const OLD_ROOMS=['lobby','director','ops','hb','coach','log','plan','out','world'];   // '옛 화면'(삭제 금지 — 새 화면으로 다 옮길 때까지)
 const OLD_NM={ops:'운영실',hb:'현황판',coach:'도감',log:'기록 방',lib:'자료실·이글'},OLD_UNTIL=0;   // 옛 이름 부제는 없앰(PD 11/27 전수 점검 3 · 동현 06:55 ⑩)
@@ -1964,9 +1984,8 @@ function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=q
   const C=[{id:'now',name:'지금 블록',html:Focus.box()+(x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:'')},
     {id:'todo',name:'🙋 결재·할 일',view:1,html:lvTodoCard()},{id:'blk',name:'🔴 막힌 일',view:1,html:lvBlockedCard(now)},
     {id:'teams',name:'팀 신호등',html:oct(`<h2 class="sec">팀 신호등 <span class="kv">눌러서 진행판으로</span></h2>${lvTeams(now)}`,'lvc')},
-    {id:'links',name:'바로 가기',html:`<div class="nav2 lvl"><a class="btn" href="#plan">📅 오늘 시간표 · 일정 ${x.n}</a><a class="btn" href="#board">📊 진행판</a><a class="btn" href="#v4/ws">🆕 새 화면 미리보기</a></div>`},
-    {id:'end',name:'하루 마무리',html:`${Focus.quitBtn()}${Push.hint()}<div class="lvend"><a class="btn" href="#out">🌙 퇴근·채점${q.again?' · 퇴근했어요':''}</a><span class="kv">입사 목표까지 ${dd}일 · 🏆 ${tg}/${tt}</span></div>`},
-    {id:'old',name:'옛 화면',html:`<details class="gt lvold" data-gk="oldrooms"><summary>🗂️ 옛 화면 ${OLD_ROOMS.length}개 <span class="kv">새 화면으로 옮기는 중 — 그대로 쓸 수 있어요</span></summary><div class="rcs">${OLD_ROOMS.map(id=>{const [n,ds,c]=roomStat(id),r=ROOMS.find(q=>q[0]===id);return `<a class="rc c-${c}" href="#${id}" data-room="${id}">${icon(r[2])}<b>${r[1]}</b>${n!==''?`<span class="num">${n}</span>`:''}<small>${ds}</small></a>`}).join('')}</div></details>`}];
+    {id:'links',name:'바로 가기',html:`<div class="nav2 lvl"><a class="btn" href="#plan">📅 오늘 시간표 · 일정 ${x.n}</a><a class="btn" href="#board">📊 진행판</a></div>`},
+    {id:'end',name:'하루 마무리',html:`${Focus.quitBtn()}${Push.hint()}<div class="lvend"><a class="btn" href="#out">🌙 퇴근·채점${q.again?' · 퇴근했어요':''}</a><span class="kv">입사 목표까지 ${dd}일 · 🏆 ${tg}/${tt}</span></div>`}];
   keepOpen($('#r-today'),()=>$('#r-today').innerHTML=`<h1 class="sr">오늘</h1>${layGrid('today',C)}`);
   Focus.tick();lvBar();lvCount('today',t0)}
 
@@ -2009,22 +2028,21 @@ function board2(){const now=Date.now()/1000,t0=performance.now(),s=Live.raw();
 function lvCount(room,t0){const f={live:0,gray:0,old:0};document.querySelectorAll('#r-'+room+' [data-fk]').forEach(e=>f[e.dataset.fk]++);
   window.__lv=Object.assign(window.__lv||{},{[room]:{ms:Math.round((performance.now()-t0)*10)/10,fresh:f,kind:Live.kind(Date.now()/1000)},menus:document.querySelectorAll('#nav a:not(.sub)').length})}
 
-// ---- 🆕 새 화면 미리보기(#v4/ws · #v4/study · #v4/trophy) — 동현 11/27 05:10 "말로는 모르겠다, 눌러 보고 정하겠다" ----
-// 실데이터 · 기존 카드(작업실 칸·두 작품·내 모션·공부 카드·묻기·트로피)를 새 자리로 옮겨 본 것. 정해지면 메뉴로 올린다. 옛 화면은 그대로.
-const V4T=[['ws','🎨 작업공간'],['study','📚 공부·자료'],['trophy','🏆 트로피·3D']];
-const V4_FLOW=['기획','원화','3D','HBM 검수','모션 기획','키·애니','언리얼'];
-function v4Room(){const t=V4T.some(x=>x[0]===S3.v4T)?S3.v4T:'ws',cur=lsx('v4stage',-1),[tg,tt]=trophyN(),tr=lsx('trophy',{}),gap='<div style="height:14px"></div>';
-  const un=Ask.unseen(S3.st).n,fb=((S3.st.tasks||{}).feedback)||[];
-  const body=t==='ws'?[oct(`<h2 class="sec">단계 흐름 <span class="kv">눌러서 지금 단계 표시 · 자동 연결 전(이 기기에만 저장)</span></h2><div class="v4f">${V4_FLOW.map((s,i)=>`<button class="v4s ${i===cur?'cur':i<cur?'past':''}" data-v4s="${i}">${i+1} ${s}${i<cur?' ✅':i===cur?' ◀ 지금':''}</button>`).join('')}</div>`),
-      wrCard(),twEntry(),motionCard(),oct(`<h2 class="sec">매일</h2><div class="nav2"><a class="btn" href="#log/mail">💡 아이디어</a><a class="btn" href="#v4/study">📖 공부</a><button class="btn" data-askto2="anim_teacher">🎓 애니 리드에 묻기</button></div>`)].join(gap)
-   :t==='study'?[codexCard(),oct(`<h2 class="sec">🎓 애니 리드에 묻기 <span class="num">${un||''}</span></h2><div class="nav2"><button class="btn pri2" data-askto2="anim_teacher">질문하기</button><a class="btn" href="#coach">최근 피드백 ${fb.length}개 · 묻기 기록</a></div>`),
-      oct(`<h2 class="sec">📚 HB Library</h2><div class="nav2"><a class="btn pri2" href="#lib">자료 열기</a><span class="kv">레퍼런스 클립 검색 · 영상</span></div>`),handoffCard(),codexList(),
-      oct(`<h2 class="sec">📓 기록</h2><div class="nav2"><a class="btn" href="#log/space">🧰 작업 공간</a><a class="btn" href="#log">일지 · 주간 · 변경 이력</a></div>`)].filter(Boolean).join(gap)
-   :[oct(`<h2 class="sec">🏆 트로피 <span class="num">${tg}/${tt}</span> <em class="draft">초안 · 동현 확인 전</em></h2>${tg?'':'<div class="kv">아직 0개예요 — 첫 화면에는 숫자 한 줄만 나와요</div>'}<details class="gt" data-gk="v4tr" ${tg?'open':''}><summary>트로피 판 ${tt}개 <span class="kv">눌러서 달성 표시(이 기기에만)</span></summary>${TROPHIES.map(([id,nm,L])=>`<div class="tgrp"><b>${nm}</b>${L.map((x,i)=>{const k=id+i;return `<button class="trow ${tr[k]?'got':''}" data-t="${k}"><i></i>${esc(x)}</button>`}).join('')}</div>`).join('')}</details>`),
-      oct(`<h2 class="sec">🧊 3D 걸어서 보기</h2><div class="nav2"><a class="btn" href="#world">3D 열기</a><span class="kv">퀘스트·두 작품 칸은 0개일 때 숨겨요</span></div>`)].join(gap);
-  keepOpen($('#r-v4'),()=>$('#r-v4').innerHTML=`<h1>새 화면 미리보기</h1><p class="lead">눌러 보고 정해 주세요 — 옛 화면은 그대로 있어요</p>${hz()}
-  <div class="nav2 jrd v4t">${V4T.map(([k,n])=>`<a class="btn ${t===k?'on':''}" href="#v4/${k}">${n}</a>`).join('')}<a class="btn" href="#today">🏠 오늘</a><a class="btn" href="#board">📊 진행판</a></div>
-  <div class="kv v4n">🆕 시안이에요. 메뉴 5개 안(🏠 오늘 · 🎨 작업공간 · 📊 진행판 · 📚 공부·자료 · 🏆 트로피·3D) 가운데 아직 안 올린 세 화면 — 마음에 들면 PD에게 "○○ 올려"라고만 말하면 돼요.</div>${body}`);lvBar()}
+// ---- 🎨 작업공간(#work) · 📚 공부·자료(#study) · 🏆 트로피·3D(#fun) — 메뉴 5개 중 셋. 동현 11/27 06:55 ⑭: 미리보기 단계 없이 바로 실제 화면 ----
+// 기존 카드(작업공간 칸·두 작품·내 모션·공부 카드·묻기·트로피)를 새 자리로 옮긴 것. 옛 방(#coach·#lib·#log·#world 등)은 이 안 버튼으로만 열림(지우지 않음)
+const V4T=[['ws','🎨 작업공간','#work'],['study','📚 공부·자료','#study'],['trophy','🏆 트로피·3D','#fun']];
+const V4_FLOW=WS_FLOW.map(x=>x[0]);
+function v4Room(){const t=V4T.some(x=>x[0]===S3.v4T)?S3.v4T:'ws',[tg,tt]=trophyN(),tr=lsx('trophy',{}),gap='<div style="height:14px"></div>';
+  const un=Ask.unseen(S3.st).n,fb=((S3.st.tasks||{}).feedback)||[],tw=(((S3.st.two||{}).works)||[]).length,ms=lsx('stage',0);
+  const body=t==='ws'?[wrCard(),motionCard(),tw?twEntry():'',oct(`<h2 class="sec">매일</h2><div class="nav2"><a class="btn" href="#log/mail" title="아이디어 회의 기록을 열어요">💡 아이디어</a><a class="btn" href="#study" title="오늘 공부 카드로 가요">📖 공부</a><button class="btn" data-askto2="anim_teacher" title="애니 리드에게 질문을 보내요">🎓 애니 리드에 묻기</button></div>`),
+      `<div class="kv msl" title="포폴 마일스톤">🏁 마일스톤 ${STAGES.map((x,i)=>`<span class="${i===ms?'cur':i<ms?'past':''}">${i<ms?'✅ ':i===ms?'▶ ':''}${esc(x[0])}</span>`).join(' → ')} <span>· ${esc(STAGES[ms]?STAGES[ms][1]:'')}</span></div>`].filter(Boolean).join(gap)
+   :t==='study'?[codexCard(),oct(`<h2 class="sec">🎓 애니 리드에 묻기 <span class="num">${un||''}</span></h2><div class="nav2"><button class="btn pri2" data-askto2="anim_teacher" title="애니 리드에게 질문을 보내요">질문하기</button><a class="btn" href="#coach" title="애니 리드 피드백과 묻기 기록을 열어요">최근 피드백 ${fb.length}개 · 묻기 기록</a></div>`),
+      oct(`<h2 class="sec">📚 HB Library</h2><div class="nav2"><a class="btn pri2" href="#lib" title="레퍼런스 클립 검색·영상 자료실을 열어요">자료 열기</a><span class="kv">레퍼런스 클립 검색 · 영상</span></div>`),handoffCard(),codexList(),
+      oct(`<h2 class="sec">📓 기록</h2><div class="nav2"><a class="btn" href="#log/space" title="작업 공간 기록을 열어요">🧰 작업 공간</a><a class="btn" href="#log" title="일지·주간 작업일지·변경 이력을 열어요">일지 · 주간 · 변경 이력</a></div>`)].filter(Boolean).join(gap)
+   :[oct(`<h2 class="sec">🏆 트로피 <span class="num">${tg}/${tt}</span> <em class="draft">초안 · 동현 확인 전</em></h2>${tg?'':'<div class="kv">아직 0개예요 — 첫 화면에는 숫자 한 줄만 나와요</div>'}<details class="gt" data-gk="v4tr" ${tg?'open':''}><summary>트로피 판 ${tt}개 <span class="kv">눌러서 달성 표시(이 기기에만)</span></summary>${TROPHIES.map(([id,nm,L])=>`<div class="tgrp"><b>${nm}</b>${L.map((x,i)=>{const k=id+i;return `<button class="trow ${tr[k]?'got':''}" data-t="${k}" title="눌러서 달성 표시를 켜고 꺼요"><i></i>${esc(x)}</button>`}).join('')}</div>`).join('')}</details>`),
+      oct(`<h2 class="sec">🧊 3D 걸어서 보기</h2><div class="nav2"><a class="btn" href="#world" title="3D 공간을 걸어서 봐요">3D 열기</a></div>`)].join(gap);
+  const nm=V4T.find(x=>x[0]===t)[1].replace(/^\S+\s/,''),lead={ws:'대표가 직접 만드는 곳',study:'공부 · 묻기 · 자료 · 기록',trophy:'모으는 재미'}[t];
+  keepOpen($('#r-v4'),()=>$('#r-v4').innerHTML=`<h1>${nm}</h1><p class="lead">${lead}</p>${hz()}${body}`);lvBar()}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-v4s]');if(!b)return;const i=+b.dataset.v4s;lsSet('v3_v4stage',lsx('v4stage',-1)===i?-1:i);render()});
 
 // 용어집 v3 안전망(11/27): 데이터로 들어온 옛 팀 이름이 nm3 를 안 거치고 그려진 곳을, 방을 그린 뒤 글자만 훑어 바꾼다(입력 칸·데이터는 건드리지 않음)
@@ -2393,9 +2411,10 @@ function hbBoard(){
   ${mcpLine()}${rmCard()}${healthCard()}<div class="grid g2">${grp}</div>
   ${clips.length?`<div id="clips">${oct(`<h2 class="sec">클립 ${clips.length} <span class="kv">🎬 미리보기(맥스) · 🏁 완성(언리얼)</span></h2>${clips.map(clipCard).join('')}`)}</div>`:''}`);
 }
-function nav(){const el=$('#nav');el.style.display=S3.room==='title'?'none':'';document.body.classList.toggle('notab',S3.room==='title');const n=badgeN(),cur=S3.room==='two'?'studio':S3.room,
-  tn=todoN(),item=(id,sub)=>{const [,nm,k]=ROOMS.find(r=>r[0]===id),c=sub?roomStat(id):null;return `<a href="#${id}" style="--c:${COLOR[id]}" class="${sub?'sub':''} ${cur===id?'on':''}" ${cur===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span>${id==='today'&&tn?`<i class="bdg" aria-label="결재·할 일 ${tn}">${tn>99?'99+':tn}</i>`:''}${c&&c[0]!==''?`<em class="num c-${c[2]}">${c[0]}</em>`:''}</a>`};
-  el.innerHTML=TABS4.map(id=>item(id)).join('')+`<div class="sub hr"></div><div class="sub navl">옛 화면</div>`+OLD_ROOMS.map(id=>item(id,1)).join('')}
+function nav(){const el=$('#nav');el.style.display=S3.room==='title'?'none':'';document.body.classList.toggle('notab',S3.room==='title');const cur=navCur(),
+  tn=todoN(),bn=(()=>{try{return Live.raw()?Live.jobs('blocked').length:0}catch(e){return 0}})(),
+  item=([id,nm,k,href])=>`<a href="${href}" style="--c:${COLOR[id]||'#CEA85E'}" class="${cur===id?'on':''}" ${cur===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span>${id==='today'&&tn?`<i class="bdg" aria-label="결재·할 일 ${tn}">${tn>99?'99+':tn}</i>`:''}${id==='board'&&bn?`<i class="bdg" aria-label="막힌 일 ${bn}">${bn>99?'99+':bn}</i>`:''}</a>`;
+  const h=NAV5.map(item).join('');if(el._h!==h){el._h=h;el.innerHTML=h}}   // 바뀔 때만 다시 그림(⑥)
 function render(){
   if(window.LAYDRAG)return;   // 카드를 끄는 동안은 다시 그리지 않는다
   {const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('cxin')&&ae.value&&(S3.room==='studio'||S3.room==='coach'||S3.room==='v4'))return}
@@ -2412,10 +2431,11 @@ function route(){
   S3.rv='';if(/^review(\/|$)/.test(h)){S3.rv=decodeURIComponent(h.slice(7));h='review'}
   if(/^log(\/|$)/.test(h)){S3.recT=h.slice(4)||S3.recT||'space';h='log'}
   if(/^ops\//.test(h)){S3.jobOpen=h.slice(4);h='ops'}
-  h=({preview:'v4',work:'v4/ws',study:'v4/study',fun:'v4/trophy'})[h]||h;   // PD 설계 v1 주소(메뉴로 올리기 전까지 미리보기로)
+  if(h==='lobby')h='today';if(h==='studio')h='work';   // 옛 로비·작업실 주소 → 새 탭(⑨·①: 옛 작업실 화면은 더 안 씀)
+  if(/^ws\//.test(h))h='work';   // 🎨 작업공간 고정 주소(#ws/<창>[/<칸>]) — 창은 room.js 가 띄움
+  h=({preview:'v4/ws',work:'v4/ws',study:'v4/study',fun:'v4/trophy'})[h]||h;   // 메뉴 5개 중 셋(⑭ 미리보기 단계 없앰 — #preview 는 작업공간으로)
   if(/^v4(\/|$)/.test(h)){S3.v4T=h.slice(3)||S3.v4T||'ws';h='v4'}
   if(/^board\//.test(h)){S3.bdJump=h.slice(6).replace(/[^a-z]/g,'');h='board'}
-  if(/^ws\//.test(h))h='studio';   // 🎨 작업공간 고정 주소(#ws/<창>) — 창은 room.js 가 띄움
   if(/^two(\/|$)/.test(h)){S3.twT=h.slice(4)||S3.twT||'works';h='two'}
   if(h!=='title'&&h!=='review'&&h!=='two'&&h!=='v4'&&!ROOMS.some(r=>r[0]===h))h='today';
   S3.room=h;render();window.scrollTo(0,0);
