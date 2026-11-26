@@ -485,7 +485,7 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=28;
+const BUILD=29;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1947,7 +1947,7 @@ function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=q
 // ---- 📊 진행판 ----
 function lvStatusLine(){const s=Live.raw();if(!s)return '';const Sc=s.secretary||{},C=s.claude||{},cap=Sc.cap?`/${+Sc.cap}`:'';
   const b=(ok,t)=>`<span class="sl ${ok?'':'bad'}">${t}</span>`;
-  return `<div class="lvs" id="lv-line">${b(Sc.state==='정상',`🎃 비서 <b>${esc(Sc.state||'–')}</b> · 오늘 ${+Sc.calls_today||0}${cap}회`)}${b(!C.state||C.state==='정상',`Claude <b>${esc(C.state||'정상')}</b>`)}${b(C.dispatch!=='red',`배달원 <b>${C.dispatch==='red'?'빨강':C.dispatch==='yellow'?'주의':'정상'}</b>`)}${(s.flags||[]).map(f=>b(false,'⏸️ '+esc(f))).join('')}</div>`}
+  return `<div class="lvs" id="lv-line">${b(Sc.state==='정상',`🎃 비서 <b>${esc(Sc.state||'–')}</b> · 오늘 ${+Sc.calls_today||0}${cap}회`)}${b(!C.state||C.state==='정상',`Claude <b>${esc(C.state||'정상')}</b>`)}${b(C.dispatch!=='red',`배달원 <b>${C.dispatch==='red'?'빨강':C.dispatch==='yellow'?'주의':'정상'}</b>`)}${(s.disk||[]).length?b(!(s.disk||[]).some(d=>+d.used_pct>=95),'💾 '+(s.disk||[]).map(d=>`${esc(String(d.drive||'').slice(0,2))} <b>${Math.round(+d.free_gb||0)}GB</b>`).join(' · ')+' 남음'):''}${(s.flags||[]).map(f=>b(false,'⏸️ '+esc(f))).join('')}</div>`}
 function board2(){const now=Date.now()/1000,t0=performance.now(),s=Live.raw();
   if(!s){keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">실시간 상태를 기다리는 동안 앞 방식(파일 시각)으로 보여요</p>${hz()}${boardCard()}${healthCard()}`);lvBar();lvCount('board',t0);return}
   const run=Live.jobs('run'),blk=Live.jobs('blocked'),quiet=Live.jobs('quiet'),stall=Live.jobs('stall'),done=Live.jobs('done_today'),C0=s.counts||{},er=s.errors||[];
