@@ -342,7 +342,42 @@ h2.sec .spk{float:right;padding:4px 12px;min-height:44px;font-size:14px;line-hei
 .fxk{all:unset;box-sizing:border-box;flex:none;min-width:44px;min-height:44px;font-size:20px;text-align:center;line-height:44px;cursor:pointer}b.fxk{cursor:default}button.fxk:focus-visible{outline:2px solid var(--ivory)}
 .hqrow.dr{border:2px dashed #5B9BE6;padding-left:8px}.fxb2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none!important;max-width:46%}
 button.lbl.qb{border-left-color:#c0564a}
-</style>
+
+/* ---- 로비 새 화면 (동현 11/26 18:07·18:10): 글꼴 하나(명조는 로고만) · 로비 색 3개(금·빨강·회색) ---- */
+html,body,h1,h2,h3,.sec,.q,.lbl,.rc b,.dept .big,.clk2,#qc,.egain,.optb .k,.amed,.pri,.cin.sm{font-family:system-ui,"Malgun Gothic",sans-serif}
+.brand .cin{font-family:Cinzel,"Noto Serif KR",serif}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+#r-lobby .fx{margin:4px 0 10px;padding:14px 16px;border-left:6px solid #3a3426;background:var(--bg-panel);animation:none}
+#r-lobby .fx.p-focus,#r-lobby .fx.p-warn,#r-lobby .fx.p-ok{border-color:var(--gold);background:var(--bg-panel)}#r-lobby .fx.p-rest,#r-lobby .fx.p-etc,#r-lobby .fx.p-idle{border-color:#3a3426;background:var(--bg-panel)}#r-lobby .fx.p-over{border-color:var(--red);background:#1d0f0d}
+#r-lobby .fx-h small,#r-lobby .fx-n small{display:block;color:var(--gold);font:700 calc(13px*var(--s)) system-ui,"Malgun Gothic",sans-serif}#r-lobby .fx-n small{display:inline;margin-right:6px}
+#r-lobby .fx-h b{font-size:calc(20px*var(--s))}#r-lobby .fx-h em{color:var(--dim)}#r-lobby .fx.p-over .fx-h em{color:#f0a49a}
+#r-lobby .fx-t{font:800 calc(52px*var(--s))/1.05 system-ui,"Malgun Gothic",sans-serif;margin:4px 0 6px;color:var(--ivory)}#r-lobby .fx.p-over .fx-t{color:#f0a49a}
+.fx-bar{height:4px;background:#2a2a2e;border-radius:2px;overflow:hidden;margin:0 0 8px}.fx-bar i{display:block;height:100%;background:var(--gold)}.p-over .fx-bar i{background:var(--red)}
+#r-lobby .fx-n{color:var(--dim);font-size:calc(15px*var(--s))}#r-lobby .fx-n b{color:var(--ivory)}
+.btn.sm{min-height:44px;padding:6px 12px;font-size:14px}.fx-pc{opacity:.8}
+.fxcs{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px}.fxc{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:4px;min-height:44px;max-width:100%;padding:6px 12px;border-radius:22px;border:1px solid #3a3426;color:var(--dim);font:600 14px system-ui,"Malgun Gothic",sans-serif}
+.fxc span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.fxc.s-done{background:var(--gold);border-color:var(--gold);color:#18160C}.fxc.s-now{border-color:var(--gold);color:var(--gold)}.fxc[aria-pressed=true]{outline:2px solid var(--ivory)}.fxc:focus-visible{outline:2px solid var(--ivory)}
+/* 오늘 흐름 띠: 넓으면 가로 2줄(계획·실제), 좁으면 세로 목록 */
+.flw{margin:8px 0 2px}.fl{display:grid;grid-template-columns:34px 1fr;gap:4px 6px;align-items:center}.fl-l{color:var(--dim);font:600 12px system-ui,"Malgun Gothic",sans-serif}
+.fl-r{position:relative;height:18px;background:#161618;border-radius:3px}.fl-r.fl-p{height:48px}.fl-r.fl-ax{height:16px;background:none}.fl-ax small{position:absolute;top:0;color:var(--dim);font:600 11px system-ui,sans-serif}
+.fl-r>span,.fb{position:absolute;top:2px;bottom:2px;box-sizing:border-box;border-radius:2px;overflow:hidden;font-size:12px;line-height:22px;text-align:center}
+.fb{all:unset;position:absolute;top:2px;bottom:2px;box-sizing:border-box;border-radius:2px;overflow:hidden;font-size:13px;line-height:44px;text-align:center;cursor:pointer;border-right:1px solid #0B0B0C}
+.fb.k-f,.fli.k-f b{background:#2d5a8c}.fb.k-r{background:#2f6b4f}.fb.k-g{background:#3a3a3f}.fb.k-h{background:repeating-linear-gradient(45deg,#3a3a3f 0 4px,#1a1a1c 4px 8px)}.fb.dn{box-shadow:inset 0 -3px 0 var(--gold)}.fb.on{outline:2px solid var(--ivory);z-index:1}.fb:focus-visible{outline:2px solid var(--ivory)}
+.fli.k-f b{background:none}
+.fl-r>span.fa{background:#5b8fc9}.fl-r>span.fa.dn{background:var(--gold)}.fl-r>span.fo{background:var(--red)}
+.fl-now{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--ivory);margin-left:-1px;z-index:2}
+.fll{display:none}.fli{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:48px 1fr;gap:0 8px;width:100%;min-height:44px;padding:6px 4px;border-top:1px solid #222;border-left:3px solid #3a3a3f}.fli.k-f{border-left-color:#5b8fc9}.fli.k-r{border-left-color:#4f9a74}.fli.k-h{border-left-style:dashed}
+.fli b{color:var(--dim);padding-left:6px}.fli span{min-width:0;overflow-wrap:anywhere}.fli small{grid-column:2;color:var(--dim);font:600 12px system-ui,"Malgun Gothic",sans-serif}.fli.on{background:#1d1b16}.fli.miss span{color:var(--dim)}.fli:focus-visible{outline:2px solid var(--ivory)}
+.fl-d{margin-top:8px;padding:8px 10px;background:#161618;border-left:3px solid var(--gold)}.fl-d b{display:block;overflow-wrap:anywhere}
+@media(max-width:599px){.fl{display:none}.fll{display:block}}
+#r-lobby:has(.fx) .fl{max-width:100%}
+/* 알림 한 칸 */
+.al{margin:8px 0 12px;background:var(--bg-panel);border-left:4px solid #3a3426;padding:0 14px}.al.al-r{border-left-color:var(--red)}.al-ok{padding:12px 14px;color:var(--dim);font:600 calc(15px*var(--s)) system-ui,"Malgun Gothic",sans-serif}
+.al summary{min-height:48px;display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center;cursor:pointer;font:700 calc(17px*var(--s)) system-ui,"Malgun Gothic",sans-serif;color:var(--ivory)}.al summary .kv{flex:1 1 160px;min-width:0;overflow-wrap:anywhere}
+.alr{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:8px;width:100%;min-height:44px;align-items:center;padding:8px 0;border-top:1px solid #222;color:var(--ivory);text-decoration:none;overflow-wrap:anywhere}.alr span{min-width:0}.alr:focus-visible{outline:2px solid var(--ivory)}
+#r-lobby .lbl.gone{border-left-color:#3a3426;color:var(--dim)}#r-lobby button.lbl.qb{border-left-color:var(--gold);color:var(--gold)}
+#r-lobby .rc{border-left-color:#3a3426;min-height:96px}#r-lobby .rc.c-bad{border-left-color:var(--red)}#r-lobby .rc.c-me{border-left-color:var(--gold)}#r-lobby .rc svg{color:var(--dim)}#r-lobby .rc.c-bad svg{color:var(--red)}#r-lobby .rc.c-me svg{color:var(--gold)}
+#nav em.num.c-no{display:none}</style>
 </head>
 <body>
 <div id="fog"></div>
@@ -390,7 +425,7 @@ button.lbl.qb{border-left-color:#c0564a}
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=19;
+const BUILD=20;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1177,7 +1212,7 @@ const Focus=(()=>{
   function blocks(day){const L=all(day).filter(b=>b.k!=='mark'),w=L.find(b=>b.k==='wrap');if(w)L.forEach(b=>{if(b.s>=w.e&&/^(?:\s|✅|📝\s*(?:초안)?)*🔁\s*이월/u.test(b.t))b.k='hold'});return L}
   // 퇴근했나: HQ 퇴근 버튼 또는 비서가 만든 '🏁 퇴근' 일정
   const gone=(day,t)=>((S3.st.quit||{}).leave||{}).d===day||all(day).some(b=>b.k==='mark'&&b.s<=t);
-  function all(day){return Cal.data.items.filter(e=>e.k==='work'&&e.start&&e.start.dateTime&&!Cal.cancelled(e)).map(e=>({id:e.id,s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime),t:e.summary,c:core(e.summary),k:kindOf(e.summary),done:isDone(e.summary),draft:isDraft(e.summary),on:!!(e.x||{}).hq_start,ext:!!(e.x||{}).hq_ext,crit:crit(e.dsc)}))
+  function all(day){return Cal.data.items.filter(e=>e.k==='work'&&e.start&&e.start.dateTime&&!Cal.cancelled(e)).map(e=>({id:e.id,s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime),t:e.summary,c:core(e.summary),k:kindOf(e.summary),done:isDone(e.summary),draft:isDraft(e.summary),on:!!(e.x||{}).hq_start,ext:!!(e.x||{}).hq_ext,crit:crit(e.dsc),st:Date.parse((e.x||{}).hq_start)||null,dn:Date.parse((e.x||{}).hq_done)||null}))
     .filter(b=>b.e>b.s&&Cal.planDay(new Date(b.s))===day).sort((a,b)=>a.s-b.s||a.e-b.e)}
   const mine=()=>Cal.data.items.filter(e=>e.k==='me'&&e.start&&e.start.dateTime&&!Cal.cancelled(e)).map(e=>({s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime)}));
   const hits=(L,s,e)=>L.some(x=>x.s<e&&s<x.e);
@@ -1208,15 +1243,35 @@ const Focus=(()=>{
   const now=()=>Date.now();
   let busy=false,arm=0;
   function snap(){const d=pday(),B=blocks(d),P=mine(),g=gone(d,now());return Object.assign({B,P,g},g?{ph:'idle',b:null,nx:null,left:0,over:0,start:null,done:null,ext:null}:phase(B,now(),P))}
-  const key=o=>[o.ph,o.g,o.b&&o.b.id,o.b&&o.b.t,o.b&&o.b.e,o.nx&&o.nx.id+o.nx.s,o.start&&o.start.id,o.done&&o.done.id,o.ext&&1,o.over,busy,arm&&now()-arm<6000,S3.fxOpen,o.B.map(b=>b.id+b.t+b.s+b.e+b.on).join(),blocked().length,Cal.data.err,pip&&!pip.closed?1:0].join('|');
+  const key=o=>[o.ph,o.g,o.b&&o.b.id,o.b&&o.b.t,o.b&&o.b.e,o.nx&&o.nx.id+o.nx.s,o.start&&o.start.id,o.done&&o.done.id,o.ext&&1,o.over,busy,arm&&now()-arm<6000,S3.fxOpen,o.B.map(b=>b.id+b.t+b.s+b.e+b.on).join(),blocked().length,Cal.data.err,pip&&!pip.closed?1:0,S3.flSel,Math.floor(now()/60000),o.B.map(b=>b.dn).join()].join('|');
   const tm=o=>o.ph==='over'?'+'+dur(now()-o.b.s):o.b||o.nx?dur(o.b?o.b.e-now():o.nx.s-now()):'–';
   const btns=o=>`<div class="fx-b">${o.start?`<button class="btn pri2" data-fx="start" ${busy?'disabled':''}>▶ 시작</button>`:o.b&&o.b.on&&!o.b.done?'<span class="kv">▶ 시작함</span>':''}${o.done?`<button class="btn" data-fx="done" ${busy?'disabled':''}>✅ 끝${o.done!==o.b?' <small>'+esc(o.done.c.slice(0,12))+'</small>':''}</button>`:''}${o.ext?`<button class="btn" data-fx="ext" ${busy?'disabled':''}>${arm&&now()-arm<6000?'한 번 더 → 뒤가 30분 밀려요':'+30분'}</button>`:''}</div>`;
   const head=o=>`<div class="fx-h"><b>${o.b?esc(o.b.c):o.g?'오늘은 퇴근했어요':o.nx?'비어 있어요':o.B.length?'오늘 블록이 끝났어요':'오늘 🎬 블록이 없어요'}</b>${NM[o.ph]?`<em>${o.ph==='over'?`쉬는 시간 ${o.over}분 넘음 → 시작을 눌러요`:NM[o.ph]}</em>`:''}</div>`;
   const nxt=o=>o.nx?`<div class="fx-n">다음 <b class="num">${hmOf(o.nx.s)}</b> ${esc(o.nx.c)}</div>`:'';
   const li=b=>`<div class="hqrow fxr${b.draft?' dr':''}${b.done?' rd':''}">${/^(rest|sleep)$/.test(b.k)?'<b class="fxk"></b>':`<button class="fxk" data-fxk="${esc(b.id)}" aria-pressed="${b.done}" aria-label="${b.done?'끝 표시 지우기':'끝 표시'}" ${busy?'disabled':''}>${b.done?'✅':'⬜'}</button>`}<span>${esc(b.c)}<br><small class="kv">${hmOf(b.s)}~${hmOf(b.e)}${b.draft?' · 📝 초안':''}${b.on&&!b.done?' · ▶ 시작함':''}${b.ext?' · +30분':''}</small></span>${b.draft?`<button class="btn" data-fxd="${esc(b.id)}" ${busy?'disabled':''}>확정</button>`:''}</div>`;
+  // ---- 로비 맨 위 카드(동현 18:07): 지금 블록 + 남은 시간 + 얇은 막대 + 작게 '다음' · 🎯 칩 · 오늘 흐름 띠(18:10) ----
+  const pcBtns=()=>IS_PC?`<div class="fx-b fx-pc">${pip&&!pip.closed?'<button class="btn sm" data-fx="pipx">작은 창 닫기</button>':`${'documentPictureInPicture' in window?'<button class="btn sm" data-fx="pip">📌 작은 창</button>':''}<button class="btn sm" data-fx="pop">🗔 보통 창</button>`}</div>`:'';
   function card(){const o=snap(),D=o.B.filter(b=>b.k==='focus');
-    if(!o.B.length&&Cal.data.err)return '';
-    return `${head(o)}<div class="fx-t num">${tm(o)}</div>${o.b&&o.b.crit?`<div class="kv">✅ ${esc(o.b.crit)}</div>`:''}${nxt(o)}${o.B.length?btns(o):''}${o.B.length||IS_PC?`<div class="fx-b">${o.B.length?`<button class="btn" data-fx="list" aria-expanded="${!!S3.fxOpen}">🎯 ${D.filter(b=>b.done).length}/${D.length}${o.B.some(b=>b.draft)?' · 📝 초안 '+o.B.filter(b=>b.draft).length:''} ${S3.fxOpen?'▴':'▾'}</button>`:''}${IS_PC?(pip&&!pip.closed?'<button class="btn" data-fx="pipx">작은 창 닫기</button>':`${'documentPictureInPicture' in window?'<button class="btn" data-fx="pip">📌 작은 창(항상 위)</button>':''}<button class="btn" data-fx="pop">🗔 작은 창(보통)</button>`):''}</div>`:''}${S3.fxOpen?o.B.map(li).join(''):''}`}
+    if(!o.B.length){const x=nowNext();   // 작업 블록이 없으면 캘린더 지금·다음
+      return `<div class="fx-h"><small>지금</small><b>${x.cur||(x.all.length?esc(x.all[0])+' <span class="kv">종일</span>':Cal.data.err?'캘린더를 못 읽었어요':'오늘 🎬 블록이 없어요')}</b></div><div class="fx-n"><small>다음</small> ${x.nx||'<span class="kv">오늘은 더 없어요</span>'}</div>${pcBtns()}`}
+    const b=o.b,p=b?Math.min(1,Math.max(0,(now()-b.s)/(b.e-b.s))):0;
+    return `<div class="fx-h"><small>지금</small>${head(o).replace('<div class="fx-h">','').replace(/<\/div>$/,'')}</div><div class="fx-t num">${tm(o)}</div>${b?`<div class="fx-bar" role="progressbar" aria-label="지금 블록 진행" aria-valuenow="${Math.round(p*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${(p*100).toFixed(1)}%"></i></div>`:''}${b&&b.crit?`<div class="kv">✅ ${esc(b.crit)}</div>`:''}${nxt(o)||'<div class="fx-n kv">다음 블록 없음</div>'}${btns(o)}
+      ${D.length?`<div class="fxcs" role="group" aria-label="오늘 🎯 ${D.filter(b=>b.done).length}/${D.length}">${D.map(d=>{const s=d.done?'done':d===b||d.on?'now':'wait';return `<button class="fxc s-${s}" data-flb="${esc(d.id)}" aria-pressed="${S3.flSel===d.id}" title="${esc(d.c)}">${s==='done'?'✅':s==='now'?'▶':'🎯'} <span>${esc(d.c.replace(/^🎯\s*/u,'').slice(0,14))}</span></button>`}).join('')}</div>`:''}
+      ${flow(o)}${pcBtns()}${o.B.some(b=>b.draft)||S3.fxOpen?`<div class="fx-b"><button class="btn sm" data-fx="list" aria-expanded="${!!S3.fxOpen}">✅ 체크 목록${o.B.some(b=>b.draft)?' · 📝 초안 '+o.B.filter(b=>b.draft).length:''} ${S3.fxOpen?'▴':'▾'}</button></div>`:`<div class="fx-b"><button class="btn sm" data-fx="list" aria-expanded="false">✅ 체크 목록 ▾</button></div>`}${S3.fxOpen?o.B.map(li).join(''):''}`}
+  // 실제: ▶시작(hq_start) ~ ✅끝(hq_done, 없으면 계획 끝) · 아직 안 끝났으면 지금까지. 쉬는 시간 넘김 = 쉬는 블록 끝 뒤 1분 넘어 ▶ (또는 아직 안 누름)
+  function real(b,t){if(b.k!=='focus'||!b.st)return null;const e=b.dn||(b.done?b.e:Math.min(t,b.e));return e>b.st?{s:b.st,e}:null}
+  function overs(B,t){const L=[];B.forEach(f=>{if(f.k!=='focus'||!restBefore(B,f))return;const r=B.filter(x=>x!==f&&x.e<=f.s+M&&(x.k==='rest'||x.k==='meal')).pop();if(!r)return;const s=f.st||(f.done?null:t);if(s&&s-r.e>M)L.push({f,s:r.e,e:Math.min(s,f.e)})});return L}
+  function dayStats(B,t){const F=B.filter(b=>b.k==='focus'),pm=F.reduce((a,b)=>a+(b.e-b.s),0),rm=F.reduce((a,b)=>{const r=real(b,t);return a+(r?r.e-r.s:0)},0);return {done:F.filter(b=>b.done).length,n:F.length,plan:Math.round(pm/M),real:Math.round(rm/M),over:overs(B,t).length}}
+  const KC=b=>b.k==='focus'?'f':b.k==='rest'||b.k==='meal'?'r':b.k==='hold'?'h':'g';
+  function flow(o){const B=o.B;if(!B.length)return '';const t=now(),t0=B[0].s,t1=Math.max(...B.map(b=>b.e)),W=t1-t0||1,X=v=>((Math.min(t1,Math.max(t0,v))-t0)/W*100).toFixed(2);
+    const box=(s,e,c,inner,extra='')=>`<span class="${c}" style="left:${X(s)}%;width:${Math.max(0.4,X(e)-X(s))}%"${extra}>${inner||''}</span>`;
+    const ov=overs(B,t),sel=B.find(b=>b.id===S3.flSel);
+    const strip=`<div class="fl" aria-label="오늘 흐름 ${hmOf(t0)}~${hmOf(t1)}"><div class="fl-l">계획</div><div class="fl-r fl-p">${B.map(b=>`<button class="fb k-${KC(b)}${b.done?' dn':''}${S3.flSel===b.id?' on':''}" style="left:${X(b.s)}%;width:${Math.max(0.4,X(b.e)-X(b.s))}%" data-flb="${esc(b.id)}" aria-label="${esc(b.c)} ${hmOf(b.s)}~${hmOf(b.e)}">${b.done?'✅':esc([...b.c][0]||'')}</button>`).join('')}${t>=t0&&t<=t1?`<i class="fl-now" style="left:${X(t)}%"></i>`:''}</div>
+      <div class="fl-l">실제</div><div class="fl-r">${B.map(b=>{const r=real(b,t);return r?box(r.s,r.e,'fa'+(b.done?' dn':'')):''}).join('')}${ov.map(x=>box(x.s,x.e,'fo')).join('')}${t>=t0&&t<=t1?`<i class="fl-now" style="left:${X(t)}%"></i>`:''}</div>
+      <div class="fl-l"></div><div class="fl-r fl-ax"><small style="left:0">${hmOf(t0)}</small><small style="right:0">${hmOf(t1)}</small></div></div>`;
+    const list=`<div class="fll">${B.map(b=>{const r=real(b,t),o2=ov.find(x=>x.f===b);return `<button class="fli k-${KC(b)}${S3.flSel===b.id?' on':''}${b.e<t&&!b.done&&b.k==='focus'?' miss':''}" data-flb="${esc(b.id)}"><b class="num">${hmOf(b.s)}</b><span>${b.done?'✅ ':''}${esc(b.c)}</span><small>${r?`실제 ${Math.round((r.e-r.s)/M)}분`:b.k==='focus'?`계획 ${Math.round((b.e-b.s)/M)}분`:''}${o2?' · 🔴 쉬는 시간 넘김':''}</small></button>`}).join('')}</div>`;
+    const det=sel?(()=>{const r=real(sel,t);return `<div class="fl-d"><b>${esc(sel.c)}</b><div class="kv">계획 ${hmOf(sel.s)}~${hmOf(sel.e)} (${Math.round((sel.e-sel.s)/M)}분)${sel.ext?' · +30분 늘림':''} · 리미트 ${hmOf(sel.e)}</div><div class="kv">실제 ${r?`${hmOf(r.s)}~${sel.dn||sel.done?hmOf(r.e):'지금'} (${Math.round((r.e-r.s)/M)}분)`:sel.k==='focus'?'▶ 시작 기록 없음':'—'}</div>${sel.crit?`<div class="kv">완료 기준: ${esc(sel.crit)}</div>`:''}</div>`})():'';
+    return `<div class="flw">${strip}${list}${det}</div>`}
   const box=()=>'<div id="fx" class="fx"></div>';
   // ---- PC 작은 창: 항상 위(문서 PiP) 또는 보통 창. 로그인은 HQ 창 것을 그대로 쓴다 ----
   let pip=null,pipK='';
@@ -1259,7 +1314,7 @@ const Focus=(()=>{
     if(a==='list'){S3.fxOpen=!S3.fxOpen;tick();return}
     if(a==='pip'){openPip();return}if(a==='pop'){openPop();return}if(a==='pipx'){if(pip)pip.close();pip=null;tick();return}
     if(a==='start'&&o.start)run(async()=>{await set(o.start.id,{extendedProperties:{private:{hq_start:new Date().toISOString()}}});toast('▶ 시작했어요')});
-    if(a==='done'&&o.done)run(async()=>{await set(o.done.id,{summary:title(o.done,true)});toast('✅ 끝으로 표시했어요')});
+    if(a==='done'&&o.done)run(async()=>{await set(o.done.id,{summary:title(o.done,true),extendedProperties:{private:{hq_done:new Date().toISOString()}}});toast('✅ 끝으로 표시했어요')});
     if(a==='ext'&&o.ext){if(!(arm&&now()-arm<6000)){const p=extPlan(o.B,o.ext,o.P);if(p.no){toast(p.no);return}arm=now();tick();setTimeout(tick,6200);return}
       run(async()=>{const p=extPlan(o.B,o.ext,o.P);if(p.no){toast(p.no);return}
         const done=[],iso=t=>({dateTime:new Date(t).toISOString(),timeZone:'Asia/Seoul'});
@@ -1269,17 +1324,22 @@ const Focus=(()=>{
         toast('+30분 · 뒤 블록을 밀고 🔁여유에서 뺐어요')})}}
   document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('button');if(!t)return;const D=t.dataset;
     if(D.fx){act(D.fx);return}
-    if(D.fxk){const b=blocks(S3.room==='plan'?S3.pDate||pday():pday()).find(x=>x.id===D.fxk);if(b)run(()=>set(b.id,{summary:title(b,!b.done)}));return}
+    if(D.fxk){const b=blocks(S3.room==='plan'?S3.pDate||pday():pday()).find(x=>x.id===D.fxk);if(b)run(()=>set(b.id,{summary:title(b,!b.done),extendedProperties:{private:{hq_done:b.done?'':new Date().toISOString()}}}));return}
+    if(D.flb){S3.flSel=S3.flSel===D.flb?'':D.flb;tick();return}
     if(D.fxd){const b=blocks(S3.room==='plan'?S3.pDate||pday():pday()).find(x=>x.id===D.fxd);if(b)run(async()=>{await set(b.id,{summary:title(b,b.done)});toast('확정했어요')});return}
     if(t.id==='lb-quit'){if(S3.lqArm&&now()-S3.lqArm<5000){S3.lqArm=0;quitSend();toast('🛑 퇴근을 보냈어요 · 부대표가 내일 초안을 만들어요');render()}else{S3.lqArm=now();render();setTimeout(()=>{if(S3.room==='lobby')render()},5200)}}});
   // 퇴근 버튼(하루 1번): 퇴근 방 버튼과 같은 일 + 부대표에게 '내일 초안' 편지(지킴이가 하루 1통)
+  // 퇴근 버튼은 🛑 블록 30분 전부터만(동현 18:07). 🛑 블록이 없으면 22:30부터. 거절 사유가 있으면 늘 보임
+  function quitAt(){const d=pday(),w=blocks(d).find(b=>b.k==='wrap');if(w)return w.s-30*M;const x=new Date();x.setHours(22,30,0,0);if(x.getHours()<5)x.setDate(x.getDate()+1);return +x}
   function quitBtn(){const q=S3.st.quit||{},i=quitInfo(),sent=q.leave&&q.leave.d===wday()?q.leave.t:'';
-    if(sent)return `<a class="lbl ok" href="#out">🛑 퇴근했어요 <span>${esc(sent)} · 내일 초안을 부탁했어요</span></a>`;
+    if(sent)return `<a class="lbl gone" href="#out">🛑 퇴근했어요 <span>${esc(sent)} · 내일 초안을 부탁했어요</span></a>`;
+    if(!i.rej&&now()<quitAt())return '';
     if(i.wait)return `<div class="lbl">🛑 퇴근 <span>${i.wait}</span></div>`;
     return `<button class="lbl qb" id="lb-quit">${S3.lqArm&&now()-S3.lqArm<5000?'🛑 한 번 더 누르면 퇴근이에요':'🛑 퇴근'} <span>${i.rej?'🔴 '+esc(i.rej):'오늘을 닫고 내일 초안을 부탁해요'}</span></button>`}
   const pd=e=>{const b=blocks(Cal.planDay(new Date(Date.parse(e.start.dateTime)))).find(x=>x.id===e.id);return b||null};
   setInterval(()=>{if(S3.room==='lobby'&&!document.hidden||pip)tick()},1000);
-  return {box,tick,quitBtn,act,row:pd,li,core,kindOf,isDone,isDraft,phase,extPlan,blocks,restBefore,title,get pip(){return pip},pipOn}})();
+  const today=()=>{const d=pday(),B=blocks(d);return {B,g:gone(d,now()),st:dayStats(B,now())}};
+  return {box,tick,quitBtn,quitAt,today,act,row:pd,li,core,kindOf,isDone,isDraft,phase,extPlan,blocks,restBefore,title,get pip(){return pip},pipOn}})();
 
 // HB HQ 폰 알림(웹 푸시, 11/26 동현 03:54). 실제 주소에서만. 폰이 허용하면 주소를 PC로 보내고, 받은 시각은 서비스워커가 적어 두었다가 앱을 열 때 PC로 보낸다(도착률·지연).
 const Push=(()=>{
@@ -1399,26 +1459,34 @@ function motionCard(){const M=((S3.st.progress||{}).items||[]).filter(m=>m.char!
 function nowNext(){const d=Cal.day(pday()),now=Date.now(),L=d.list.filter(e=>!Cal.cancelled(e)&&e.start&&e.start.dateTime).map(e=>({k:e.k,s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime),t:e.summary})).sort((a,b)=>a.s-b.s);
   const cur=L.find(x=>x.s<=now&&now<x.e),nx=L.find(x=>x.s>now),p=planOf(pday()),h=new Date().getHours(),hs=p?p.slots.map(s=>s.h):[],i=hs.indexOf(h),sl=p&&!p.dflt&&i>=0&&p.slots[i].plan?p.slots[i]:null,ns=p&&!p.dflt&&i>=0?p.slots.slice(i+1).find(s=>s.plan):null;
   return {cur:cur?`<i class="kd k-${cur.k}"></i>${esc(cur.t)} <span class="kv">~${hmOf(cur.e)}</span>`:sl?esc(sl.plan):'',nx:nx?`<i class="kd k-${nx.k}"></i><b class="num">${hmOf(nx.s)}</b> ${esc(nx.t)}`:ns?`<b class="num">${z2(ns.h)}시</b> ${esc(ns.plan)}`:'',all:d.all.filter(e=>!Cal.cancelled(e)).map(e=>e.summary),n:d.list.filter(e=>!Cal.cancelled(e)).length,err:Cal.data.err}}
+// 방 숫자 = 동현이 볼 것·할 일 수만(0이면 숨김). 나머지는 작은 회색 글(동현 18:07 F·G)
 function roomStat(id){
-  if(id==='ops'){const b=blocked().length,r=jobs().filter(j=>j.status==='진행').length;return S3.st.jobs?b?[b,'막힌 일','bad']:[r,'도는 일','ok']:['–','기다리는 중','no']}
-  if(id==='hb'){const G=(S3.st.hb_gates||{}).gates||[],n=G.filter(g=>g.pass===true).length;return G.length?[n,`/ ${G.length} 통과`,'gold']:['–','기다리는 중','no']}
-  if(id==='coach'){const u=Ask.unseen(S3.st).n;if(u)return [u,'새 답','me'];const C=S3.st.dex?dexCards():[],g=C.filter(c=>c.got).length;return S3.st.dex?[g,`/ ${C.length} 공부 카드`,'blue']:['–','기다리는 중','no']}
-  if(id==='log'){const H=S3.st.history;return H?[(H.parts||[]).reduce((a,p)=>a+(p.total||0),0),`최근 ${H.days}일 바뀐 것`,'blue']:['–','기다리는 중','no']}
-  if(id==='plan'){const x=nowNext();return x.err&&!x.n?['–',x.err==='perm'?'캘린더 허용 전':'캘린더 못 읽음','no']:[x.n,'오늘 일정','blue']}
-  if(id==='out'){const q=quitInfo(),t=S3.st.timetable||{};return q.again?[q.at?esc(String(q.at).slice(-5)):'끝','퇴근했어요','ok']:t.clocked_in?[esc(t.t0||''),'출근','gold']:['–','출근 전','no']}
-  return ['▶','걸어서 보기','no']}
+  if(id==='ops'){const B=blocked(),b=B.filter(j=>!DISKJ(j)).length,d=B.length-b,r=jobs().filter(j=>j.status==='진행').length;return S3.st.jobs?b?[b,'막힌 일','bad']:d?[d,'확인 중','me']:['',`도는 일 ${r}`,'no']:['','기다리는 중','no']}
+  if(id==='hb'){const G=(S3.st.hb_gates||{}).gates||[],n=G.filter(g=>g.pass===true).length;return ['',G.length?`${n} / ${G.length} 통과`:'기다리는 중','no']}
+  if(id==='coach'){const u=Ask.unseen(S3.st).n;if(u)return [u,'새 답','me'];const C=S3.st.dex?dexCards():[],g=C.filter(c=>c.got).length;return ['',S3.st.dex?`공부 카드 ${g} / ${C.length}`:'기다리는 중','no']}
+  if(id==='log'){const H=S3.st.history;return ['',H?`최근 ${H.days}일 기록`:'기다리는 중','no']}
+  if(id==='plan'){const x=nowNext();return ['',x.err&&!x.n?(x.err==='perm'?'캘린더 허용 전':'캘린더 못 읽음'):`오늘 일정 ${x.n}`,'no']}
+  if(id==='out'){const q=quitInfo(),t=S3.st.timetable||{};return ['',q.again?`퇴근했어요${q.at?' '+esc(String(q.at).slice(-5)):''}`:t.clocked_in?`출근 ${esc(t.t0||'')}`:'출근 전','no']}
+  return ['','걸어서 보기','no']}
+// 알림 한 칸(동현 18:07 C): 🔴 = 알림양식 v1(막힘·PC 끊김·급한 소식), 저장 공간·창고 일은 원인 확인 전 🟡, 지킴이 오류도 🟡
+const DISKJ=j=>/저장|창고|출고|디스크|disk|keeper|storage/i.test(jobT(j)+' '+(j.id||'')+' '+(j.owner||''));
+function alerts(){const B=blocked(),er=((S3.st.meta||{}).errors)||[],dead=S3.st.meta&&S3.st.meta.agent_alive===false,urg=news().me.filter(n=>n.urgent&&!n.rd),R=rptNew();
+  const DT=s=>/저장\s*공간|출고|창고|디스크/.test(s),cl=s=>nm3(s).replace(/^\s*(?:🟡|🔴|🟢|⚪|⬜)\s*/u,'');
+  const red=[...(dead?[['#ops','PC 지킴이가 응답하지 않아요']]:[]),...B.filter(j=>!DISKJ(j)).map(j=>['#ops','막힌 일 · '+cl(jobT(j))]),...urg.filter(n=>!DT(n.text)).map(n=>['#director','급한 소식 · '+cl(n.text)])];
+  const yel=[...urg.filter(n=>DT(n.text)).map(n=>['#director','확인 중 · '+cl(n.text)]),...B.filter(DISKJ).map(j=>['#ops','확인 중 · '+nm3(jobT(j)).replace(/^\s*(?:🟡|🔴|🟢|⚪|⬜)\s*/u,'')]),...er.map(e=>['#ops','지킴이 · '+String(e).slice(0,80)])];
+  return {red,yel,R}}
+function alertBox(){const {red,yel,R}=alerts(),n=red.length+yel.length+R.length;
+  if(!n)return `<div class="al al-ok">${S3.st.jobs?'막힌 일 없음':'PC 지킴이를 기다려요'}</div>`;
+  const row=(c,[h,t])=>`<a class="alr ${c}" href="${h}">${c==='r'?'🔴':'🟡'} <span>${esc(t)}</span></a>`;
+  return `<details class="al gt${red.length?' al-r':''}" data-gk="lobby_al"><summary>${red.length?`<b class="c-bad">🔴 ${red.length}</b>`:''}${yel.length?`<b>🟡 ${yel.length}</b>`:''}${R.length?`<b class="c-me">📰 ${R.length}</b>`:''}<span class="kv">${esc(String((red[0]||yel[0]||['',R.length?'새 보고 · '+R[0].t:''])[1]).slice(0,40))}</span></summary>${red.map(x=>row('r',x)).join('')}${yel.map(x=>row('y',x)).join('')}${R.map(r=>`<button class="alr" data-rpt="${esc(r.s)}">📰 <span>${esc(r.t)}</span></button>`).join('')}</details>`}
 const scrN=()=>(((S3.st.screen_ask||{}).items)||[]).filter(a=>!Q.of('screen_answer').some(r=>r.data.key===a.id+a.made&&!(r.st==='fail'&&r.rej))).length;
 const badgeN=()=>scrN()+pending().length+myTasks().now.length+rptNew().length;
-function lobby(){
-  const x=nowNext(),B=blocked(),er=((S3.st.meta||{}).errors)||[],dead=S3.st.meta&&S3.st.meta.agent_alive===false,urg=news().me.filter(n=>n.urgent&&!n.rd),R=rptNew();
-  const bad=B.length+er.length+(dead?1:0);
-  $('#r-lobby').innerHTML=`<h1>로비</h1>
-  <a class="nnx" href="#plan" aria-label="일정 열기"><span><small>지금</small>${x.cur||(x.all.length?esc(x.all[0])+' <span class="kv">종일</span>':'<span class="kv">비어 있어요</span>')}</span><span><small>다음</small>${x.nx||'<span class="kv">오늘은 더 없어요</span>'}</span></a>${x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:''}
-  ${Focus.box()}
-  <a class="lbl ${bad?'bad':'ok'}" href="#ops">${bad?`🔴 막힌 일 ${bad} <span>${esc(dead?'PC 지킴이가 응답하지 않아요':B.length?nm3(jobT(B[0])):String(er[0]).slice(0,60))}</span>`:S3.st.jobs?'🟢 막힌 일 없음':'⬜ PC 지킴이를 기다려요'}</a>
-  ${urg.length?`<a class="lbl bad" href="#director">🔴 급한 소식 ${urg.length} <span>${esc(nm3(urg[0].text))}</span></a>`:''}
-  ${R.length?`<button class="lbl me" data-rpt="${esc(R[0].s)}">📰 새 보고서 <span>${esc(R[0].t)}</span></button>`:''}
-  ${Focus.quitBtn()}${Push.hint()}${hz()}<div class="rcs">${CARD_ROOMS.map(id=>{const [n,ds,c]=roomStat(id),r=ROOMS.find(q=>q[0]===id);return `<a class="rc c-${c}" href="#${id}" data-room="${id}">${icon(r[2])}<b>${r[1]}${oldNm(id)}</b><span class="num">${n}</span><small>${ds}</small></a>`}).join('')}</div>`;Focus.tick();
+function lobby(){   // 동현 18:07: 제목 없음 → 지금 카드(남은 시간·막대·다음) → 🎯 칩 → 오늘 흐름 → 알림 한 칸 → 퇴근(30분 전부터) → 방
+  const x=nowNext();
+  keepOpen($('#r-lobby'),()=>$('#r-lobby').innerHTML=`<h1 class="sr">로비</h1>
+  ${Focus.box()}${x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:''}
+  ${alertBox()}
+  ${Focus.quitBtn()}${Push.hint()}${hz()}<div class="rcs">${CARD_ROOMS.map(id=>{const [n,ds,c]=roomStat(id),r=ROOMS.find(q=>q[0]===id);return `<a class="rc c-${c}" href="#${id}" data-room="${id}">${icon(r[2])}<b>${r[1]}${oldNm(id)}</b>${n!==''?`<span class="num">${n}</span>`:''}<small>${ds}</small></a>`}).join('')}</div>`);Focus.tick();
 }
 
 // ---- 대표실: 결정함 · 내 할 일 · 소식 · 퇴근 채점 ----
@@ -1439,7 +1507,7 @@ function director(){
   ${rptTop()}
   <div class="grid g2"><div class="stk">${scrCard()}${main}${taskCard()}${newsCard()}</div><div class="stk">
    ${rulesCard()}
-   ${oct(`<h2 class="sec">퇴근 채점</h2><div class="kv">${q.again?`${q.at?esc(q.at)+'에 ':''}퇴근했어요`:'아직 퇴근 전이에요'}</div>${g?`<div class="rule"><span>🎓</span><span>${recD(g.date)} · 클립 ${g.grade.clips.length}개 · 채점 끝 ${g.grade.clips.filter(c=>c.res&&!c.re).length}개</span></div>`:'<div class="kv">채점 기록이 아직 없어요</div>'}<div class="nav2"><a class="btn pri2" href="#out">🌙 퇴근 · 채점 열기</a></div>`)}
+   ${oct(`<h2 class="sec">퇴근 채점</h2><div class="kv">${q.again?`${q.at?esc(q.at)+'에 ':''}퇴근했어요`:'아직 퇴근 전이에요'}</div>${dayLine()}${g?`<div class="rule"><span>🎓</span><span>${recD(g.date)} · 클립 ${g.grade.clips.length}개 · 채점 끝 ${g.grade.clips.filter(c=>c.res&&!c.re).length}개</span></div>`:'<div class="kv">채점 기록이 아직 없어요</div>'}<div class="nav2"><a class="btn pri2" href="#out">🌙 퇴근 · 채점 열기</a></div>`)}
    ${oct(`<div class="rule" style="border:0"><span>🎯</span><span><b>입사 목표까지 ${dd}일</b><br><span class="kv">${JOB_DEADLINE.slice(0,4)}년 ${+JOB_DEADLINE.slice(5,7)}월</span></span></div>`)}
    ${pushCard()}
    ${auditCard()}
@@ -1498,6 +1566,8 @@ async function rptOpen(s){const r=rptList().find(x=>x.s===s);if(!r)return;const 
     const f=document.createElement('iframe');f.setAttribute('sandbox','allow-popups');f.title=r.t;f.srcdoc=x.html;b.replaceChildren(f);
     const sn=lsx('rpt_seen',{});sn[r.f]=1;lsSet('v3_rpt_seen',sn);nav();if(['lobby','log','director'].includes(S3.room))render()
   }catch(e){b.innerHTML=`<p class="why" style="padding:30px">보고서를 못 불러왔어요 (${esc(e.message)})</p>`}}
+// 하루 끝 '계획 대비 실제' 한 줄(동현 18:10): 퇴근하면 대표실 일지 칸에. 재료 = 작업 캘린더(✅ 제목 · ▶ hq_start · ✅ hq_done)만
+function dayLine(){const T=Focus.today();if(!T.g||!T.st.n)return '';const s=T.st;return `<div class="rule"><span>📊</span><span><b>오늘 계획 대비 실제</b><br>🎯 ${s.done}/${s.n} · 작업 ${s.real}분 / 계획 ${s.plan}분 · 쉬는 시간 넘김 ${s.over}번${s.real===0&&s.done?'<br><span class="kv">▶ 시작을 안 눌러 실제 분이 비어요</span>':''}</span></div>`}
 // 대표실 맨 위 '📰 새 보고'(동현 18:03): 안 읽은 것 전부 + 오늘 부대표 보고서(읽으면 회색). 기록실은 보관 목록
 function rptTop(){const sn=lsx('rpt_seen',{}),td=new Date().toLocaleDateString('sv'),L=rptList().filter(r=>!sn[r.f]||(r.k==='c'&&r.d===td));if(!L.length)return '';
   return oct(`<h2 class="sec">📰 새 보고 ${L.filter(r=>!sn[r.f]).length?`<span class="num">${L.filter(r=>!sn[r.f]).length}</span>`:''}</h2>${L.map(r=>rptRow(r).replace('class="hqrow"',`class="hqrow${sn[r.f]?' rd':''}"`)).join('')}`)}
@@ -1905,7 +1975,7 @@ function hbBoard(){
   ${clips.length?`<div id="clips">${oct(`<h2 class="sec">클립 ${clips.length} <span class="kv">🎬 미리보기(맥스) · 🏁 완성(언리얼)</span></h2>${clips.map(clipCard).join('')}`)}</div>`:''}`);
 }
 function nav(){const el=$('#nav');el.style.display=S3.room==='title'?'none':'';document.body.classList.toggle('notab',S3.room==='title');const n=badgeN(),cur=S3.room==='two'?'studio':S3.room,
-  item=(id,sub)=>{const [,nm,k]=ROOMS.find(r=>r[0]===id),c=sub?roomStat(id):null;return `<a href="#${id}" style="--c:${COLOR[id]}" class="${sub?'sub':''} ${cur===id?'on':''}" ${cur===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span>${id==='director'&&n?`<i class="bdg" aria-label="볼 것 ${n}">${n>99?'99+':n}</i>`:''}${c?`<em class="num c-${c[2]}">${c[0]}</em>`:''}</a>`};
+  item=(id,sub)=>{const [,nm,k]=ROOMS.find(r=>r[0]===id),c=sub?roomStat(id):null;return `<a href="#${id}" style="--c:${COLOR[id]}" class="${sub?'sub':''} ${cur===id?'on':''}" ${cur===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span>${id==='director'&&n?`<i class="bdg" aria-label="볼 것 ${n}">${n>99?'99+':n}</i>`:''}${c&&c[0]!==''?`<em class="num c-${c[2]}">${c[0]}</em>`:''}</a>`};
   el.innerHTML=TABS4.map(id=>item(id)).join('')+`<div class="sub hr"></div>`+CARD_ROOMS.map(id=>item(id,1)).join('')}
 function render(){
   {const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('cxin')&&ae.value&&(S3.room==='studio'||S3.room==='coach'))return}
