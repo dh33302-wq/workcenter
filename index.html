@@ -383,6 +383,21 @@ html,body,h1,h2,h3,.sec,.q,.lbl,.rc b,.dept .big,.clk2,#qc,.egain,.optb .k,.amed
 .wrt{flex-wrap:wrap}.wsh{margin-top:10px;line-height:1.6}.apold{margin-top:10px;color:#9a9a9a}
 #gdv-b,#wsv-b{flex:1;min-height:0;display:flex}#gdv-b iframe,#wsv-b iframe{flex:1;border:0;width:100%;background:#fff}.gdv-n{padding:0 12px 6px;font-size:12px}
 #wsv .sh-h small{flex:none;font-size:12px}
+
+/* 진행판 v2(11/27 board_v2): 한 줄 = 상태 아이콘 · 제목(한 줄 자름) · 보조 · 신선도 */
+.bv2h{margin:0 0 8px;font-size:.95em}
+.bv2{border-top:1px solid #222;min-width:0}
+.bv2>summary,.bv2 .bsum{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px;padding:9px 0;min-height:44px;box-sizing:border-box;cursor:pointer;list-style:none}
+.bv2>summary::-webkit-details-marker{display:none}
+.bv2 .bt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.bv2 .fr{white-space:nowrap;font-size:.85em;color:#9a9a9a}.bv2 .f-live{color:#5fd38d}.bv2 .f-old{color:#e0a040}
+.bv2>summary .prog{grid-column:1/-1;margin:2px 0 0}
+.bv2 .bful{overflow-wrap:anywhere;margin:2px 0 6px;font-weight:600}
+.bv2.s-stale{opacity:.55;filter:grayscale(1)}
+.bv2 .bdays{font-size:1.15em;white-space:nowrap;color:#ddd}
+.bv2 .bblk{color:#ff6b6b;white-space:nowrap}
+.bv2.s-bad .bt{color:#e0a040}
+.bdone>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 </style>
 </head>
 <body>
@@ -431,7 +446,7 @@ html,body,h1,h2,h3,.sec,.q,.lbl,.rc b,.dept .big,.clk2,#qc,.egain,.optb .k,.amed
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=23;
+const BUILD=24;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1545,7 +1560,7 @@ function jobJump(){const id=S3.jobOpen;if(!id||!S3.st.jobs)return;const e=[...do
 // 🖥️ 화면 써도 돼?
 function scrCard(){const L=(((S3.st.screen_ask||{}).items)||[]).filter(a=>!Q.of('screen_answer').some(r=>r.data.key===a.id+a.made&&!(r.st==='fail'&&r.rej)));
   return L.map(a=>oct(`<h2 class="sec">🖥️ 화면 써도 돼?</h2><div class="q">${esc(a.what)}</div><p class="why">${esc(a.by)}${a.why?' · '+esc(nm3(a.why)):''}${a.eta!=null?` · 약 ${esc(a.eta)}분`:''}${a.made?` · ${esc(a.made.slice(11,16))}에 물음`:''}</p><div class="nav2">${[['맡길게','⭐ 맡길게'],['내가 할게','내가 할게'],['나중에','나중에']].map(([v,t],i)=>`<button class="btn ${i?'':'pri2'}" data-scr="${esc(JSON.stringify([a.id,v,a.id+a.made]))}">${t}</button>`).join('')}</div>`)).join('')}
-function jobsCard(){const O={막힘:0,진행:1,대기:2,멈춤:3,완료:4},J=jobs().slice().sort((a,b)=>((O[a.status]??1)-(O[b.status]??1))||(b.t||0)-(a.t||0)),live=J.filter(j=>!jobOld(j)),old=J.filter(jobOld);
+function jobsCardV1(){const O={막힘:0,진행:1,대기:2,멈춤:3,완료:4},J=jobs().slice().sort((a,b)=>((O[a.status]??1)-(O[b.status]??1))||(b.t||0)-(a.t||0)),live=J.filter(j=>!jobOld(j)),old=J.filter(jobOld);
   return oct(`<h2 class="sec">모든 일 <span class="kv">${live.length}개</span></h2>${live.map(jobRow).join('')||recNone(S3.st.jobs?'등록된 일이 없어요':'PC 지킴이가 보내면 나타나요')}${old.length?`<details class="gt" data-gk="jold"><summary>✅ 끝난 일 ${old.length}개</summary>${old.map(jobRow).join('')}</details>`:''}`)}
 function blockCard(){const B=blocked(),er=((S3.st.meta||{}).errors)||[],dead=S3.st.meta&&S3.st.meta.agent_alive===false;
   return oct(`<h2 class="sec">막힌 일</h2>${dead?'<div class="alert">PC 지킴이가 응답하지 않아요</div>':''}${B.map(j=>`<div class="alert">${esc(nm3(jobT(j)))}${j.now?`<br><span class="kv">${esc(nm3(j.now))}</span>`:''}</div>`).join('')}${er.map(e=>`<div class="alert">${esc(String(e).slice(0,120))}</div>`).join('')}${B.length||er.length||dead?'':S3.st.jobs?'<div class="ok">막힌 일이 없어요</div>':recNone('PC 지킴이가 보내면 나타나요')}`)}
@@ -1716,6 +1731,46 @@ const IS_ROOT=!!document.querySelector('link[rel=manifest]');
 document.getElementById('chan').hidden=IS_ROOT;
 if(IS_ROOT&&'serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{const r=String((e.data||{}).hqRoom||'');if(ROOMS.some(x=>x[0]===r.split('/')[0]))location.hash='#'+r})}
 
+// ---- 진행판 v2 (부대표 11/27 04:20 board_v2): 🟢 지금 도는 일 / 🔴 멈춘 일 / ✅ 끝난 일 ----
+// 원본 바꿔 끼우기(연결설계 C2): state.json 이 오면 BoardSrc 세 함수만 고친다. 칸 나누기(boardSplit)·그리기(boardCard)는 그대로.
+// BoardSrc.items() 한 줄 모양: {id, title, status:'대기|진행|완료|막힘|멈춤', pct:0~100|null, t:초(마지막 갱신), raw:원본}
+const BoardSrc={
+  items(){return jobs().map(j=>({id:String(j.id),title:nm3((j.notify||{}).title||jobT(j)||j.id),status:j.status,pct:typeof j.pct==='number'?Math.round(j.pct):null,t:j.t||0,raw:j}))},
+  bad(){return ((S3.st.jobs||{}).bad)||[]},          // [{id,t}] 깨진 파일
+  at(){return (S3.st.meta||{}).last_sync||0},         // 진행판 마지막 갱신(초)
+  has(){return !!S3.st.jobs}};
+const BV2={RUN:1800,STALE:86400,LIVE:300,TODAY:5};
+const bNoIc=s=>String(s||'').replace(/[\p{Extended_Pictographic}️‍]/gu,'').replace(/\s+/g,' ').trim();   // 아이콘은 줄마다 2개까지(상태·신선도)만
+function bFresh(t,now){if(!t)return ['⚠ 기록 없음','old'];const a=Math.max(0,now-t);return a<BV2.LIVE?['● 실시간','live']:a<3600?[Math.floor(a/60)+'분 전','min']:a<86400?[Math.floor(a/3600)+'시간 전','hr']:['⚠ '+Math.floor(a/86400)+'일 전','old']}
+function bDayStart(now){const d=new Date(now*1000-5*36e5);d.setHours(5,0,0,0);return d.getTime()/1000}   // 앱의 하루 = 새벽 5시 경계
+function boardSplit(L,now){const run=[],stop=[],done=[],ds=bDayStart(now);
+  for(const x of L){const age=now-(x.t||0);
+    if(x.status==='완료')done.push(x);
+    else if(x.status==='막힘'){x.k='blk';stop.push(x)}
+    else if(age>BV2.STALE){x.k='stale';stop.push(x)}
+    else if(age>BV2.RUN||x.status==='멈춤'){x.k='quiet';stop.push(x)}
+    else{x.k='run';run.push(x)}}
+  const KO={blk:0,quiet:1,stale:2};
+  run.sort((a,b)=>b.t-a.t);stop.sort((a,b)=>(KO[a.k]-KO[b.k])||(b.t-a.t));done.sort((a,b)=>b.t-a.t);
+  const today=done.filter(x=>x.t>=ds);
+  return {run,stop,done,today:today.slice(0,BV2.TODAY),todayN:today.length,rest:done.filter(x=>!today.slice(0,BV2.TODAY).includes(x))}}
+function bRow(x,now){const j=x.raw||{},[fr,fk]=bFresh(x.t,now),age=now-(x.t||0),k=x.status==='완료'?'done':x.k;
+  const ic=k==='run'?(j.status==='대기'?'⏳':'🟢'):k==='blk'?'🔴':k==='stale'?'⏸️':k==='quiet'?'⏸️':(j.res===0?'🟡':'✅');
+  const sub=k==='stale'?`<b class="bdays">${Math.floor(age/86400)}일째 멈춤</b>`:k==='blk'?'<b class="bblk">막힘</b>':k==='quiet'?`<span class="kv">${j.status==='멈춤'?(j.hold?'보류':'멈춤'):Math.floor(age/3600)?Math.floor(age/3600)+'시간째 조용':Math.floor(age/60)+'분째 조용'}</span>`:k==='run'&&x.pct!=null?`<span class="kv num">${x.pct}%</span>`:'';
+  return `<details class="bv2 jobd s-${k}" data-gk="job:${esc(x.id)}"><summary><span class="bi">${ic}</span><b class="bt">${esc(bNoIc(x.title))}</b>${sub}<span class="fr f-${fk}">${fr}</span>${k==='run'&&x.pct!=null?`<span class="prog"><i style="width:${x.pct}%"></i></span>`:''}</summary>
+    <div class="bful">${esc(x.title)}</div>${typeof jobDet==='function'?jobDet(j):''}<div class="kv">${j.now?esc(nm3(j.now))+'<br>':''}${j.eta_min!=null&&j.status!=='완료'?`남은 시간 약 ${esc(jrH(Math.round(j.eta_min)))}<br>`:''}${esc(j.status||'')}${x.pct!=null?' · '+x.pct+'%':''} · ${esc(nm3(j.name||x.id))}${j.started?' · 시작 '+esc(String(j.started).slice(5)):''}</div></details>`}
+const bBad=b=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(b.id)}</b><span class="fr">${esc(agoT(b.t))}</span></div></div>`;
+function boardCard(){const now=Date.now()/1000;
+  if(!BoardSrc.has())return oct(`<h2 class="sec">진행판</h2>${recNone('PC 지킴이가 보내면 나타나요')}`);
+  const t0=performance.now(),P=boardSplit(BoardSrc.items(),now),bad=BoardSrc.bad(),at=BoardSrc.at();
+  const h=`<div class="bv2h kv" id="bv2-at">모든 일 ${P.run.length+P.stop.length+P.done.length+bad.length}개 · 진행판 마지막 갱신 ${at?hmOf(at*1000):'–'}${at&&now-at>600?' · ⚠ PC 소식 '+agoT(at):''}</div>
+  ${oct(`<h2 class="sec">🟢 지금 도는 일 <span class="num" id="bv2-n-run">${P.run.length}</span> <span class="kv">30분 안에 소식 있는 것</span></h2>${P.run.map(x=>bRow(x,now)).join('')||'<div class="empty">지금 도는 일이 없어요</div>'}`,'bv2c')}
+  ${oct(`<h2 class="sec">🔴 멈춘 일 <span class="num" id="bv2-n-stop">${P.stop.length+bad.length}</span> <span class="kv">막힘 · 30분 넘게 조용 · 24시간 넘게 그대로</span></h2>${bad.map(bBad).join('')}${P.stop.map(x=>bRow(x,now)).join('')||(bad.length?'':'<div class="ok">멈춘 일이 없어요</div>')}`,'bv2c')}
+  ${oct(`<details class="bdone" data-gk="bv2done"><summary><h2 class="sec" style="display:inline">✅ 끝난 일 <span class="num" id="bv2-n-done">${P.done.length}</span></h2> <span class="kv">오늘 ${P.todayN}개 · 눌러서 보기</span></summary>${P.today.map(x=>bRow(x,now)).join('')||'<div class="empty">오늘 끝난 일은 아직 없어요</div>'}${P.rest.length?`<details class="bdone" data-gk="bv2rest"><summary class="kv">그 밖 ${P.rest.length}개</summary>${P.rest.map(x=>bRow(x,now)).join('')}</details>`:''}</details>`,'bv2c')}`;
+  window.__bv2ms=Math.round((performance.now()-t0)*10)/10;window.__bv2n={run:P.run.length,stop:P.stop.length,bad:bad.length,done:P.done.length,today:P.todayN};
+  return h}
+function jobsCard(){return boardCard()}
+
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
 const V3_STATES=['jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
@@ -1865,7 +1920,7 @@ const STAFF=[['부대표','🛰️ 부대표 · 판단·설계·팀 지휘','#CE
 function mask(c){return `<svg class="npc" viewBox="0 0 60 70" aria-hidden="true"><defs><clipPath id="cp"><rect width="60" height="70"/></clipPath></defs><g fill="#161618" stroke="${c}" stroke-width="1.3" stroke-linejoin="round"><path d="M6 70c0-16 10-24 24-24s24 8 24 24z"/><path d="M30 46v-6"/><path d="M18 22c0-9 5-15 12-15s12 6 12 15c0 9-5 17-12 17s-12-8-12-17z"/></g><g fill="${c}" opacity=".9"><path d="M21 21q4-3 7 0q-3 3-7 0zM32 21q4-3 7 0q-3 3-7 0z"/><path d="M30 24l-2 7h4z" opacity=".5"/></g><path d="M30 7v-4M26 8l-3-3M34 8l3-3" stroke="${c}" stroke-width="1" fill="none"/></svg>`}
 function ops(){
   const J=jobs();
-  const rows=STAFF.map(([dept,name,c,ids])=>{const js=ids.flatMap(i=>J.filter(j=>j.id===i)),run=js.find(j=>j.status==='진행'),bad=js.find(j=>j.status==='멈춤'||j.status==='막힘'),wait=js.find(j=>j.status==='대기');
+  const rows=STAFF.map(([dept,name,c,ids])=>{const js=ids.flatMap(i=>J.filter(j=>j.id===i)),run=js.find(j=>j.status==='진행'),bad=js.find(j=>(j.status==='멈춤'&&!j.hold)||j.status==='막힘'),wait=js.find(j=>j.status==='대기');
     const state=run?'가동':bad?'정지':wait?'대기':js.length?'대기':'기록 없음';const now=(run||bad||wait||js.sort((a,b)=>(b.t||0)-(a.t||0))[0]||{});
     return {dept,name,c,ids,js,state,now:now.headline||now.now||'',upd:now.started||''}});
   const on=rows.filter(r=>r.state==='가동').length,off=rows.filter(r=>r.state==='정지').length;
@@ -2145,7 +2200,7 @@ ergoShow(ergoGet());sndBtn();
 
 // ---- game2: 3D 키우기 탭 (열 때만 three.js 로딩) ----
 function loadScript(u){return new Promise((ok,no)=>{const e=document.createElement('script');e.src=u;e.onload=ok;e.onerror=()=>no(new Error(u));document.head.appendChild(e)})}
-function staffStates(){const J=jobs();return STAFF.map(([d,n,c,ids])=>{const js=J.filter(j=>ids.includes(j.id));return js.find(j=>j.status==='멈춤'||j.status==='막힘')?'block':js.find(j=>j.status==='진행')?'work':'rest'})}
+function staffStates(){const J=jobs();return STAFF.map(([d,n,c,ids])=>{const js=J.filter(j=>ids.includes(j.id));return js.find(j=>(j.status==='멈춤'&&!j.hold)||j.status==='막힘')?'block':js.find(j=>j.status==='진행')?'work':'rest'})}
 function world(){
   const el=$('#r-world');
   if(window.World&&World.on){World.setStaff(staffStates());return}
