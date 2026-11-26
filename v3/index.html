@@ -417,6 +417,7 @@ body.lvoff #r-today .lvc,body.lvoff #r-board .lvc,body.lvoff #lv-line{filter:gra
 #nav .navl{display:none}@media(min-width:700px){#nav .navl{display:block;padding:2px 12px 4px;font:600 12px system-ui,"Malgun Gothic",sans-serif;color:var(--dim);flex:none}}
 .v4t{margin-bottom:10px}.v4n{margin:0 0 12px;padding:8px 10px;border-left:3px solid var(--gold);background:var(--bg-panel)}
 .v4f{display:flex;flex-wrap:wrap;gap:8px}.v4s{all:unset;box-sizing:border-box;cursor:pointer;min-height:44px;padding:8px 12px;border:1px solid #3a3426;color:var(--dim);font-weight:600}.v4s.past{color:#5fd38d;border-color:#2f5a44}.v4s.cur{color:var(--gold);border-color:var(--gold);background:#17140d}.v4s:focus-visible{outline:2px solid var(--ivory)}
+.lvq{margin:10px 0 2px;padding-top:8px;border-top:1px dashed #333}
 </style>
 </head>
 <body>
@@ -469,7 +470,7 @@ body.lvoff #r-today .lvc,body.lvoff #r-board .lvc,body.lvoff #lv-line{filter:gra
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=26;
+const BUILD=27;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1814,7 +1815,7 @@ const Live={
   get(k,d){const s=this.raw();return s&&s[k]!=null?s[k]:d}};
 function lvFresh(t,now){if(!t)return ['⚠ 기록 없음','old'];const a=Math.max(0,now-t);
   return a<LV.LIVE?['● 실시간','live']:a<3600?['○ '+Math.floor(a/60)+'분 전','gray']:a<LV.DAY?['○ '+Math.floor(a/3600)+'시간 전','gray']:['⚠ '+Math.floor(a/86400)+'일 전','old']}
-const lvF=(t,now)=>{const [l,k]=lvFresh(t,now);return `<span class="fr f-${k}" data-fk="${k}">${l}</span>`};
+const lvF=(t,now,unk)=>{const [l,k]=unk?['⚠ 시각 모름','old']:lvFresh(t,now);return `<span class="fr f-${k}" data-fk="${k}">${l}</span>`};
 const lvNoIc=s=>String(s||'').replace(/[\p{Extended_Pictographic}️‍]/gu,'').replace(/\s+/g,' ').trim();
 
 // ---- 맨 위 한 줄(어느 방에서든): 마지막 갱신 HH:MM · ● 실시간 / 빨간 줄 PC 연결 끊김 ----
@@ -1831,7 +1832,7 @@ function lvRow(x,k,now){const p=typeof x.pct==='number'?Math.round(x.pct):null,c
   const ic=k==='run'?'🟢':k==='blocked'?'🔴':k==='done'?'✅':'⏸️';
   const sub=k==='stall'?`<b class="bdays">${Math.max(1,Math.floor((x.stalled_h||0)/24))}일째 멈춤</b>`:k==='blocked'?'<b class="bblk">막힘</b>':k==='quiet'?`<span class="kv">${x.status==='대기'?'기다림':x.status==='멈춤'?'멈춤':'조용'}</span>`:k==='run'&&p!=null?`<span class="kv num">${p}%</span>`:'';
   const tm=TEAM_NM(x.owner);
-  return `<details class="bv2 jobd s-${c}" data-gk="lv:${esc(x.id)}"><summary><span class="bi">${ic}</span><b class="bt">${esc(lvNoIc(nm3(x.notify_title||x.title||x.id)))}</b>${sub}${lvF(lvT(x.changed),now)}${k==='run'&&p!=null?`<span class="prog"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></span>`:''}</summary>
+  return `<details class="bv2 jobd s-${c}" data-gk="lv:${esc(x.id)}"><summary><span class="bi">${ic}</span><b class="bt">${esc(lvNoIc(nm3(x.notify_title||x.title||x.id)))}</b>${sub}${lvF(lvT(x.changed),now,x.conf==='unknown')}${k==='run'&&p!=null?`<span class="prog"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></span>`:''}</summary>
     <div class="bful">${esc(nm3(x.title||x.id))}</div><div class="kv">${x.now?esc(nm3(x.now))+'<br>':''}${x.eta_min!=null&&k!=='done'?`남은 시간 약 ${esc(jrH(Math.round(x.eta_min)))}<br>`:''}${esc(x.status||'')}${p!=null?' · '+p+'%':''}${tm?' · '+esc(tm):''} · 내용이 바뀐 때 ${esc(String(x.changed||'').slice(5,16))}${x.conf==='seed'?' (추정)':''}</div></details>`}
 const TEAM_NM=k=>{const t=Live.get('teams',[]).find(t=>t.key===k);return t?t.name:''};
 // 팀 신호등 한 줄: 팀마다 신호(🟢 30분 안 진행 · 🟡 편지 기다림 · 🔴 실패·막힘 · ⚪ 쉼) + 마지막 진행 신선도
@@ -1887,12 +1888,12 @@ function lvStatusLine(){const s=Live.raw();if(!s)return '';const Sc=s.secretary|
 function board2(){const now=Date.now()/1000,t0=performance.now(),s=Live.raw();
   if(!s){keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">실시간 상태를 기다리는 동안 앞 방식(파일 시각)으로 보여요</p>${hz()}${boardCard()}${healthCard()}`);lvBar();lvCount('board',t0);return}
   const run=Live.jobs('run'),blk=Live.jobs('blocked'),quiet=Live.jobs('quiet'),stall=Live.jobs('stall'),done=Live.jobs('done_today'),C=s.counts||{},er=s.errors||[];
-  const stopN=blk.length+quiet.length+stall.length+er.length,G=(S3.st.hb_gates||{}).gates||[],gp=G.filter(g=>g.pass===true).length;
+  const stopN=blk.length+stall.length+er.length,G=(S3.st.hb_gates||{}).gates||[],gp=G.filter(g=>g.pass===true).length;
   const sec=(id,h,body)=>oct(`<h2 class="sec" id="${id}">${h}</h2>${body}`,'bv2c lvc');
   keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">잘 돌아가고 있나 · 모든 일 ${(+C.run||0)+(+C.quiet||0)+(+C.stall||0)+(+C.blocked||0)+(+C.done||0)}개</p>${hz()}
   ${lvStatusLine()}
-  ${sec('lv-run',`🟢 지금 도는 일 <span class="num" id="lv-n-run">${run.length}</span> <span class="kv">30분 안에 내용이 바뀐 것</span>`,run.map(x=>lvRow(x,'run',now)).join('')||'<div class="empty">지금 도는 일이 없어요</div>')}
-  ${sec('lv-stop',`🔴 멈춘 일 <span class="num" id="lv-n-stop">${stopN}</span> <span class="kv">막힘 · 30분 넘게 조용 · 하루 넘게 그대로</span>`,er.map(e=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(e.file)}</b><span class="fr"></span></div></div>`).join('')+[...blk.map(x=>lvRow(x,'blocked',now)),...quiet.map(x=>lvRow(x,'quiet',now)),...stall.map(x=>lvRow(x,'stall',now))].join('')||'<div class="ok">멈춘 일이 없어요</div>')}
+  ${sec('lv-run',`🟢 지금 도는 일 <span class="num" id="lv-n-run">${run.length}</span> <span class="kv">30분 안에 내용이 바뀐 것</span>`,(run.map(x=>lvRow(x,'run',now)).join('')||'<div class="empty">지금 도는 일이 없어요</div>')+(quiet.length?`<div class="kv lvq" id="lv-quiet">조용한 일 <b class="num" id="lv-n-quiet">${quiet.length}</b> · 30분 넘게 소식 없음(하루 안)</div>${quiet.map(x=>lvRow(x,'quiet',now)).join('')}`:''))}
+  ${sec('lv-stop',`🔴 멈춘 일 <span class="num" id="lv-n-stop">${stopN}</span> <span class="kv">막힘 · 하루 넘게 그대로 · 읽기 실패</span>`,er.map(e=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(e.file)}</b><span class="fr"></span></div></div>`).join('')+[...blk.map(x=>lvRow(x,'blocked',now)),...stall.map(x=>lvRow(x,'stall',now))].join('')||'<div class="ok">멈춘 일이 없어요</div>')}
   ${oct(`<details class="bdone" data-gk="lvdone"><summary><h2 class="sec" style="display:inline">✅ 오늘 끝난 일 <span class="num" id="lv-n-done">${+C.done_today||0}</span></h2> <span class="kv">눌러서 보기 · 지금까지 모두 ${+C.done||0}개</span></summary>${done.map(x=>lvRow(x,'done',now)).join('')||'<div class="empty">오늘 끝난 일은 아직 없어요</div>'}${(+C.done_today||0)>done.length?`<div class="kv">최근 ${done.length}개만 보여요</div>`:''}</details>`,'bv2c lvc')}
   ${sec('lv-teams','팀 신호등 <span class="kv">🟢 30분 안 진행 · 🟡 편지 기다림 · 🔴 실패·막힘 · ⚪ 쉼</span>',lvTeams(now,1))}
   <div id="lv-news">${rptTop()||oct('<h2 class="sec">📰 보고 · 🎃 비서 결과</h2><div class="empty">새 보고가 없어요</div>','lvc')}</div>
@@ -2301,6 +2302,7 @@ function route(){
   S3.rv='';if(/^review(\/|$)/.test(h)){S3.rv=decodeURIComponent(h.slice(7));h='review'}
   if(/^log(\/|$)/.test(h)){S3.recT=h.slice(4)||S3.recT||'space';h='log'}
   if(/^ops\//.test(h)){S3.jobOpen=h.slice(4);h='ops'}
+  h=({preview:'v4',work:'v4/ws',study:'v4/study',fun:'v4/trophy'})[h]||h;   // 부대표 설계 v1 주소(메뉴로 올리기 전까지 미리보기로)
   if(/^v4(\/|$)/.test(h)){S3.v4T=h.slice(3)||S3.v4T||'ws';h='v4'}
   if(/^board\//.test(h)){S3.bdJump=h.slice(6).replace(/[^a-z]/g,'');h='board'}
   if(/^ws\//.test(h))h='studio';   // 🎨 작업공간 고정 주소(#ws/<창>) — 창은 room.js 가 띄움
