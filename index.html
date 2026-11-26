@@ -444,6 +444,18 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 .lvhl>summary{min-height:44px;display:flex;gap:8px;align-items:center;cursor:pointer}
 
 .syl{display:inline-flex;align-items:center;min-height:44px}
+
+.tcr{margin-top:6px;font-style:italic}
+.gmk{margin-right:4px}
+#lvbar.lv-load{border-left-color:#888;color:#aaa}
+/* 옆 창(동현 06:55 ②): PC 오른쪽 절반 · 폰 아래 창 */
+#sidev{position:fixed;z-index:80;background:#111418;border:1px solid #3a4250;box-shadow:0 0 24px rgba(0,0,0,.5);display:flex;flex-direction:column;left:0;right:0;bottom:0;height:86vh;border-radius:14px 14px 0 0}
+#sidev[hidden]{display:none}
+#sidev .sd-h{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #2a313c}
+#sidev .sd-h b{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sidev .sd-h .btn{min-height:44px;min-width:44px}
+#sidev iframe{flex:1;width:100%;border:0;background:#fff}
+@media (min-width:1000px){#sidev{left:auto;top:0;bottom:0;width:50vw;height:auto;border-radius:0}}
 </style>
 </head>
 <body>
@@ -497,7 +509,7 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=31;
+const BUILD=32;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -509,9 +521,9 @@ const TABS=['home','port','team','plan'];   // BUILD 10 P1: 주제별 4탭 (나�
 const TAB_ALIAS={pipe:'team',noti:'team',work:'port'};
 const JOB_DEADLINE='2027-06-01';   // 🎯 취업 목표(00_확정사항: 2027-06)
 const MONEY_URL='';   // 💰 자산관리 앱 주소(배포되면 넣음). 비면 안내만
-const ASK_TO=[['control','🛰️','부대표'],['anim_teacher','🎓','코칭팀'],['ref_factory','📚','자료팀'],['job_prep','💼','취업팀'],['code','💻','개발팀']];   // BUILD 10: 기본 = 관제센터  // 용어집 v1 말
+const ASK_TO=[['control','🎬','PD'],['anim_teacher','🎓','애니 리드'],['ref_factory','📦','에셋팀'],['job_prep','💼','커리어팀'],['code','🛠️','TA팀']];   // BUILD 10: 기본 = 관제센터  // 용어집 v1 말
 const $=s=>document.querySelector(s);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const esc=s=>String(s??'').replace(/BRStorng/g,'BRStrong').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));   // BRStorng: 원본 파일 이름 오타 — 원본은 두고 보일 때만 고침(동현 06:55 ⑪)
 function lsGet(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
 function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 function toast(t){const el=$('#toast');el.textContent=t;el.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(()=>el.hidden=true,2200)}
@@ -700,7 +712,7 @@ function recSpace(){
   <div style="height:16px"></div><div class="grid g2">
    ${oct(`<h2 class="sec">한 일</h2>${S.length?S.slice().reverse().map(s=>`<div class="rule recr"><span class="num">${esc(s.a)}<br>${esc(s.b)}</span><span><b>${esc(s.k)}</b> <small>${esc(s.sub||'')}</small><br><span class="kv">${s.f?esc(s.f)+(s.nf>1?` 외 ${s.nf-1}개`:''):'파일 이름 없음'}</span></span><b class="num">${recH(s.min)}</b></div>`).join(''):recNone('기록 없음')}${d.nsess>S.length?`<div class="kv">앞의 ${d.nsess-S.length}묶음은 줄였어요</div>`:''}
      ${(j.cmp||[]).map(c=>`<div class="rule"><span>🧊</span><span class="recw">${esc(c)}</span></div>`).join('')}`)}
-   ${oct(`<h2 class="sec">코칭팀 대화 · 피드백</h2>${(d.talk||[]).map(t=>`<div class="recq"><b>🙋 ${esc(t.t)} ${esc(t.q)}</b><br>🎓 ${t.a?esc(t.a):'답 기다리는 중'}</div>`).join('')}
+   ${oct(`<h2 class="sec">애니 리드 대화 · 피드백</h2>${(d.talk||[]).map(t=>`<div class="recq"><b>🙋 ${esc(t.t)} ${esc(t.q)}</b><br>🎓 ${t.a?esc(t.a):'답 기다리는 중'}</div>`).join('')}
      ${(d.fb||[]).map(f=>`<div class="recq"><b>${esc(f.m)} ${f.fr?esc(f.fr)+'f':''}</b>${f.me?`<br>🙋 ${esc(f.me)}`:''}<br>🎓 ${esc(f.say||'—')}${f.c?` <small>확신 ${esc(f.c)}</small>`:''}${f.v?`<br>→ ${esc(f.v)}`:''}</div>`).join('')}
      ${(d.talk||[]).length+(d.fb||[]).length?'':recNone('기록 없음')}<div class="kv">앱에서 물은 것과 키포즈 피드백만 모여요</div>`)}
    ${oct(`<h2 class="sec">문제점</h2>${bad.concat(fbad.map(f=>`${f.m} ${f.fr?f.fr+'f ':''}— ${f.say}`)).slice(0,6).map(x=>`<div class="jrw">${esc(x)}</div>`).join('')||recNone('기록 없음')}`)}
@@ -726,12 +738,12 @@ function dexArt(c){const h=(c.day*67)%360,col=c.got?'#CEA85E':c.ready?'#7AA4D2':
 function recDex(){
   if(!S3.st.dex)return oct(recNone('PC 지킴이가 보내면 나타나요'));
   const C=dexCards(),got=C.filter(c=>c.got).length,op=C.filter(c=>c.ready).length,td=C.find(c=>c.today&&!c.got),sel=C.find(c=>c.day===S3.recC);
-  if(!C.length)return oct(recNone('아직 카드가 없어요. 코칭팀이 올리면 나타나요'));
+  if(!C.length)return oct(recNone('아직 카드가 없어요. 애니 리드가 올리면 나타나요'));
   return `${oct(`<h2 class="sec">모은 카드</h2><div class="num big2">${got}<span class="kv"> / ${C.length}장</span></div><div class="prog"><i style="width:${Math.round(got/C.length*100)}%"></i></div><div class="kv">하루에 한 캐릭터의 한 모션 · 열린 카드 ${op}장${td?'':' · 오늘 카드 없음'}</div>
     ${td?`<div class="nav2"><a class="btn pri2" href="#coach">오늘 카드 모으러 가기 ▸</a></div>`:''}`)}<div style="height:16px"></div>
   <div class="dexg">${C.map(c=>`<button class="dexc ${c.got?'got':c.ready?'':'lock'} ${c.today?'td':''}" data-recc="${c.day}" aria-label="${c.day}번 카드 ${esc(c.topic)}"><small class="num">No.${String(c.day).padStart(3,'0')}</small>${dexArt(c)}<b>${c.ready||c.got?esc(c.who||c.topic):'???'}</b><span>${c.ready||c.got?esc(c.topic):'준비 중'}</span>${c.got?'<i>✨ 모음</i>':c.today?'<i>오늘</i>':c.ready?'<i>아직</i>':'<i>🔒</i>'}</button>`).join('')}</div>
   ${sel?`<div style="height:16px"></div><div id="dexd">${oct(`<h2 class="sec">No.${String(sel.day).padStart(3,'0')} ${esc(sel.who||'')} <span class="kv">${esc(sel.stage||'')}</span></h2><div class="rule"><span>◆</span><span>모션 ${esc(sel.topic)}</span></div>${sel.vs?`<div class="rule"><span>◇</span><span>견줄 것 ${esc(sel.vs)}</span></div>`:''}${sel.date?`<div class="rule"><span>◇</span><span>${recD(sel.date)} 카드</span></div>`:''}
-    ${sel.got?`<div class="rule"><span>✨</span><span>내 결론 <b>${esc(sel.got.v||'')}</b>${sel.got.why?' — '+esc(sel.got.why):''}<br><span class="kv">${esc(sel.got.t||'')}</span></span></div>${(sel.got.take||[]).filter(Boolean).map(t=>`<div class="cxe tp">가져올 것: ${esc(t)}</div>`).join('')}`:sel.ready?`<div class="kv">아직 안 모았어요. ${sel.today?'코칭실에서 오늘 도감 분석을 끝내면 카드가 채워져요':'지난 카드라 지금은 앱에서 열 수 없어요 (코칭팀이 다시 올리면 열려요)'}</div>`:`<div class="kv">🔒 준비 중${sel.pending?' · '+esc(sel.pending):''}</div>`}`)}</div>`:''}`}
+    ${sel.got?`<div class="rule"><span>✨</span><span>내 결론 <b>${esc(sel.got.v||'')}</b>${sel.got.why?' — '+esc(sel.got.why):''}<br><span class="kv">${esc(sel.got.t||'')}</span></span></div>${(sel.got.take||[]).filter(Boolean).map(t=>`<div class="cxe tp">가져올 것: ${esc(t)}</div>`).join('')}`:sel.ready?`<div class="kv">아직 안 모았어요. ${sel.today?'애니 리드실에서 오늘 도감 분석을 끝내면 카드가 채워져요':'지난 카드라 지금은 앱에서 열 수 없어요 (애니 리드가 다시 올리면 열려요)'}</div>`:`<div class="kv">🔒 준비 중${sel.pending?' · '+esc(sel.pending):''}</div>`}`)}</div>`:''}`}
 
 function recRoom(){
   const t=REC_TABS.some(x=>x[0]===S3.recT)?S3.recT:'space',el=$('#r-log');
@@ -745,7 +757,7 @@ document.addEventListener('click',e=>{const b=e.target.closest&&e.target.closest
 // 폰에 먼저 적고(v3_mb) 보내기는 뒤에서(Q) — PC 가 꺼져 있거나 끊겨 있어도 잃지 않는다. 캡처는 받지 않음.
 const MB_AB=[['max','맥스'],['hb','HB 제품'],['hq','HB HQ'],['class','수업'],['other','다른 앱'],['etc','기타']];
 const MB_ST={new:['⚪','새로'],sorted:['🟡','분류'],planned:['🔵','이번 패치'],done:['🟢','반영됨'],later:['⚫','나중'],dup:['↪','같은 것']};
-const MB_KEY='Ctrl+Alt+Shift+M';   // PC 상주 입력창 단축키(부대표 11/25 12:10, Win+Shift+M 은 윈도우가 씀)
+const MB_KEY='Ctrl+Alt+Shift+M';   // PC 상주 입력창 단축키(PD 11/25 12:10, Win+Shift+M 은 윈도우가 씀)
 const MB={open:false,card:'',rec:null,f:'all'};
 const mbLoc=()=>lsx('mb',[]),mbSave=l=>lsSet('v3_mb',l.slice(-100));
 const mbId=()=>'m'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
@@ -810,11 +822,11 @@ function mbMic(){
     r.onend=()=>{MB.rec=null;b.classList.remove('on')};
     r.onerror=e=>{if(/not-allowed|service|audio-capture|language/.test(e.error||''))off();else{mbStop();toast('다시 눌러 말해 주세요')}};
     MB.rec=r;b.classList.add('on');r.start()}catch(e){off()}}
-// 💡 아이디어함 카드(control 11/26 21:28): 원본 = hub\control\아이디어함.md(부대표가 디벨롭). 읽기 전용 — 고치는 건 부대표
+// 💡 아이디어함 카드(control 11/26 21:28): 원본 = hub\control\아이디어함.md(PD가 디벨롭). 읽기 전용 — 고치는 건 PD
 const IDEA_ST={'💭':'씨앗','🔧':'다듬는 중','✅':'채택','📦':'보관'};
 function ideaTb(T){const h=T[0]||[];return `<div class="idtb">${T.slice(1).map(r=>`<div class="idr"><b>${esc(r[0]||'')}</b>${r.slice(1).map((c,i)=>`<div><span class="kv">${esc(h[i+1]||'')}</span> ${esc(c)}</div>`).join('')}</div>`).join('')}</div>`}
 function ideaCards(){const I=S3.st.idea;if(!I)return oct(`<h2 class="sec">💡 아이디어함 카드</h2>${recNone('PC 지킴이가 보내면 나타나요')}`);const L=I.items||[];
-  return oct(`<h2 class="sec">💡 아이디어함 카드 <span class="kv">${L.length}장${Object.keys(IDEA_ST).filter(k=>(I.n||{})[k]).map(k=>' · '+k+' '+I.n[k]).join('')}</span></h2><div class="kv" style="margin-bottom:8px">부대표가 다듬어 넣어요 · 여기서는 읽기만${I.mt?' · 고친 때 '+agoT(I.mt):''}</div>
+  return oct(`<h2 class="sec">💡 아이디어함 카드 <span class="kv">${L.length}장${Object.keys(IDEA_ST).filter(k=>(I.n||{})[k]).map(k=>' · '+k+' '+I.n[k]).join('')}</span></h2><div class="kv" style="margin-bottom:8px">PD가 다듬어 넣어요 · 여기서는 읽기만${I.mt?' · 고친 때 '+agoT(I.mt):''}</div>
    ${L.map((x,i)=>`<details class="gt idc" data-gk="idea:${esc(x.no)}"${i?'':' open'}><summary><b>${esc(x.st||'⚪')} #${esc(x.no)} ${esc(x.t)}</b> <span class="kv">${esc(IDEA_ST[x.st]||x.stn||'확인 필요')}</span></summary>${(x.f||[]).map(f=>`<div class="idf">${f.k?`<b>${esc(f.k)}</b>`:''}${f.v?`<div>${esc(f.v)}</div>`:''}${f.tb&&f.tb.length>1?ideaTb(f.tb):''}</div>`).join('')}</details>`).join('')||recNone(I.err?'아이디어함 파일을 못 찾았어요':'아직 카드가 없어요')}`)}
 // 내 건의 목록 (기록 방 4번째 칸)
 function recMail(){return ideaCards()+'<div style="height:16px"></div>'+recMail0()}
@@ -823,7 +835,7 @@ function recMail0(){
   if(!M&&!wait.length)return oct(recNone('아직 없어요. 오른쪽 위 💡 로 넣으면 여기에 모여요'));
   const L=mbSrv(),n=(M||{}).n||{},f=MB.f,show=L.filter(x=>f==='all'||x.st===f),lim=MB.n||20;
   const at=s=>{const d=new Date(s);return isNaN(d)?'':`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`};
-  const src=x=>x.ab||({max:'맥스',hbl:'HB Library',hbm:'HB Model',hba:'HB Animation',hbr:'HB Render',hq:'HB HQ',pc:'PC',gemini:'비서'}[x.w]||(/^chat_/.test(x.w)?'채팅':x.w));
+  const src=x=>x.ab||({max:'맥스',hbl:'HB Library',hbm:'HB Model',hba:'HB Animation',hbr:'HB Render',hq:'HB HQ',pc:'PC',gemini:'어시스턴트'}[x.w]||(/^chat_/.test(x.w)?'채팅':x.w));
   const row=(ic,nm,x,u,meta,extra)=>`<div class="mbi s-${esc(x.st||'wait')}"><span class="mbs"><b>${ic}</b>${esc(nm)}</span><div><div>${u?'🚨 ':''}${esc(x.tx||x.text)}</div><div class="kv">${meta}</div>${extra||''}</div></div>`;
   return `${wait.length?oct(`<h2 class="sec">보내는 중 <span class="kv">${wait.length}건 · 폰에 저장돼 있어요</span></h2>${wait.slice().reverse().map(x=>{const [ic,nm]=mbState(x);return row(ic,nm,x,x.urgent,`${at(x.at)} · ${esc((MB_AB.find(a=>a[0]===x.about)||['',''])[1])}`,nm==='못 넣었어요'?`<button class="btn" data-mbre="${esc(x.id)}">다시 보내기</button>`:'')}).join('')}`)+'<div style="height:16px"></div>':''}
   ${M?oct(`<h2 class="sec">내 아이디어 <span class="kv">${M.total||0}건</span></h2><div class="mb-c mbfl" role="radiogroup" aria-label="상태로 보기"><button role="radio" aria-checked="${f==='all'}" data-mbf="all">전체</button>${Object.keys(MB_ST).filter(k=>n[k]).map(k=>`<button role="radio" aria-checked="${f===k}" data-mbf="${k}">${MB_ST[k][0]} ${MB_ST[k][1]} <b class="num">${n[k]}</b></button>`).join('')}</div>
@@ -872,7 +884,7 @@ function clipCard(c){
   return `<details class="gt clip" data-gk="clip:${esc(c.id)}" id="clip-${esc(c.id)}"><summary>🎞 <b>${esc(c.name||c.id)}</b> <span class="kv">${esc(STG_NM[c.stage]||c.stage||'')}${c.frames?' · '+esc(c.frames)+'f':''}</span>${b?`<span class="cbs">${b}</span>`:''}</summary>
    ${clipWs(c)}${clipCheck(c)}${clipVids(c)}
    <div class="kv" style="overflow-wrap:anywhere">${(c.checks||[]).map(k=>`${k.pass===true?'✅':k.pass===false?'❌':'🟡'} ${esc(k.id)} ${esc(k.value)} ${esc(k.unit)}`).join('<br>')}${(c.checks||[]).length?'<br>':''}${esc(c.id||'')}${c.updated?' · 갱신 '+hm(c.updated):''}</div></details>`}
-// 퇴근 채점: 그날 클립별 마지막 저장본 1개. 요청(개발팀) → 다음 날 결과(코칭팀). 저장 감지만 있고 요청이 없으면 그대로 말한다
+// 퇴근 채점: 그날 클립별 마지막 저장본 1개. 요청(TA팀) → 다음 날 결과(애니 리드). 저장 감지만 있고 요청이 없으면 그대로 말한다
 const GR_ST={'대기':'⏳ 채점 기다리는 중','채점 중':'✍️ 채점하는 중','끝':'✅ 채점 끝','막힘':'🔴 채점 막힘'};
 // 누른 표시: 폰에 먼저 적고(v3_gm) PC 가 같은 값을 돌려주면 지운다. 같은 것을 다시 누르면 지우기(빈 값)
 const GM_OPT={notice:[['의도','✋ 의도예요']],fix:[['맞아요','⭕ 맞아요'],['아니에요','❌ 아니에요'],['헛경보','🔕 헛경보']]};
@@ -942,7 +954,7 @@ function twOpen(w,s){const z=w.st[s];if(!z||!z.o)return '';
    <div class="twg">${twSide('🙋 동현 작품','d',z.d,'')}${twSide('🤖 HB Studio 작품','s',z.s,' <em class="draft">내부용</em>')}</div>
    ${z.v?(q?`<div class="cv"><div class="cvh"><b>왼쪽 동현 | 오른쪽 HB Studio</b> <span class="kv">${z.kind==='ue'?'언리얼':z.kind==='max'?'맥스':'종류 기록 없음'}</span></div>${vidTag(q)}</div>`:`<div class="empty">${z.v.miss?'영상 파일이 없어요':z.v.vs?'영상을 받는 중이에요':'영상은 최근 것만 폰에 올려요'}</div>`):'<div class="empty">나란히 영상이 아직 없어요</div>'}
    ${(z.diff||[]).length?`<div class="cxt"><table><thead><tr><th>무엇</th><th>동현</th><th>HB Studio</th><th>차이</th></tr></thead><tbody>${z.diff.map(i=>`<tr><th>${esc(i.n)}</th><td class="num">${esc(i.d)}</td><td class="num">${esc(i.s)}</td><td class="num">${esc(i.x)}</td></tr>`).join('')}</tbody></table></div>`:'<div class="kv">숫자 차이 기록 없음</div>'}
-   ${z.coach?`<div class="recq">🎓 코칭팀: ${esc(z.coach)}</div>`:''}
+   ${z.coach?`<div class="recq">🎓 애니 리드: ${esc(z.coach)}</div>`:''}
    ${pair?`<div class="gmb">${TW_PICK.map(([p,n])=>`<button class="${v.p===p?'on':''}" aria-pressed="${v.p===p}" data-twp="${esc(JSON.stringify([w.k,s,v.p===p?'':p]))}">${n}</button>`).join('')}</div>
     ${v.p?`<div class="twy"><input class="pct" id="tw-why" maxlength="${twWhyMax}" placeholder="이유 한 줄 (안 써도 돼요)" aria-label="이유 한 줄" value="${esc(S3.twDraft!=null&&S3.twDraftK===w.k+'|'+s?S3.twDraft:v.w)}"><button class="btn" data-tww="${esc(JSON.stringify([w.k,s,v.p]))}">적기</button></div>`:''}${v.st?`<div class="kv">${esc(v.st)}</div>`:''}`:''}</div>`}
 function twWorks(){const T=S3.st.two;if(!T)return oct(recNone('PC 지킴이가 보내면 나타나요'));const W=T.works||[];
@@ -950,7 +962,7 @@ function twWorks(){const T=S3.st.two;if(!T)return oct(recNone('PC 지킴이가 �
   return W.map(w=>{const s=(S3.twS||'').startsWith(w.k+'|')?S3.twS.slice(w.k.length+1):'';
    return oct(`<h2 class="sec">${esc(w.cname)} · ${esc(w.name)}</h2><div class="twg">${twSide('🙋 동현 작품','d',w.d_at?{at:w.d_at}:null,w.d_stage?` <span class="kv">${esc(STG_NM[w.d_stage]||w.d_stage)}</span>`:'')}<div class="twp s"><b>🤖 HB Studio 작품</b> <em class="draft">내부용</em><div class="kv">${TW_ST.filter(x=>(w.st[x[0]]||{}).o).length} / 4 단계 열림</div></div></div>
     <div class="twr">${TW_ST.map(x=>twStage(w,x)).join('')}</div>${s&&(w.st[s]||{}).o?twOpen(w,s):''}`)}).join('<div style="height:16px"></div>')+(T.n>W.length?`<div class="kv">그 밖에 ${T.n-W.length}개</div>`:'')+(T.bad?`<div class="jrw">⚠️ 잠금 파일 ${T.bad}개를 못 읽어서 잠가 뒀어요</div>`:'')+'<div style="height:16px"></div>'+oct(twHow())}
-const twHow=()=>`<div class="rule"><span>🔒</span><span>단계 끝을 누르면 그 단계만 열려요</span></div><div class="rule"><span>🙋</span><span>동현 작품 = 동현 손 + 코칭팀</span></div><div class="rule"><span>🤖</span><span>HB Studio 작품 = 사람 손 0, 내부용</span></div>`;
+const twHow=()=>`<div class="rule"><span>🔒</span><span>단계 끝을 누르면 그 단계만 열려요</span></div><div class="rule"><span>🙋</span><span>동현 작품 = 동현 손 + 애니 리드</span></div><div class="rule"><span>🤖</span><span>HB Studio 작품 = 사람 손 0, 내부용</span></div>`;
 // ---- 캐릭터 카드: 한 장에 한 질문. 쓰는 동안은 폰(v3_cc)에만, 저장을 누르면 PC 로 ----
 const CC={get:()=>lsx('cc',null),set:v=>lsSet('v3_cc',v)};
 const ccGet=(c,f)=>f.split('.').reduce((o,k)=>o==null?undefined:o[k],c);
@@ -991,7 +1003,7 @@ function ccEnd(D){const P=ccAskOn(D);if(P.length)return ccAskView(D,P);const T=S
   return `<div class="prog"><i style="width:100%"></i></div><div class="q">이렇게 적었어요</div>${ccRows(D.card)}
    ${bad.length?`<div class="jrw">아직 안 한 질문 ${bad.length}개</div>`:''}${q&&q.st==='fail'&&q.rej?`<div class="jrw">🔴 ${esc(q.msg||'못 넣었어요')}</div>`:''}${wait?`<div class="kv">${q.st==='sent'?'⏳ PC가 받는 중':'📤 보내는 중 (폰에 저장돼 있어요)'}</div>`:''}
    <div class="nav2"><button class="btn" data-ccgo="${bad.length?ccQ().indexOf(bad[0]):ccQ().length-1}">◂ 고치기</button><button class="btn" data-ccsave="0" ${bad.length||wait?'disabled':''}>저장</button><button class="btn pri2" data-ccsave="1" ${bad.length||wait||T.draft?'disabled':''}>${arm?'한 번 더 누르면 확정':'확정'}</button></div>
-   <div class="kv">${T.draft?'질문이 아직 초안이라 [확정]은 부대표 승인 뒤에 열려요. 저장은 돼요.':'[확정]하면 HB Studio 가 이 카드로 시작해요. 나중에 고치면 다시 확정해요.'}</div>`}
+   <div class="kv">${T.draft?'질문이 아직 초안이라 [확정]은 PD 승인 뒤에 열려요. 저장은 돼요.':'[확정]하면 HB Studio 가 이 카드로 시작해요. 나중에 고치면 다시 확정해요.'}</div>`}
 function ccTidy(){const D=CC.get();if(!D||!D.sent)return;const q=Q.list().find(r=>r.id===D.sent.id);if(q&&q.st==='ok'){const k=D.card.id,m=lsx('ccq',{});if(k&&Object.keys(D.cf||{}).length){m[k]=D.cf;lsSet('v3_ccq',m)}CC.set(null);toast(D.sent.f?'🪪 확정했어요':'🪪 저장했어요')}}
 function twCards(){ccTidy();const T=S3.st.chars,D=CC.get();if(!T)return oct(recNone('PC 지킴이가 보내면 나타나요'));const N=ccQ().length;
   if(!N)return oct(recNone('카드 질문을 못 받았어요'));
@@ -1006,9 +1018,9 @@ function twEntry(){const T=S3.st.two||{},W=T.works||[],op=W.reduce((a,w)=>a+TW_S
   return oct(`<h2 class="sec">두 작품 <span class="cin sm">D | S</span></h2><div class="kv">${S3.st.two?`모션 ${W.length}개 · 열린 단계 ${op}개 · 카드 ${C}장`:'PC 지킴이 응답을 기다려요'}</div><div class="nav2"><a class="btn pri2" href="#two/works">🎭 나란히 보기</a><a class="btn" href="#two/card">🪪 캐릭터 카드</a></div>`)}
 function mcpLine(){const M=(S3.st.two||{}).mcp;if(!S3.st.two)return '';
   return `<div class="twm" id="mcp-line">🔌 ${M?M.map(x=>`<span class="m-${x.st}">${{on:'🟢',off:'⚪',old:'🟡',none:'⬜'}[x.st]||'⬜'} ${esc(x.n)} ${{on:'켜짐',off:'꺼짐',old:'기록 오래됨',none:'기록 없음'}[x.st]||''}</span>`).join(''):'<span>맥스·언리얼·블렌더 연결 상태 기록 없음</span>'}</div>`}
-// 보고 칸(기록 방 5번째): 바뀐 것 · 허점 목록. 자료는 부대표
+// 보고 칸(기록 방 5번째): 바뀐 것 · 허점 목록. 자료는 PD
 function recRep(){const R=(S3.st.two||{}).report;if(!S3.st.two)return oct(recNone('PC 지킴이가 보내면 나타나요'));
-  if(!R)return oct(recNone('아직 없어요 · 부대표가 올리면 나타나요'));if(R.bad)return oct('<div class="jrw">⚠️ 보고 파일을 못 읽었어요</div>');const g={};(R.gaps||[]).forEach(x=>(g[x.kind||'그 밖']=g[x.kind||'그 밖']||[]).push(x));
+  if(!R)return oct(recNone('아직 없어요 · PD가 올리면 나타나요'));if(R.bad)return oct('<div class="jrw">⚠️ 보고 파일을 못 읽었어요</div>');const g={};(R.gaps||[]).forEach(x=>(g[x.kind||'그 밖']=g[x.kind||'그 밖']||[]).push(x));
   return oct(`<h2 class="sec">바뀐 것 <span class="kv">${(R.changes||[]).length}개</span></h2>${(R.changes||[]).map(c=>`<div class="twc"><div class="kv">${esc(c.date)}</div><div class="twa"><span>${esc(c.before||'—')}</span><i>▸</i><b>${esc(c.after||'—')}</b></div>${c.why?`<div class="kv">왜: ${esc(c.why)}</div>`:''}${c.me?`<div class="recq">🙋 ${esc(c.me)}</div>`:''}</div>`).join('')||recNone('없어요')}`)+'<div style="height:16px"></div>'
    +oct(`<h2 class="sec">허점 목록 <span class="kv">${(R.gaps||[]).length}개</span></h2>${Object.keys(g).map(k=>`<div class="recday">${esc(k)} ${g[k].length}</div>${g[k].map(x=>`<div class="jrw">${esc(x.text)}${x.fix?`<div class="kv">→ ${esc(x.fix)}${x.when?' · '+esc(x.when):''}</div>`:`<div class="kv">→ 해결 확인 필요${x.when?' · '+esc(x.when):''}</div>`}</div>`).join('')}`).join('')||recNone('없어요')}${R.updated?`<div class="kv">갱신 ${twAt(R.updated)}</div>`:''}`)}
 function twVids(){return [].concat(...(((S3.st.two||{}).works)||[]).map(w=>TW_ST.map(s=>(w.st[s[0]]||{}).v))).filter(Boolean)}
@@ -1215,7 +1227,7 @@ const Cal=(()=>{
   const when=e=>allDay(e)?'종일':hm(st(e))+(en(e)?'~'+hm(en(e)):'');
   const row=(e,btn)=>{const f=btn&&e.k==='work'&&!allDay(e)&&!cancelled(e)?Focus.row(e):null;return `<div class="hqrow calrow k-${e.k}${cancelled(e)?' cx':''}${f&&f.draft?' dr':''}">${f&&!/^(rest|sleep)$/.test(f.k)?`<button class="fxk" data-fxk="${esc(e.id)}" aria-pressed="${f.done}" aria-label="${f.done?'끝 표시 지우기':'끝 표시'}">${f.done?'✅':'⬜'}</button>`:`<b>${{work:'🎬',me:'🙋',studio:'🦡'}[e.k]||'📅'}</b>`}<span>${esc(e.summary)}<br><small class="kv">${esc(when(e))}</small></span>${btn&&e.k!=='studio'?`<span class="fxb2">${f&&f.draft?`<button class="btn" data-fxd="${esc(e.id)}">확정</button>`:''}<button class="btn" data-calopen="${esc(e.id)}">고치기</button></span>`:''}</div>`};
   function status(){
-    if(c.err==='perm')return '<div class="sub calperm">🔐 캘린더 허용이 필요해요 — 부대표가 허용 순서를 알려 줄 거예요</div>';
+    if(c.err==='perm')return '<div class="sub calperm">🔐 캘린더 허용이 필요해요 — PD가 허용 순서를 알려 줄 거예요</div>';
     if(c.err==='api')return '<div class="sub">⚠️ 캘린더 서비스가 꺼져 있어요(다리 설정) · 저장본 보여 줘요</div>';
     if(c.err==='login')return '<div class="sub">🔐 구글 로그인을 다시 확인해야 해요 · 저장본 보여 줘요</div>';
     if(c.err)return `<div class="sub">⚠️ 캘린더 못 읽음 (${esc(c.err)}) · 저장본 보여 줘요</div>`;
@@ -1287,9 +1299,9 @@ const Focus=(()=>{
   const kindOf=t=>{const c=core(t),h=KD.find(x=>x[1].test(c));return h?h[0]:'etc'};
   const isDone=t=>/^\s*(?:📝\s*(?:초안)?\s*)?✅/u.test(t||''),isDraft=t=>/^(?:\s|✅)*📝/u.test(t||'');
   const crit=d=>{const m=String(d||'').replace(/<br\s*\/?>/gi,'\n').replace(/<[^>]+>/g,'').match(/완료\s*기준\s*[:：·-]?\s*([^\n]+)/);return m?m[1].trim().slice(0,90):''};
-  // 퇴근 뒤로 밀린 '🔁이월 🎯'(비서가 옮긴 것)은 타이머에서 빼고 목록에만
+  // 퇴근 뒤로 밀린 '🔁이월 🎯'(어시스턴트가 옮긴 것)은 타이머에서 빼고 목록에만
   function blocks(day){const L=all(day).filter(b=>b.k!=='mark'),w=L.find(b=>b.k==='wrap');if(w)L.forEach(b=>{if(b.s>=w.e&&/^(?:\s|✅|📝\s*(?:초안)?)*🔁\s*이월/u.test(b.t))b.k='hold'});return L}
-  // 퇴근했나: HQ 퇴근 버튼 또는 비서가 만든 '🏁 퇴근' 일정
+  // 퇴근했나: HQ 퇴근 버튼 또는 어시스턴트가 만든 '🏁 퇴근' 일정
   const gone=(day,t)=>((S3.st.quit||{}).leave||{}).d===day||all(day).some(b=>b.k==='mark'&&b.s<=t);
   function all(day){return Cal.data.items.filter(e=>e.k==='work'&&e.start&&e.start.dateTime&&!Cal.cancelled(e)).map(e=>({id:e.id,s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime),t:e.summary,c:core(e.summary),k:kindOf(e.summary),done:isDone(e.summary),draft:isDraft(e.summary),on:!!(e.x||{}).hq_start,ext:!!(e.x||{}).hq_ext,crit:crit(e.dsc),st:Date.parse((e.x||{}).hq_start)||null,dn:Date.parse((e.x||{}).hq_done)||null}))
     .filter(b=>b.e>b.s&&Cal.planDay(new Date(b.s))===day).sort((a,b)=>a.s-b.s||a.e-b.e)}
@@ -1406,8 +1418,8 @@ const Focus=(()=>{
     if(D.fxk){const b=blocks(S3.room==='plan'?S3.pDate||pday():pday()).find(x=>x.id===D.fxk);if(b)run(()=>set(b.id,{summary:title(b,!b.done),extendedProperties:{private:{hq_done:b.done?'':new Date().toISOString()}}}));return}
     if(D.flb){S3.flSel=S3.flSel===D.flb?'':D.flb;tick();return}
     if(D.fxd){const b=blocks(S3.room==='plan'?S3.pDate||pday():pday()).find(x=>x.id===D.fxd);if(b)run(async()=>{await set(b.id,{summary:title(b,b.done)});toast('확정했어요')});return}
-    if(t.id==='lb-quit'){if(S3.lqArm&&now()-S3.lqArm<5000){S3.lqArm=0;quitSend();toast('🛑 퇴근을 보냈어요 · 부대표가 내일 초안을 만들어요');render()}else{S3.lqArm=now();render();setTimeout(()=>{if(S3.room==='lobby'||S3.room==='today')render()},5200)}}});
-  // 퇴근 버튼(하루 1번): 퇴근 방 버튼과 같은 일 + 부대표에게 '내일 초안' 편지(지킴이가 하루 1통)
+    if(t.id==='lb-quit'){if(S3.lqArm&&now()-S3.lqArm<5000){S3.lqArm=0;quitSend();toast('🛑 퇴근을 보냈어요 · PD가 내일 초안을 만들어요');render()}else{S3.lqArm=now();render();setTimeout(()=>{if(S3.room==='lobby'||S3.room==='today')render()},5200)}}});
+  // 퇴근 버튼(하루 1번): 퇴근 방 버튼과 같은 일 + PD에게 '내일 초안' 편지(지킴이가 하루 1통)
   // 퇴근 버튼은 🛑 블록 30분 전부터만(동현 18:07). 🛑 블록이 없으면 22:30부터. 거절 사유가 있으면 늘 보임
   function quitAt(){const d=pday(),w=blocks(d).find(b=>b.k==='wrap');if(w)return w.s-30*M;const x=new Date();x.setHours(22,30,0,0);if(x.getHours()<5)x.setDate(x.getDate()+1);return +x}
   function quitBtn(){const q=S3.st.quit||{},i=quitInfo(),sent=q.leave&&q.leave.d===wday()?q.leave.t:'';
@@ -1467,7 +1479,7 @@ const Push=(()=>{
     else if(t.id==='push-test'){Q.add('push_test',{});Sync3.flush();toast('📨 시험 알림을 부탁했어요 · 30초쯤 걸려요')}});
   return {card,check,hint,isOn,can}})();
 
-// ---- 🦡 작업실 칸 · HQ 안 구글 문서 보기 · 대표실 비서 결과 카드 · 🎨 HB 작업공간 (앱팀 11/27, 부대표 편지 workroom_buttons·hq_google_embed·ceo_room_gemini·canvas_host_v2) ----
+// ---- 🦡 작업실 칸 · HQ 안 구글 문서 보기 · 대표실 어시스턴트 결과 카드 · 🎨 HB 작업공간 (UI/UX팀 11/27, PD 편지 workroom_buttons·hq_google_embed·ceo_room_gemini·canvas_host_v2) ----
 // 원칙: 한눈에(버튼 줄) → 누르면 옆 창(HQ 안 보기) · '↗'은 늘 새 창. 구글 주소는 지킴이가 확인한 id 로만 만든다.
 const GIDX=/^[\w-]{20,80}$/,TABX=/^t\.[\w-]{4,40}$/;
 const gDoc=(id,tab,mode)=>GIDX.test(id||'')?`https://docs.google.com/document/d/${id}/${mode||'edit'}${tab&&TABX.test(tab)?'?tab='+tab:''}`:'';
@@ -1483,8 +1495,8 @@ function wrCard(){const W=S3.st.workroom;
   return oct(`<h2 class="sec">🦡 작업실 <span class="kv">${esc(W.current||'')}${W.updated?' · '+esc(W.updated.slice(5)):''}</span></h2>
    <div class="wrb">${ext(gDoc(W.doc),'📄 작업실 문서','pri2')}${ext(gFold(W.folder),'📂 폴더')}${ext(gFold(W.images),'🖼️ 이미지')}${ext(gFold(W.fbx),'🧊 3D')}${ext(an?gDoc(W.doc,an):'','🔍 해부 카드')}${ext(GEMINI,'🤖 제미나이')}${ext(TRIPO,'🧊 Tripo')}<button class="btn" disabled title="PC 쪽 허용 전">🎬 맥스 <small>허용 전</small></button></div>
    ${GIDX.test(W.doc||'')?`<div class="kv" style="margin-top:10px">HQ 안에서 보기</div><div class="nav2 wrt">${gdvB(W.doc,'','한눈에','👁 한눈에')}${(W.tabs||[]).map(t=>gdvB(W.doc,t[1],t[0],esc(t[0]))).join('')}</div>`:''}
-   <div class="wrb" style="margin-top:12px">${wdBtn()}${WS.map(x=>`<button class="btn pri2" data-wso="${esc(x.w)}">🎨 HB 작업공간 · ${esc(x.w)}</button>`).join('')}<button class="btn" data-wshelp="1">🎃 비서와 같이 보기</button>${ext(GEMINI,'🎃 비서에게 말하기')}</div>
-   ${S3.wsHelp?'<div class="kv wsh">제미나이 앱에서 <b>Alt+Space</b> → 화면 공유를 누르면 비서가 이 화면을 같이 봐요(PC). 폰은 제미나이 앱의 화면 공유.</div>':''}`)}
+   <div class="wrb" style="margin-top:12px">${wdBtn()}${WS.map(x=>`<button class="btn pri2" data-wso="${esc(x.w)}">🎨 HB 작업공간 · ${esc(x.w)}</button>`).join('')}<button class="btn" data-wshelp="1">🎃 어시스턴트와 같이 보기</button>${ext(GEMINI,'🎃 어시스턴트에게 말하기')}</div>
+   ${S3.wsHelp?'<div class="kv wsh">제미나이 앱에서 <b>Alt+Space</b> → 화면 공유를 누르면 어시스턴트가 이 화면을 같이 봐요(PC). 폰은 제미나이 앱의 화면 공유.</div>':''}`)}
 
 // ---- HQ 안 구글 문서 보기(옆 창) ----
 function gdvEl(){let el=$('#gdv');if(el)return el;el=document.createElement('div');el.id='gdv';el.className='sheet';el.hidden=true;
@@ -1495,16 +1507,18 @@ function gdvOpen(id,tab,title){const u=gDoc(id,tab,'preview');if(!u)return;const
   const sn=lsx('rpt_seen',{});if(!sn['gd:'+id]){sn['gd:'+id]=1;lsSet('v3_rpt_seen',sn)}}
 function gdvClose(){const el=$('#gdv');if(el){el.hidden=true;$('#gdv-b').replaceChildren()}if(S3.room==='director')render()}
 
-// ---- 대표실 📰 새 보고: 비서 결과 문서 카드(🔎조사 · 🤖비서 · 🧬기획) ----
+// ---- 대표실 📰 새 보고: 어시스턴트 결과 문서 카드(🔎조사 · 🤖어시스턴트 · 🧬기획) ----
 function gdocList(){return ((S3.st.gdocs||{}).items)||[]}
+// 어시스턴트 조사 판정 표시(TA팀 research_route, status.json research.items mark ↔ 문서 이름 = 파일 이름 끝)
+function gdocMark(x){try{const R=((Live.get('research',{})||{}).items)||[],t=String(x.t||'');if(!t)return '';const r=R.find(r=>String(r.file||'').endsWith(t));return r&&r.mark?`<span class="gmk" title="${esc(r.verdict||'판정')}">${esc(r.mark)}</span>`:''}catch(e){return ''}}
 const gdocTop=()=>{const sn=lsx('rpt_seen',{}),td=new Date().toLocaleDateString('sv');return gdocList().filter(x=>!sn['gd:'+x.id]||String(x.at).slice(0,10)===td).slice(0,5).map(x=>x.id)};
 function gdocRows(){const sn=lsx('rpt_seen',{}),td=new Date().toLocaleDateString('sv'),L=gdocList().filter(x=>!sn['gd:'+x.id]||String(x.at).slice(0,10)===td).slice(0,5);   // 한눈에 5개, 나머지는 '다 보기'
-  return L.map(x=>`<button class="hqrow${sn['gd:'+x.id]?' rd':''}" data-gdv="${esc(JSON.stringify([x.id,'',x.t]))}"><b>${esc(x.ic)}</b><span>${esc(x.t)}<br><small class="kv">${esc(x.kn)} · ${esc(String(x.at).slice(5).replace('-','/'))}</small></span></button>`).join('')}
+  return L.map(x=>`<button class="hqrow${sn['gd:'+x.id]?' rd':''}" data-gdv="${esc(JSON.stringify([x.id,'',x.t]))}"><b>${esc(x.ic)}</b><span>${gdocMark(x)}${esc(x.t)}<br><small class="kv">${esc(x.kn)} · ${esc(String(x.at).slice(5).replace('-','/'))}</small></span></button>`).join('')}
 function gdocNew(){const sn=lsx('rpt_seen',{});return gdocList().filter(x=>!sn['gd:'+x.id]).length}
 function gdocMore(){const L=gdocList(),q=(S3.st.workroom||{}).queue;if(!L.length&&!q)return '';
-  return `<div class="nav2" style="margin-top:8px">${gdvB(q,'','조사 대기열','📋 조사 대기열')}${L.length?`<button class="btn" data-gdall="1">${S3.gdAll?'접기':`비서 결과 ${L.length}개 다 보기`}</button>`:''}</div>${S3.gdAll?L.filter(x=>!gdocTop().includes(x.id)).map(x=>`<button class="hqrow rd" data-gdv="${esc(JSON.stringify([x.id,'',x.t]))}"><b>${esc(x.ic)}</b><span>${esc(x.t)}<br><small class="kv">${esc(x.kn)} · ${esc(String(x.at).slice(5).replace('-','/'))}</small></span></button>`).join(''):''}`}
+  return `<div class="nav2" style="margin-top:8px">${gdvB(q,'','조사 대기열','📋 조사 대기열')}${L.length?`<button class="btn" data-gdall="1">${S3.gdAll?'접기':`어시스턴트 결과 ${L.length}개 다 보기`}</button>`:''}</div>${S3.gdAll?L.filter(x=>!gdocTop().includes(x.id)).map(x=>`<button class="hqrow rd" data-gdv="${esc(JSON.stringify([x.id,'',x.t]))}"><b>${esc(x.ic)}</b><span>${gdocMark(x)}${esc(x.t)}<br><small class="kv">${esc(x.kn)} · ${esc(String(x.at).slice(5).replace('-','/'))}</small></span></button>`).join(''):''}`}
 
-// ---- 🎨 HB 작업공간: 비서 캔버스 코드를 HQ 안 격리 창(sandbox, 다른 출처)에서. 답(localStorage)은 PC·드라이브로 ----
+// ---- 🎨 HB 작업공간: 어시스턴트 캔버스 코드를 HQ 안 격리 창(sandbox, 다른 출처)에서. 답(localStorage)은 PC·드라이브로 ----
 // 고정 주소 = …/workcenter/#ws/<창이름> (ws/?w=<창이름> 도 여기로). 캔버스 코드는 HQ 저장소·열쇠에 닿지 못한다(allow-same-origin 없음).
 const WS={w:'',T:null};
 function wsLocal(w){return lsx('ws_'+w,{})}   // {키:{v,t}}
@@ -1545,7 +1559,7 @@ document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest
   if(t.id==='wsv-x'){wsClose();return}
   if(D.wshelp){if($('#wsv')&&!$('#wsv').hidden){toast('제미나이 앱 Alt+Space → 화면 공유');return}S3.wsHelp=!S3.wsHelp;render();return}});
 
-// ---- 진행판 🩺 팀 건강(개발팀 11/27 team_health.json → 지킴이 state team_health). 한눈에 한 줄씩 → 누르면 숫자 ----
+// ---- 진행판 🩺 팀 건강(TA팀 11/27 team_health.json → 지킴이 state team_health). 한눈에 한 줄씩 → 누르면 숫자 ----
 const thT=s=>{const t=Date.parse(String(s||'').replace(' ','T'));return isNaN(t)?0:t/1000};
 function thIc(t){const ok=thT(t.last_ok),fl=thT(t.last_fail);return (t.fail_today>0&&fl>=ok)?['🔴','실패']:(t.empty_today>0||t.oldpan_today>0)?['🟡','확인']:t.last_ok?['🟢','좋음']:['⚪','기록 없음']}
 function healthCard(){const H=S3.st.team_health;if(!H||!(H.teams||[]).length&&!(H.dispatch||{}).health)return '';const D=H.dispatch||{},T=H.teams||[],red=D.health==='red';
@@ -1558,7 +1572,7 @@ function healthCard(){const H=S3.st.team_health;if(!H||!(H.teams||[]).length&&!(
 const TABS4=['today','board','studio','lib'];   // 11/27 P1: 🏠 오늘 · 📊 진행판이 앞 두 칸(live.js). 나머지는 옮기는 중
 const CARD_ROOMS=['ops','hb','coach','log','plan','out','world'];
 const OLD_ROOMS=['lobby','director','ops','hb','coach','log','plan','out','world'];   // '옛 화면'(삭제 금지 — 새 화면으로 다 옮길 때까지)
-const OLD_NM={ops:'운영실',hb:'현황판',coach:'도감',log:'기록 방',lib:'자료실·이글'},OLD_UNTIL=new Date(2026,11,3).getTime();   // 첫 7일만 옛 이름을 작게
+const OLD_NM={ops:'운영실',hb:'현황판',coach:'도감',log:'기록 방',lib:'자료실·이글'},OLD_UNTIL=0;   // 옛 이름 부제는 없앰(PD 11/27 전수 점검 3 · 동현 06:55 ⑩)
 const oldNm=id=>OLD_NM[id]&&Date.now()<OLD_UNTIL?` <small class="oldn">옛 ${OLD_NM[id]}</small>`:'';
 const roomNm=id=>(ROOMS.find(r=>r[0]===id)||[id,id])[1];
 const h1=id=>`<h1>${roomNm(id)}${oldNm(id)}</h1>`;
@@ -1573,7 +1587,7 @@ const UI={last:{},put(id,h){const el=$(id);if(!el||this.last[id]===h&&el.innerHT
   all(){Ask.render(S3.st);nav();const a=document.activeElement;if((S3.room==='plan'||S3.room==='lobby'||S3.room==='today'||S3.room==='coach')&&!(a&&a.matches&&a.matches('.room input,.room textarea')))render()}};
 
 // ---- 내 할 일 ----
-// 부대표 11/26 03:34: 날짜 지난 4개는 지우지 말고 '지난 일'로 접기(끝났는지는 동현이 정함). 날짜가 적힌 것은 그 날이 지나면 저절로, 날짜 없는 둘은 열쇠로.
+// PD 11/26 03:34: 날짜 지난 4개는 지우지 말고 '지난 일'로 접기(끝났는지는 동현이 정함). 날짜가 적힌 것은 그 날이 지나면 저절로, 날짜 없는 둘은 열쇠로.
 const PAST_KEYS=['1cd3e494b5','36ade3a04b','a698eba9f4','85eeae0d2b'];
 function taskPast(t){if(PAST_KEYS.includes(t.key))return true;const m=String(t.text).match(/(?:^|[^\d/.])(1[0-2]|0?[1-9])\/(3[01]|[12]\d|0?[1-9])(?![\d/])/);if(!m)return false;
   const n=new Date(),d=new Date(n.getFullYear(),+m[1]-1,+m[2]);if(d-n>300*864e5)d.setFullYear(d.getFullYear()-1);else if(n-d>300*864e5)d.setFullYear(d.getFullYear()+1);return d.getTime()+29*36e5<n.getTime()}   // 그날 다음 날 새벽 5시부터
@@ -1667,9 +1681,9 @@ function director(){
   if(it)main=oct(`<h2 class="sec">결정함 <span class="num">${list.length}</span></h2><span class="pri ${it.prio==='P0'?'p0':it.prio==='P1'?'p1':''}">${esc(it.prio||'P2')}</span><span class="kv" style="margin-left:10px">${S3.cur+1} / ${list.length}</span>
       <div class="q">${esc(nm3(it.q))}</div><p class="why">${esc(nm3(it.why))}</p>
       <div class="opts">${(it.options||[]).map((o,i)=>`<button class="optb" data-pick="${i}"><div class="oct"><div class="in"><span class="k">${esc(o.k||String.fromCharCode(65+i))}</span><div><b>${esc(nm3(o.label))}</b><small>${esc(nm3(o.hint))}</small></div></div></div></button>`).join('')}</div>
-      <div class="nav2"><button class="btn" data-skip="1" ${list.length<2?'disabled':''}>다음 건 ▸</button><span class="kv">고르면 '내 답'에 적히고, 확정은 부대표가 해요</span></div>${apOld(A)}`);
+      <div class="nav2"><button class="btn" data-skip="1" ${list.length<2?'disabled':''}>다음 건 ▸</button><span class="kv">고르면 '내 답'에 적히고, 확정은 PD가 해요</span></div>${apOld(A)}`);
   else{const done=Object.entries(S3.answers).filter(([id,a])=>A.items.some(x=>x.id===id)||Date.now()-(a.t||0)<864e5).length;
-    main=oct(`<h2 class="sec">결정함</h2><div class="q">지금 정할 것이 없어요</div><p class="why">${done?`💬 동현 답함 ${done}건 — 부대표가 확정할 거예요.`:S3.st.hq_approvals?'':'결정함을 아직 못 받았어요.'}</p>${apOld(A)}`)}
+    main=oct(`<h2 class="sec">결정함</h2><div class="q">지금 정할 것이 없어요</div><p class="why">${done?`💬 동현 답함 ${done}건 — PD가 확정할 거예요.`:S3.st.hq_approvals?'':'결정함을 아직 못 받았어요.'}</p>${apOld(A)}`)}
   const live=([id,a])=>A.items.some(x=>x.id===id)||Date.now()-(a.t||0)<864e5,answered=Object.entries(S3.answers).filter(live).map(([id,a])=>`<div class="rule"><span>💬</span><span>${esc(nm3(a.q||id))} → <b>${esc(nm3(a.label))}</b><br><span class="kv">동현 답함 · 확정 전</span></span></div>`).join('');
   const J=((S3.st.journal||{}).days||[]),g=J.slice().reverse().find(d=>d.grade&&d.grade.clips&&d.grade.clips.length),q=quitInfo(),dd=Math.ceil((new Date(JOB_DEADLINE+'T00:00:00')-Date.now())/864e5);
   keepOpen($('#r-director'),()=>$('#r-director').innerHTML=`<h1>대표실</h1><p class="lead">결정할 것 ${list.length} · 내 할 일 ${myTasks().now.length}${rptNew().length?` · 새 보고서 ${rptNew().length}`:''}</p>${A.demo?'<div class="demo">예시 데이터예요 (?demo=1)</div>':''}${hz()}
@@ -1685,17 +1699,17 @@ function director(){
   </div></div>`);
 }
 
-// ---- 코칭실: 묻기 · 공부 카드 · 수업 ----
-// 비서(제미나이)가 '클로드에 넘겨줘'로 저장한 문서 → 코칭팀 판정
+// ---- 애니 리드실: 묻기 · 공부 카드 · 수업 ----
+// 어시스턴트(제미나이)가 '클로드에 넘겨줘'로 저장한 문서 → 애니 리드 판정
 function handoffCard(){const H=S3.st.handoff,L=(H&&H.items)||[];if(!L.length)return '';
-  return oct(`<h2 class="sec">🎃 비서 인계 <span class="kv">${L.filter(x=>!x.verdict&&x.to!=='control').length?'판정 전 '+L.filter(x=>!x.verdict&&x.to!=='control').length:''}</span></h2>${L.map(x=>`<details class="gt" data-gk="ho:${esc(x.f)}"><summary>${x.verdict?x.changed?'🔄':'✅':x.to==='control'?'🛰️':'⏳'} <b>${esc(x.name)}</b> <span class="kv">${esc(x.t)}${x.verdict?x.changed?' · 판정이 바뀌었어요':' · 판정 끝':x.to==='control'?' · 부대표가 봐요':' · 코칭팀 판정 전'}${x.part?' · ✂️ 앞부분만':''}</span></summary>${x.verdict?`<div>${esc(x.verdict)}</div>${(x.lines||[]).map(l=>`<div class="kv">${esc(l)}</div>`).join('')}`:'<div class="kv">문서를 가져와 넘겼어요</div>'}${x.part&&/^https:\/\/docs\.google\.com\/document\/d\/[\w-]+\/edit$/.test(x.u||'')?`<div class="kv">✂️ 앞부분만 가져왔어요 — <a href="${esc(x.u)}" target="_blank" rel="noopener" style="color:var(--gold);font-weight:700;display:inline-block;padding:10px 0">원문 열기 ↗</a></div>`:''}</details>`).join('')}`)}
+  return oct(`<h2 class="sec">🎃 어시스턴트 인계 <span class="kv">${L.filter(x=>!x.verdict&&x.to!=='control').length?'판정 전 '+L.filter(x=>!x.verdict&&x.to!=='control').length:''}</span></h2>${L.map(x=>`<details class="gt" data-gk="ho:${esc(x.f)}"><summary>${x.verdict?x.changed?'🔄':'✅':x.to==='control'?'🛰️':'⏳'} <b>${esc(x.name)}</b> <span class="kv">${esc(x.t)}${x.verdict?x.changed?' · 판정이 바뀌었어요':' · 판정 끝':x.to==='control'?' · PD가 봐요':' · 애니 리드 판정 전'}${x.part?' · ✂️ 앞부분만':''}</span></summary>${x.verdict?`<div>${esc(x.verdict)}</div>${(x.lines||[]).map(l=>`<div class="kv">${esc(l)}</div>`).join('')}`:'<div class="kv">문서를 가져와 넘겼어요</div>'}${x.part&&/^https:\/\/docs\.google\.com\/document\/d\/[\w-]+\/edit$/.test(x.u||'')?`<div class="kv">✂️ 앞부분만 가져왔어요 — <a href="${esc(x.u)}" target="_blank" rel="noopener" style="color:var(--gold);font-weight:700;display:inline-block;padding:10px 0">원문 열기 ↗</a></div>`:''}</details>`).join('')}`)}
 function coach(){
   const ts=Ask.threads(S3.st).slice(0,6),un=new Set(Ask.unseen(S3.st).list.map(x=>x.t.id)),T=S3.st.tasks||{},t=T.teacher||{},fb=T.feedback||[];
   keepOpen($('#r-coach'),()=>$('#r-coach').innerHTML=`${h1('coach')}<p class="lead">공부 카드·묻기·수업</p>${hz()}<div class="grid g2"><div class="stk">${handoffCard()}${codexCard()}${codexList()}</div><div class="stk">
-   ${oct(`<h2 class="sec">묻기 <span class="num">${un.size||''}</span></h2>${ts.map(x=>`<button class="hqrow" data-goask="${esc(x.id)}" data-to="${esc(x.to)}"><b>${un.has(x.id)?'●':'💬'}</b><span>${esc(x.title)}<br><small class="kv">${esc(Ask.NAME[x.to]||'')} · ${esc(String(x.updated||'').slice(5,16))}</small></span></button>`).join('')||'<div class="empty">아직 물은 것이 없어요</div>'}<div class="nav2"><button class="btn pri2" data-askto2="anim_teacher">🎓 코칭팀에게 묻기</button></div>`)}
+   ${oct(`<h2 class="sec">묻기 <span class="num">${un.size||''}</span></h2>${ts.map(x=>`<button class="hqrow" data-goask="${esc(x.id)}" data-to="${esc(x.to)}"><b>${un.has(x.id)?'●':'💬'}</b><span>${esc(x.title)}<br><small class="kv">${esc(Ask.NAME[x.to]||'')} · ${esc(String(x.updated||'').slice(5,16))}</small></span></button>`).join('')||'<div class="empty">아직 물은 것이 없어요</div>'}<div class="nav2"><button class="btn pri2" data-askto2="anim_teacher">🎓 애니 리드에게 묻기</button></div>`)}
    ${croquisCard()}
    ${oct(`<h2 class="sec">피드백 <span class="kv">최근 ${fb.length}건</span></h2>${fb.map(f=>`<div class="rule"><span>${f.ox==='O'?'⭕':f.ox==='X'?'❌':'·'}</span><span><b>${esc(f.motion)} ${esc(f.frame)}f</b><br><span class="kv">${esc(f.issue)}${f.conf?' · 확신 '+esc(f.conf):''}</span></span></div>`).join('')||recNone('기록 없음')}`)}
-   ${oct(`<details class="gt" data-gk="teach"><summary><b>🎓 코칭팀이 하는 일</b> <span class="kv">${agoT(t.t)}</span></summary><div class="kv">${[...(t.lines||[]),t.now?'지금: '+t.now:'',t.done?'끝: '+t.done:'',t.next?'다음: '+t.next:''].filter(Boolean).map(l=>esc(nm3(l))).join('<br>')||'기록 없음'}</div></details>`)}
+   ${oct(`<details class="gt" data-gk="teach"><summary><b>🎓 애니 리드가 하는 일</b> <span class="kv">${agoT(t.t)}</span></summary><div class="kv">${[...(t.lines||[]),t.now?'지금: '+t.now:'',t.done?'끝: '+t.done:'',t.next?'다음: '+t.next:''].filter(Boolean).map(l=>esc(nm3(l))).join('<br>')||'기록 없음'}</div></details>`)}
   </div></div>`);
 }
 
@@ -1737,17 +1751,17 @@ async function rptOpen(s){const r=rptList().find(x=>x.s===s);if(!r)return;const 
   }catch(e){b.innerHTML=`<p class="why" style="padding:30px">보고서를 못 불러왔어요 (${esc(e.message)})</p>`}}
 // 하루 끝 '계획 대비 실제' 한 줄(동현 18:10): 퇴근하면 대표실 일지 칸에. 재료 = 작업 캘린더(✅ 제목 · ▶ hq_start · ✅ hq_done)만
 function dayLine(){const T=Focus.today();if(!T.g||!T.st.n)return '';const s=T.st;return `<div class="rule"><span>📊</span><span><b>오늘 계획 대비 실제</b><br>🎯 ${s.done}/${s.n} · 작업 ${s.real}분 / 계획 ${s.plan}분 · 쉬는 시간 넘김 ${s.over}번${s.real===0&&s.done?'<br><span class="kv">▶ 시작을 안 눌러 실제 분이 비어요</span>':''}</span></div>`}
-// 대표실 맨 위 '📰 새 보고'(동현 18:03): 안 읽은 것 전부 + 오늘 부대표 보고서(읽으면 회색). 기록실은 보관 목록
+// 대표실 맨 위 '📰 새 보고'(동현 18:03): 안 읽은 것 전부 + 오늘 PD 보고서(읽으면 회색). 기록실은 보관 목록
 function rptTop(){const sn=lsx('rpt_seen',{}),td=new Date().toLocaleDateString('sv'),L=rptList().filter(r=>!sn[r.f]||(r.k==='c'&&r.d===td)),G=gdocRows(),M=gdocMore(),n=L.filter(r=>!sn[r.f]).length+gdocNew();if(!L.length&&!G&&!M)return '';
   return oct(`<h2 class="sec">📰 새 보고 ${n?`<span class="num">${n}</span>`:''}</h2>${L.map(r=>rptRow(r).replace('class="hqrow"',`class="hqrow${sn[r.f]?' rd':''}"`)).join('')}${G}${M}`)}
-// 결재함 캐시가 24시간 넘게 안 바뀜(부대표 11/27 approvals_stale) → 회색 한 줄
+// 결재함 캐시가 24시간 넘게 안 바뀜(PD 11/27 approvals_stale) → 회색 한 줄
 function apOld(A){const a=S3.st.hq_approvals||{};return (a.old?`<div class="kv apold">⚪ 결재함 오래됨 · ${a.cache_t?esc(new Date(a.cache_t*1000).toLocaleString('sv').slice(5,16))+' 뒤로 안 바뀜':'갱신 시각 모름'}</div>`:'')+(a.hidden?`<div class="kv">✅ 확정된 ${a.hidden}건은 숨겼어요</div>`:'')}
-// 🤖 비서 규칙 바뀜(부대표 18:03): 원본 = 비서_오답노트.csv. 되돌리기 = 두 번 눌러 부대표에게 편지
+// 🤖 어시스턴트 규칙 바뀜(PD 18:03): 원본 = 어시스턴트_오답노트.csv. 되돌리기 = 두 번 눌러 PD에게 편지
 function rulesCard(){const R=S3.st.sec_rules,L=((R||{}).items)||[];if(!L.length)return '';const sent=new Set(Q.of('rule_revert').filter(r=>!(r.st==='fail'&&r.rej)).map(r=>r.data.id));
-  return oct(`<h2 class="sec">🤖 비서 규칙 바뀜 <span class="kv">${L.length}</span></h2>${L.slice(0,3).map((x,i)=>`<details class="gt" data-gk="rule:${esc(x.id)}"${i?'':' open'}><summary><b>${esc(x.what)}</b> <span class="kv">${esc(recD(x.d)||x.d)}</span></summary><div class="kv">전에는: ${esc(x.was)}</div><div>이제는: <b>${esc(x.now)}</b></div><div class="kv">고친 곳: ${esc(x.where)}</div><div class="nav2">${x.asked||sent.has(x.id)?'<span class="kv">↩ 되돌리기 요청 보냄 — 부대표가 봐요</span>':`<button class="btn" data-rrev="${esc(x.id)}">↩ 되돌리기</button>`}</div></details>`).join('')}${L.length>3?`<div class="kv">지난 ${L.length-3}개는 기록에</div>`:''}`)}
+  return oct(`<h2 class="sec">🤖 어시스턴트 규칙 바뀜 <span class="kv">${L.length}</span></h2>${L.slice(0,3).map((x,i)=>`<details class="gt" data-gk="rule:${esc(x.id)}"${i?'':' open'}><summary><b>${esc(x.what)}</b> <span class="kv">${esc(recD(x.d)||x.d)}</span></summary><div class="kv">전에는: ${esc(x.was)}</div><div>이제는: <b>${esc(x.now)}</b></div><div class="kv">고친 곳: ${esc(x.where)}</div><div class="nav2">${x.asked||sent.has(x.id)?'<span class="kv">↩ 되돌리기 요청 보냄 — PD가 봐요</span>':`<button class="btn" data-rrev="${esc(x.id)}">↩ 되돌리기</button>`}</div></details>`).join('')}${L.length>3?`<div class="kv">지난 ${L.length-3}개는 기록에</div>`:''}`)}
 function recTop(){const R=rptList().filter(r=>r.k!=='c'),V=rptList().filter(r=>r.k==='c'),d=((S3.st.journal||{}).days||[]).slice(-1)[0];
   return `<div class="grid g2 rect2"><div>${oct(`<h2 class="sec">📰 주간 보고</h2>${S3.st.reports?R.length?rptRow(R[0])+(R.length>1?`<details class="gt" data-gk="rptold"><summary>지난 보고 ${R.length-1}개</summary>${R.slice(1).map(rptRow).join('')}</details>`:''):'<div class="kv">아직 없어요 · 화요일 09:13에 나와요</div>':recNone('PC 지킴이가 보내면 나타나요')}`)}</div>
-   <div>${oct(`<h2 class="sec">📓 일지</h2>${d?`<div class="kv">${recD(d.date)}${d.date===wday()?' · 오늘':''}</div><div class="rule"><span>🖐️</span><span>손 작업</span><b class="num" style="margin-left:auto">${d.wl?jrH(d.wl.hand_min):'기록 없음'}</b></div><div class="rule"><span>🎓</span><span>퇴근 채점</span><b class="num" style="margin-left:auto">${d.grade&&d.grade.clips&&d.grade.clips.length?`${d.grade.clips.filter(c=>c.res&&!c.re).length}/${d.grade.clips.length} 끝`:'기록 없음'}</b></div>`:recNone('일지가 아직 없어요')}<div class="nav2"><a class="btn pri2" href="#log/jr">일지 펼치기</a></div>`)}</div>${V.length?`<div style="grid-column:1/-1">${oct(`<h2 class="sec">🛰️ 부대표 보고서</h2>${V.map(rptRow).join('')}`)}</div>`:''}</div>`}
+   <div>${oct(`<h2 class="sec">📓 일지</h2>${d?`<div class="kv">${recD(d.date)}${d.date===wday()?' · 오늘':''}</div><div class="rule"><span>🖐️</span><span>손 작업</span><b class="num" style="margin-left:auto">${d.wl?jrH(d.wl.hand_min):'기록 없음'}</b></div><div class="rule"><span>🎓</span><span>퇴근 채점</span><b class="num" style="margin-left:auto">${d.grade&&d.grade.clips&&d.grade.clips.length?`${d.grade.clips.filter(c=>c.res&&!c.re).length}/${d.grade.clips.length} 끝`:'기록 없음'}</b></div>`:recNone('일지가 아직 없어요')}<div class="nav2"><a class="btn pri2" href="#log/jr">일지 펼치기</a></div>`)}</div>${V.length?`<div style="grid-column:1/-1">${oct(`<h2 class="sec">🛰️ PD 보고서</h2>${V.map(rptRow).join('')}`)}</div>`:''}</div>`}
 
 // ---- 폰 알림(웹 푸시) 자리: push.js 가 있으면 채운다 ----
 function pushCard(){return typeof Push==='undefined'?'':Push.card()}
@@ -1760,7 +1774,7 @@ async function checkBuild(){try{const r=await fetch('version.json?v='+Date.now()
 
 // ---- 누르기 ----
 document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('button');if(!t)return;const D=t.dataset;
-  if(D.rrev){const b=e.target.closest('[data-rrev]');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='한 번 더 누르면 부대표에게 보내요';setTimeout(()=>{if(b.isConnected){b.dataset.arm='';b.textContent='↩ 되돌리기'}},4000);return}
+  if(D.rrev){const b=e.target.closest('[data-rrev]');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='한 번 더 누르면 PD에게 보내요';setTimeout(()=>{if(b.isConnected){b.dataset.arm='';b.textContent='↩ 되돌리기'}},4000);return}
     Q.add('rule_revert',{id:D.rrev});Sync3.flush();toast('↩ 되돌리기 요청을 보냈어요');render();return}
   if(D.tdone){Q.add('task_done',{key:D.tdone,text:D.ttext});Sync3.flush();toast('✅ 끝으로 적었어요');render();return}
   if(D.scr){const [id,v,key]=JSON.parse(D.scr);Q.add('screen_answer',{id,answer:v,key});Sync3.flush();toast('🖥️ '+v);render();return}
@@ -1785,7 +1799,7 @@ const IS_ROOT=!!document.querySelector('link[rel=manifest]');
 document.getElementById('chan').hidden=IS_ROOT;
 if(IS_ROOT&&'serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});navigator.serviceWorker.addEventListener('message',e=>{const r=String((e.data||{}).hqRoom||'');if(ROOMS.some(x=>x[0]===r.split('/')[0]))location.hash='#'+r})}
 
-// ---- 진행판 v2 (부대표 11/27 04:20 board_v2): 🟢 지금 도는 일 / 🔴 멈춘 일 / ✅ 끝난 일 ----
+// ---- 진행판 v2 (PD 11/27 04:20 board_v2): 🟢 지금 도는 일 / 🔴 멈춘 일 / ✅ 끝난 일 ----
 // 원본 바꿔 끼우기(연결설계 C2): state.json 이 오면 BoardSrc 세 함수만 고친다. 칸 나누기(boardSplit)·그리기(boardCard)는 그대로.
 // BoardSrc.items() 한 줄 모양: {id, title, status:'대기|진행|완료|막힘|멈춤', pct:0~100|null, t:초(마지막 갱신), raw:원본}
 const BoardSrc={
@@ -1825,7 +1839,7 @@ function boardCard(){const now=Date.now()/1000;
   return h}
 function jobsCard(){return boardCard()}
 
-// ---- ✏ 편집 모드: 카드 배치 (부대표 설계 v1 7절, 동현 11/27 05:30 "노션처럼 직접") ----
+// ---- ✏ 편집 모드: 카드 배치 (PD 설계 v1 7절, 동현 11/27 05:30 "노션처럼 직접") ----
 // 1차(BUILD 28): 순서(끌기·↑↓) · 너비(12칸 격자) · 높이 · 보기(목록·한 줄·숫자만) · 접기 · 숨기기 · ＋ 카드(숨긴 것 다시) · 되돌리기 10판 · 기본값
 // 배치 = 기기 모양별 3벌(cover·fold·pc) × 방. 기기 안(v3_layout)에 바로 저장 + PC 지킴이 layout.json 과 맞춤(새것이 이김). 앱을 새로 올려도 유지, 새 카드는 맨 아래 🆕.
 const LAY_K='v3_layout',LAY_U='v3_layout_undo',LAY_W={cover:[12,6],fold:[12,8,6,4,3],pc:[12,8,6,4,3]},LAY_WN={3:'1/4',4:'1/3',6:'1/2',8:'2/3',12:'전체'};
@@ -1875,19 +1889,20 @@ document.addEventListener('click',e=>{let b;
   document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end)})();
 window.addEventListener('resize',()=>{clearTimeout(layGrid.R);layGrid.R=setTimeout(()=>{if(layGrid.D!==layDev()){layGrid.D=layDev();render()}},200)});layGrid.D=layDev();
 
-// ---- HB HQ 실시간 두 탭 (부대표 11/27 04:47 p1_hq_live): 🏠 오늘 · 📊 진행판 ----
-// 숫자(일·팀·막힘·비서·Claude)는 status.json(S3.st.status, 모양 hq_status_v1 — 개발팀 hub\tools\status_feed.py)에서만 읽는다.
+// ---- HB HQ 실시간 두 탭 (PD 11/27 04:47 p1_hq_live): 🏠 오늘 · 📊 진행판 ----
+// 숫자(일·팀·막힘·어시스턴트·Claude)는 status.json(S3.st.status, 모양 hq_status_v1 — TA팀 hub\tools\status_feed.py)에서만 읽는다.
 // 원본 바꿔 끼우기(C2): Live 의 raw·at·pcAt 만 고친다. 화면(오늘·진행판)은 그대로.
 // 신선도 규칙: 5분 안 = ● 실시간 / 5분 넘음 = ○ 회색 / 1일 넘음 = ⚠ · PC 소식이 LV.PC 초 넘게 없으면 맨 위 빨간 줄 'PC 연결 끊김'
-const LV={LIVE:300,DAY:86400,PC:240};   // PC: 지킴이 살아 있음 표시가 2분마다 → 2번 놓치면 끊김(2분 정각이면 정상일 때도 깜빡임)
-const TEAM_IC={control:'🛰️',code:'💻',ref_factory:'📚',anim_teacher:'🎓',wc_app:'📱',job_prep:'💼',gemini:'🎃'};
+const LV={LIVE:300,DAY:86400,PC:240,LOAD:120,T0:Date.now()/1000};   // LOAD: 앱을 연 뒤 2분은 저장값을 '불러오는 중' 회색으로(동현 06:55 ⑦)   // PC: 지킴이 살아 있음 표시가 2분마다 → 2번 놓치면 끊김(2분 정각이면 정상일 때도 깜빡임)
+const TEAM_IC={control:'🎬',pm:'🧭',control_auto:'🧭',code:'🛠️',ref_factory:'📦',anim_teacher:'🎓',wc_app:'🖥️',job_prep:'💼',gemini:'🎃',auto:'⚙️'};   // 용어집 v3(11/27)
+const TEAM_ROLE={control:'프로듀서 — 프로젝트 방향·일정·팀 총괄',pm:'프로젝트 매니저 — 진행 관리·막힌 일 풀기·일 배분',control_auto:'프로젝트 매니저 — 진행 관리·막힌 일 풀기·일 배분',code:'테크니컬 아티스트 — 아티스트용 툴·스크립트·파이프라인·리깅 자동화',ref_factory:'리소스·레퍼런스 관리',anim_teacher:'리드 애니메이터 — 작업 피드백·기준 잡는 선배',wc_app:'화면 설계·구현',job_prep:'(우리만의 팀) 채용·포폴·면접',gemini:'조사·정리·초안을 돕는 보조',auto:'DevOps — 서버·빌드·자동화 설비'};
 const lvT=s=>{if(!s)return 0;const t=Date.parse(String(s).slice(0,19).replace(' ','T'));return isNaN(t)?0:t/1000};
 const Live={
   raw(){const s=S3.st.status;return s&&s.meta&&s.meta.schema==='hq_status_v1'?s:null},
   at(){const s=this.raw();return s?Math.max(lvT(s.meta.generated_at),+((S3.st.meta||{}).status_at)||0):0},   // 상태를 마지막으로 확인한 시각(초)
   pcAt(){return Math.max(this.at(),+((S3.st.meta||{}).last_sync)||0)},                                          // PC 에서 온 마지막 소식(초)
   why(){return (S3.st.status||{}).why||''},
-  kind(now){if(!this.raw())return 'none';return now-this.pcAt()>LV.PC?'off':now-this.at()>LV.LIVE?'stale':'live'},
+  kind(now){if(!this.raw())return 'none';if(now-this.pcAt()>LV.PC)return now-LV.T0<LV.LOAD?'load':'off';return now-this.at()>LV.LIVE?'stale':'live'},
   jobs(k){return (((this.raw()||{}).jobs||{})[k])||[]},
   get(k,d){const s=this.raw();return s&&s[k]!=null?s[k]:d}};
 function lvFresh(t,now){if(!t)return ['⚠ 기록 없음','old'];const a=Math.max(0,now-t);
@@ -1898,9 +1913,9 @@ const lvNoIc=s=>String(s||'').replace(/[\p{Extended_Pictographic}️‍]/gu,'').
 // ---- 맨 위 한 줄(어느 방에서든): 마지막 갱신 HH:MM · ● 실시간 / 빨간 줄 PC 연결 끊김 ----
 function lvBar(){const el=$('#lvbar');if(!el)return;if(['title','world','lib','review'].includes(S3.room)){el.hidden=true;return}
   const now=Date.now()/1000,k=Live.kind(now),at=Live.at(),pc=Live.pcAt();el.hidden=false;el.className='lv-'+k;el.dataset.k=k;
-  document.body.classList.toggle('lvoff',k==='off'||k==='stale');
+  document.body.classList.toggle('lvoff',k==='off'||k==='stale');el.title=k==='load'?'저장해 둔 값을 먼저 보여 주고 PC 의 새 값을 기다려요(2분 넘게 안 오면 빨간 줄)':k==='off'?'PC 지킴이 소식이 4분 넘게 없어요 — PC 가 꺼졌거나 잠들었을 수 있어요':'숫자를 마지막으로 받은 시각';
   el.innerHTML=k==='none'?`<span>⚪ 실시간 상태를 기다려요${Live.why()?' · '+esc(Live.why()):''}</span>`
-   :k==='off'?`<b>🔴 PC 연결 끊김</b><span>마지막 소식 ${hmOf(pc*1000)} · ${esc(agoT(pc))} — 아래 숫자는 그때 값이에요</span>`
+   :k==='load'?`<span>⏳ 불러오는 중 · 저장해 둔 값(${hmOf(pc*1000)})을 먼저 보여 줘요</span>`:k==='off'?`<b>🔴 PC 연결 끊김</b><span>마지막 소식 ${hmOf(pc*1000)} · ${esc(agoT(pc))} — 아래 숫자는 그때 값이에요</span>`
    :`<span>마지막 갱신 <b class="num">${hmOf(at*1000)}</b> · ${k==='live'?'<i class="f-live">● 실시간</i>':`<i class="f-old">⚠ 상태 생성기가 ${esc(agoT(at))}부터 조용해요</i>`}</span>`}
 setInterval(()=>{if(!document.hidden)lvBar()},5000);
 
@@ -1911,32 +1926,32 @@ function lvRow(x,k,now){const p=typeof x.pct==='number'?Math.round(x.pct):null,c
   const tm=TEAM_NM(x.owner);
   return `<details class="bv2 jobd s-${c}" data-gk="lv:${esc(x.id)}"><summary><span class="bi">${ic}</span><b class="bt">${esc(lvNoIc(nm3(x.notify_title||x.title||x.id)))}</b>${sub}${lvF(lvT(x.changed),now,x.conf==='unknown')}${k==='run'&&p!=null?`<span class="prog"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></span>`:''}</summary>
     <div class="bful">${esc(nm3(x.title||x.id))}</div><div class="kv">${x.now?esc(nm3(x.now))+'<br>':''}${x.eta_min!=null&&k!=='done'?`남은 시간 약 ${esc(jrH(Math.round(x.eta_min)))}<br>`:''}${esc(x.status||'')}${p!=null?' · '+p+'%':''}${tm?' · '+esc(tm):''} · 내용이 바뀐 때 ${esc(String(x.changed||'').slice(5,16))}${x.conf==='seed'?' (추정)':''}</div></details>`}
-const TEAM_NM=k=>{const t=Live.get('teams',[]).find(t=>t.key===k);return t?t.name:''};
+const TEAM_NM=k=>{const t=Live.get('teams',[]).find(t=>t.key===k);return t?nm3(t.name):''};
 // 팀 신호등 한 줄: 팀마다 신호(🟢 30분 안 진행 · 🟡 편지 기다림 · 🔴 실패·막힘 · ⚪ 쉼) + 마지막 진행 신선도
 function lvTeams(now,full){const T=Live.get('teams',[]),C=Live.get('claude',{});if(!Live.raw())return recNone('실시간 상태를 기다려요');
   const cl=C.state&&C.state!=='정상';
-  if(!full)return `<a class="tls" href="#board/teams">${T.map(t=>`<span class="tl"><b>${TEAM_IC[t.key]||''} ${esc(t.name)}</b> ${esc(t.light||'⚪')}${lvF(lvT(t.last_progress),now)}</span>`).join('')}<span class="tl"><b>Claude</b> ${cl?'🔴':'🟢'}<span class="fr">${esc(C.state||'정상')}</span></span></a>`;
+  if(!full)return `<a class="tls" href="#board/teams">${T.map(t=>`<span class="tl"><b>${TEAM_IC[t.key]||''} ${esc(nm3(t.name))}</b> ${esc(t.light||'⚪')}${lvF(lvT(t.last_progress),now)}</span>`).join('')}<span class="tl"><b>Claude</b> ${cl?'🔴':'🟢'}<span class="fr">${esc(C.state||'정상')}</span></span></a>`;
   return T.map(t=>`<div class="hqrow"><b>${esc(t.light||'⚪')}</b><span>${TEAM_IC[t.key]||''} <b>${esc(t.name)}</b> · ${esc(nm3(t.why||''))}<br><small class="kv">도는 일 ${+t.jobs_run||0}${t.jobs_blocked?' · 막힌 일 '+t.jobs_blocked:''} · 열린 편지 ${+t.inbox_open||0}${t.inbox_new?' · 새 편지 '+t.inbox_new:''}</small></span>${lvF(lvT(t.last_progress),now)}</div>`).join('')}
 
 // ---- 🙋 결재·할 일(동현만 할 수 있는 것): 상태기의 '동현이 할 일' + 결정함 + 화면 물음 + 내 할 일 ----
 function lvTodo(){const T=Live.get('todo_donghyun',[]),P=pending().length,S=scrN(),M=myTasks().now.length;
   const rows=[...T.map(x=>({t:nm3(x.title),s:nm3(x.why||''),h:x.id==='claude_login'?'':'#board',b:x.id==='claude_login'?'':'보기',at:x.since})),
-    ...(P?[{t:`결정함 ${P}건`,s:'고르면 부대표가 확정해요',h:'#director',b:'고르기'}]:[]),...(S?[{t:`화면 써도 돼? ${S}건`,s:'맡길지 정해 주세요',h:'#director',b:'답하기'}]:[]),
+    ...(P?[{t:`결정함 ${P}건`,s:'고르면 PD가 확정해요',h:'#director',b:'고르기'}]:[]),...(S?[{t:`화면 써도 돼? ${S}건`,s:'맡길지 정해 주세요',h:'#director',b:'답하기'}]:[]),
     ...(M?[{t:`내 할 일 ${M}개`,s:myTasks().now.slice(0,2).map(t=>t.text).join(' · ').slice(0,80),h:'#director',b:'열기'}]:[])];
   return {rows,n:T.length+P+S+M}}
 const todoN=()=>lvTodo().n;
 function lvTodoCard(){const {rows,n}=lvTodo();
   if(!n)return `<div class="al al-ok" id="lv-todo" data-n="0">🙋 결재·할 일 없음</div>`;
   return oct(`<h2 class="sec">🙋 결재·할 일 <span class="num" id="lv-n-todo">${n}</span></h2>${rows.slice(0,3).map((r,i)=>`<div class="hqrow"><b class="num">${i+1}</b><span>${esc(r.t)}${r.s?`<br><small class="kv">${esc(r.s)}</small>`:''}</span>${r.h?`<a class="btn" href="${r.h}">${r.b}</a>`:''}</div>`).join('')}${rows.length>3?`<details class="gt" data-gk="lvtodo"><summary class="kv">그 밖 ${rows.length-3}개</summary>${rows.slice(3).map(r=>`<div class="hqrow"><i></i><span>${esc(r.t)}${r.s?`<br><small class="kv">${esc(r.s)}</small>`:''}</span>${r.h?`<a class="btn" href="${r.h}">${r.b}</a>`:''}</div>`).join('')}</details>`:''}`,'lvc lv-me')}
-// ---- 🔴 막힌 일: 실패·막힘 + Claude 쉼 + 비서 멈춤 + 켜진 멈춤 표시 + 읽기 실패 + 부대표 검증 대기 ----
+// ---- 🔴 막힌 일: 실패·막힘 + Claude 쉼 + 어시스턴트 멈춤 + 켜진 멈춤 표시 + 읽기 실패 + PD 검증 대기 ----
 function lvBlocked(now){const s=Live.raw();if(!s)return {rows:[],n:0,none:1};const C=s.claude||{},Sc=s.secretary||{},R=[];
   for(const b of s.blocked||[])R.push({ic:'🔴',t:nm3(b.title),s:nm3(b.why||''),w:TEAM_NM(b.owner),at:b.since,h:'#board'});
   if(C.state&&C.state!=='정상')R.push({ic:'🔴',t:'Claude '+C.state,s:nm3(C.line||'팀을 깨우지 못하고 있어요'),at:C.since,h:'#board'});
-  if(Sc.state&&Sc.state!=='정상')R.push({ic:'🟡',t:Sc.state==='멈춤'?'비서 API 쉬는 중':'비서 '+Sc.state,s:'제미나이 앱으로 대신할 수 있어요',x:/^https:\/\/gemini\.google\.com\//.test(Sc.app_url||'')?Sc.app_url:'',h:''});
-  for(const f of (s.flags||[]).filter(f=>f!=='비서 멈춤'))R.push({ic:'⏸️',t:'켜진 멈춤 표시 · '+f,s:'꺼질 때까지 새 일을 시작하지 않아요',h:''});
+  if(Sc.state&&Sc.state!=='정상')R.push({ic:'🟡',t:Sc.state==='멈춤'?'어시스턴트 API 쉬는 중':'어시스턴트 '+Sc.state,s:'제미나이 앱으로 대신할 수 있어요',x:/^https:\/\/gemini\.google\.com\//.test(Sc.app_url||'')?Sc.app_url:'',h:''});
+  for(const f of (s.flags||[]).filter(f=>!/(?:비서|어시스턴트) 멈춤/.test(f)))R.push({ic:'⏸️',t:'켜진 멈춤 표시 · '+nm3(f),s:'꺼질 때까지 새 일을 시작하지 않아요',h:''});
   if((s.errors||[]).length)R.push({ic:'⚠',t:`읽기 실패 ${s.errors.length}개`,s:s.errors.slice(0,3).map(e=>e.file).join(' · '),h:'#board'});
   const hw=(((S3.st.handoff||{}).items)||[]).filter(x=>!x.verdict&&x.to==='control').length;
-  if(hw)R.push({ic:'🟡',t:`부대표 검증 대기 ${hw}개`,s:'비서가 넘긴 문서 — 부대표가 봐요',h:'#board/news'});
+  if(hw)R.push({ic:'🟡',t:`PD 검증 대기 ${hw}개`,s:'어시스턴트가 넘긴 문서 — PD가 봐요',h:'#board/news'});
   return {rows:R,n:R.filter(r=>r.ic==='🔴').length,all:R.length}}
 function lvBlockedCard(now){const B=lvBlocked(now);
   if(B.none)return `<div class="al al-ok" id="lv-blk">⚪ 막힌 일 · 실시간 상태를 기다려요</div>`;
@@ -1956,17 +1971,18 @@ function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=q
   keepOpen($('#r-today'),()=>$('#r-today').innerHTML=`<h1 class="sr">오늘</h1>${layGrid('today',C)}`);
   Focus.tick();lvBar();lvCount('today',t0)}
 
-// ---- 팀별 지금 하는 일 (부대표 11/27 05:58, 동현 06:00 "팀이 뭘 몇 단계까지 했는지 안 보임") ----
+// ---- 팀별 지금 하는 일 (PD 11/27 05:58, 동현 06:00 "팀이 뭘 몇 단계까지 했는지 안 보임") ----
 // status.teams[] 의 task · steps[{n,s:todo|doing|done}] · step · eta_min · queue · updated · results(결과 편지 최근 3, 지킴이가 붙임)
 const STEP_NO='①②③④⑤⑥⑦⑧';
 function lvSteps(t){const S=t.steps||[];if(!S.length)return '';const cur=S.findIndex(x=>x.s==='doing'),ci=cur>=0?cur:(S.every(x=>x.s==='done')?-1:Math.max(0,Math.min(S.length-1,(+t.step||1)-1)));
   return `<div class="tst">${S.map((x,i)=>{const k=x.s==='done'?'done':i===ci?'now':'todo';return `<span class="ts ts-${k}">${STEP_NO[i]||i+1} ${esc(nm3(x.n))} ${k==='done'?'✅':k==='now'?'▶':'⬜'}</span>`}).join('')}</div>`}
 function lvTeamCard(t,now){const ic=TEAM_IC[t.key]||'',at=lvT(t.updated)||lvT(t.last_progress),R=t.results||[],Q=t.queue||[],busy=!!t.task||t.light==='🔴'||t.light==='🟡'||t.running;
-  if(!busy)return `<div class="tc idle" data-team="${esc(t.key)}"><span>${esc(t.light||'⚪')} ${ic} <b>${esc(t.name)}</b> · ${esc(nm3(t.why||'쉼'))}</span>${lvF(lvT(t.last_progress),now)}</div>`;
+  if(!busy)return `<div class="tc idle" data-team="${esc(t.key)}"><span>${esc(t.light||'⚪')} ${ic} <b>${esc(nm3(t.name))}</b> · ${esc(nm3(t.why||'쉼'))}</span>${lvF(lvT(t.last_progress),now)}</div>`;
   const alld=(t.steps||[]).length&&t.steps.every(x=>x.s==='done');
-  return `<details class="tc" data-team="${esc(t.key)}" data-gk="tc:${esc(t.key)}"><summary><div class="tch"><span>${ic} <b>${esc(t.name)}</b> ${esc(t.light||'⚪')}</span>${lvF(at,now)}</div>
+  return `<details class="tc" data-team="${esc(t.key)}" data-gk="tc:${esc(t.key)}"><summary><div class="tch"><span>${ic} <b>${esc(nm3(t.name))}</b> ${esc(t.light||'⚪')}</span>${lvF(at,now)}</div>
     <div class="tct">${t.task?esc(nm3(t.task)):'<span class="f-old">⚠ 단계 기록 없음</span>'}${t.src==='auto'&&t.task?' <small class="kv">열린 편지로 채움</small>':''}</div>${lvSteps(t)}
     <div class="kv tcm">${alld?'끝났어요':t.eta_min!=null&&+t.eta_min>0?`약 ${esc(jrH(Math.round(+t.eta_min)))} 남음`:'남은 시간 모름'} · ${esc(nm3(t.why||''))}${Q.length?` · 다음 할 일 ${Q.length}`:''} · 눌러서 자세히</div></summary>
+    ${TEAM_ROLE[t.key]?`<div class="kv tcr">실제 회사에서: ${esc(TEAM_ROLE[t.key])}</div>`:''}
     ${Q.length?`<div class="tcq"><b>다음 할 일 ${Q.length}</b>${Q.map(q=>`<div class="kv">· ${esc(nm3(q))}</div>`).join('')}</div>`:''}
     <div class="tcq"><b>결과 편지 최근 ${R.length}</b>${R.map(r=>`<div class="kv">${esc(r.t)} → ${esc(TEAM_NM(r.to)||r.to)} · ${esc(lvNoIc(nm3(r.title)))}</div>`).join('')||'<div class="kv">아직 없어요</div>'}</div>
     <div class="kv">열린 편지 ${+t.inbox_open||0}${t.inbox_new?' · 새 편지 '+t.inbox_new:''} · 도는 일 ${+t.jobs_run||0}${t.jobs_blocked?' · 막힌 일 '+t.jobs_blocked:''}</div></details>`}
@@ -1979,14 +1995,14 @@ function lvSystem(now){const S=Live.get('system',[]);if(!S.length&&!Live.get('au
 // ---- 📊 진행판 ----
 function lvStatusLine(){const s=Live.raw();if(!s)return '';const Sc=s.secretary||{},C=s.claude||{},cap=Sc.cap?`/${+Sc.cap}`:'';
   const b=(ok,t)=>`<span class="sl ${ok?'':'bad'}">${t}</span>`;
-  return `<div class="lvs" id="lv-line">${b(Sc.state==='정상',`🎃 비서 <b>${esc(Sc.state||'–')}</b> · ${Sc.split&&Sc.split.line?esc(nm3(Sc.split.line)):`오늘 ${+Sc.calls_today||0}${cap}회`}`)}${b(!C.state||C.state==='정상',`Claude <b>${esc(C.state||'정상')}</b>`)}${b(C.dispatch!=='red',`배달원 <b>${C.dispatch==='red'?'빨강':C.dispatch==='yellow'?'주의':'정상'}</b>`)}${(s.disk||[]).length?b(!(s.disk||[]).some(d=>+d.used_pct>=95),'💾 '+(s.disk||[]).map(d=>`${esc(String(d.drive||'').slice(0,2))} <b>${Math.round(+d.free_gb||0)}GB</b>`).join(' · ')+' 남음'):''}${(s.flags||[]).map(f=>b(false,'⏸️ '+esc(f))).join('')}</div>`}
+  return `<div class="lvs" id="lv-line">${b(Sc.state==='정상',`🎃 어시스턴트 <b>${esc(Sc.state||'–')}</b> · ${Sc.split&&Sc.split.line?esc(nm3(Sc.split.line)):`오늘 ${+Sc.calls_today||0}${cap}회`}`)}${b(!C.state||C.state==='정상',`Claude <b>${esc(C.state||'정상')}</b>`)}${b(C.dispatch!=='red',`배달원 <b>${C.dispatch==='red'?'빨강':C.dispatch==='yellow'?'주의':'정상'}</b>`)}${(s.disk||[]).length?b(!(s.disk||[]).some(d=>+d.used_pct>=95),'💾 '+(s.disk||[]).map(d=>`${esc(String(d.drive||'').slice(0,2))} <b>${Math.round(+d.free_gb||0)}GB</b>`).join(' · ')+' 남음'):''}${(s.flags||[]).map(f=>b(false,'⏸️ '+esc(nm3(f)))).join('')}</div>`}
 function board2(){const now=Date.now()/1000,t0=performance.now(),s=Live.raw();
   if(!s){keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">실시간 상태를 기다리는 동안 앞 방식(파일 시각)으로 보여요</p>${hz()}${boardCard()}${healthCard()}`);lvBar();lvCount('board',t0);return}
   const run=Live.jobs('run'),blk=Live.jobs('blocked'),quiet=Live.jobs('quiet'),stall=Live.jobs('stall'),done=Live.jobs('done_today'),C0=s.counts||{},er=s.errors||[];
   const stopN=blk.length+stall.length+er.length,G=(S3.st.hb_gates||{}).gates||[],gp=G.filter(g=>g.pass===true).length;
   const sec=(id,h,body)=>oct(`<h2 class="sec" id="${id}">${h}</h2>${body}`,'bv2c lvc');
   const C=[{id:'line',name:'상태 줄 · 시스템',html:lvStatusLine()+lvSystem(now)},{id:'tcards',name:'팀별 지금 하는 일',html:oct(`<h2 class="sec" id="lv-teams">팀별 지금 하는 일 <span class="kv">눌러서 다음 할 일·결과 편지</span></h2>${lvTeamCards(now)}`,'lvc')},{id:'run',name:'🟢 지금 도는 일',view:1,html:sec('lv-run',`🟢 지금 도는 일 <span class="num" id="lv-n-run">${run.length}</span> <span class="kv">30분 안에 내용이 바뀐 것</span>`,(run.map(x=>lvRow(x,'run',now)).join('')||'<div class="empty">지금 도는 일이 없어요</div>')+(quiet.length?`<div class="kv lvq" id="lv-quiet">조용한 일 <b class="num" id="lv-n-quiet">${quiet.length}</b> · 30분 넘게 소식 없음(하루 안)</div>${quiet.map(x=>lvRow(x,'quiet',now)).join('')}`:''))},{id:'stop',name:'🔴 멈춘 일',view:1,html:sec('lv-stop',`🔴 멈춘 일 <span class="num" id="lv-n-stop">${stopN}</span> <span class="kv">막힘 · 하루 넘게 그대로 · 읽기 실패</span>`,er.map(e=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(e.file)}</b><span class="fr"></span></div></div>`).join('')+[...blk.map(x=>lvRow(x,'blocked',now)),...stall.map(x=>lvRow(x,'stall',now))].join('')||'<div class="ok">멈춘 일이 없어요</div>')},
-    {id:'done',name:'✅ 오늘 끝난 일',html:oct(`<details class="bdone" data-gk="lvdone"><summary><h2 class="sec" style="display:inline">✅ 오늘 끝난 일 <span class="num" id="lv-n-done">${+C0.done_today||0}</span></h2> <span class="kv">눌러서 보기 · 지금까지 모두 ${+C0.done||0}개</span></summary>${done.map(x=>lvRow(x,'done',now)).join('')||'<div class="empty">오늘 끝난 일은 아직 없어요</div>'}${(+C0.done_today||0)>done.length?`<div class="kv">최근 ${done.length}개만 보여요</div>`:''}</details>`,'bv2c lvc')},{id:'news',name:'📰 보고',html:`<div id="lv-news">${rptTop()||oct('<h2 class="sec">📰 보고 · 🎃 비서 결과</h2><div class="empty">새 보고가 없어요</div>','lvc')}</div>`},{id:'gates',name:'🎯 통과 기준',html:oct(`<div class="hqrow"><b>🎯</b><span><b>통과 기준</b> ${G.length?`${gp} / ${G.length} 통과`:'기다리는 중'}<br><small class="kv">제품별 품질 관문 · 클립</small></span><a class="btn" href="#hb">열기</a></div><div class="hqrow"><b>🗂️</b><span><b>끝난 일 전체 · 일 자세히</b><br><small class="kv">옛 부대표실</small></span><a class="btn" href="#ops">열기</a></div>`,'lvc')},{id:'health',name:'🩺 배달 기록(팀 건강)',html:healthCard()?`<details class="gt lvhl" data-gk="lvhealth"><summary>🩺 배달 기록 · 팀 건강 <span class="kv">눌러서 보기</span></summary>${healthCard()}</details>`:''}];
+    {id:'done',name:'✅ 오늘 끝난 일',html:oct(`<details class="bdone" data-gk="lvdone"><summary><h2 class="sec" style="display:inline">✅ 오늘 끝난 일 <span class="num" id="lv-n-done">${+C0.done_today||0}</span></h2> <span class="kv">눌러서 보기 · 지금까지 모두 ${+C0.done||0}개</span></summary>${done.map(x=>lvRow(x,'done',now)).join('')||'<div class="empty">오늘 끝난 일은 아직 없어요</div>'}${(+C0.done_today||0)>done.length?`<div class="kv">최근 ${done.length}개만 보여요</div>`:''}</details>`,'bv2c lvc')},{id:'news',name:'📰 보고',html:`<div id="lv-news">${rptTop()||oct('<h2 class="sec">📰 보고 · 🎃 어시스턴트 결과</h2><div class="empty">새 보고가 없어요</div>','lvc')}</div>`},{id:'gates',name:'🎯 통과 기준',html:oct(`<div class="hqrow"><b>🎯</b><span><b>통과 기준</b> ${G.length?`${gp} / ${G.length} 통과`:'기다리는 중'}<br><small class="kv">제품별 품질 관문 · 클립</small></span><a class="btn" href="#hb">열기</a></div><div class="hqrow"><b>🗂️</b><span><b>끝난 일 전체 · 일 자세히</b><br><small class="kv">옛 PD실</small></span><a class="btn" href="#ops">열기</a></div>`,'lvc')},{id:'health',name:'🩺 배달 기록(팀 건강)',html:healthCard()?`<details class="gt lvhl" data-gk="lvhealth"><summary>🩺 배달 기록 · 팀 건강 <span class="kv">눌러서 보기</span></summary>${healthCard()}</details>`:''}];
   keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">잘 돌아가고 있나 · 모든 일 ${(+C0.run||0)+(+C0.quiet||0)+(+C0.stall||0)+(+C0.blocked||0)+(+C0.done||0)}개</p>${hz()}${layGrid('board',C)}`);
   if(S3.bdJump){const e=$('#lv-'+S3.bdJump);S3.bdJump='';if(e)setTimeout(()=>e.scrollIntoView({block:'start'}),30)}
   lvBar();lvCount('board',t0)}
@@ -2001,26 +2017,31 @@ const V4_FLOW=['기획','원화','3D','HBM 검수','모션 기획','키·애니'
 function v4Room(){const t=V4T.some(x=>x[0]===S3.v4T)?S3.v4T:'ws',cur=lsx('v4stage',-1),[tg,tt]=trophyN(),tr=lsx('trophy',{}),gap='<div style="height:14px"></div>';
   const un=Ask.unseen(S3.st).n,fb=((S3.st.tasks||{}).feedback)||[];
   const body=t==='ws'?[oct(`<h2 class="sec">단계 흐름 <span class="kv">눌러서 지금 단계 표시 · 자동 연결 전(이 기기에만 저장)</span></h2><div class="v4f">${V4_FLOW.map((s,i)=>`<button class="v4s ${i===cur?'cur':i<cur?'past':''}" data-v4s="${i}">${i+1} ${s}${i<cur?' ✅':i===cur?' ◀ 지금':''}</button>`).join('')}</div>`),
-      wrCard(),twEntry(),motionCard(),oct(`<h2 class="sec">매일</h2><div class="nav2"><a class="btn" href="#log/mail">💡 아이디어</a><a class="btn" href="#v4/study">📖 공부</a><button class="btn" data-askto2="anim_teacher">🎓 코칭팀에 묻기</button></div>`)].join(gap)
-   :t==='study'?[codexCard(),oct(`<h2 class="sec">🎓 코칭팀에 묻기 <span class="num">${un||''}</span></h2><div class="nav2"><button class="btn pri2" data-askto2="anim_teacher">질문하기</button><a class="btn" href="#coach">최근 피드백 ${fb.length}개 · 묻기 기록</a></div>`),
+      wrCard(),twEntry(),motionCard(),oct(`<h2 class="sec">매일</h2><div class="nav2"><a class="btn" href="#log/mail">💡 아이디어</a><a class="btn" href="#v4/study">📖 공부</a><button class="btn" data-askto2="anim_teacher">🎓 애니 리드에 묻기</button></div>`)].join(gap)
+   :t==='study'?[codexCard(),oct(`<h2 class="sec">🎓 애니 리드에 묻기 <span class="num">${un||''}</span></h2><div class="nav2"><button class="btn pri2" data-askto2="anim_teacher">질문하기</button><a class="btn" href="#coach">최근 피드백 ${fb.length}개 · 묻기 기록</a></div>`),
       oct(`<h2 class="sec">📚 HB Library</h2><div class="nav2"><a class="btn pri2" href="#lib">자료 열기</a><span class="kv">레퍼런스 클립 검색 · 영상</span></div>`),handoffCard(),codexList(),
       oct(`<h2 class="sec">📓 기록</h2><div class="nav2"><a class="btn" href="#log/space">🧰 작업 공간</a><a class="btn" href="#log">일지 · 주간 · 변경 이력</a></div>`)].filter(Boolean).join(gap)
    :[oct(`<h2 class="sec">🏆 트로피 <span class="num">${tg}/${tt}</span> <em class="draft">초안 · 동현 확인 전</em></h2>${tg?'':'<div class="kv">아직 0개예요 — 첫 화면에는 숫자 한 줄만 나와요</div>'}<details class="gt" data-gk="v4tr" ${tg?'open':''}><summary>트로피 판 ${tt}개 <span class="kv">눌러서 달성 표시(이 기기에만)</span></summary>${TROPHIES.map(([id,nm,L])=>`<div class="tgrp"><b>${nm}</b>${L.map((x,i)=>{const k=id+i;return `<button class="trow ${tr[k]?'got':''}" data-t="${k}"><i></i>${esc(x)}</button>`}).join('')}</div>`).join('')}</details>`),
       oct(`<h2 class="sec">🧊 3D 걸어서 보기</h2><div class="nav2"><a class="btn" href="#world">3D 열기</a><span class="kv">퀘스트·두 작품 칸은 0개일 때 숨겨요</span></div>`)].join(gap);
   keepOpen($('#r-v4'),()=>$('#r-v4').innerHTML=`<h1>새 화면 미리보기</h1><p class="lead">눌러 보고 정해 주세요 — 옛 화면은 그대로 있어요</p>${hz()}
   <div class="nav2 jrd v4t">${V4T.map(([k,n])=>`<a class="btn ${t===k?'on':''}" href="#v4/${k}">${n}</a>`).join('')}<a class="btn" href="#today">🏠 오늘</a><a class="btn" href="#board">📊 진행판</a></div>
-  <div class="kv v4n">🆕 시안이에요. 메뉴 5개 안(🏠 오늘 · 🎨 작업공간 · 📊 진행판 · 📚 공부·자료 · 🏆 트로피·3D) 가운데 아직 안 올린 세 화면 — 마음에 들면 부대표에게 "○○ 올려"라고만 말하면 돼요.</div>${body}`);lvBar()}
+  <div class="kv v4n">🆕 시안이에요. 메뉴 5개 안(🏠 오늘 · 🎨 작업공간 · 📊 진행판 · 📚 공부·자료 · 🏆 트로피·3D) 가운데 아직 안 올린 세 화면 — 마음에 들면 PD에게 "○○ 올려"라고만 말하면 돼요.</div>${body}`);lvBar()}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-v4s]');if(!b)return;const i=+b.dataset.v4s;lsSet('v3_v4stage',lsx('v4stage',-1)===i?-1:i);render()});
+
+// 용어집 v3 안전망(11/27): 데이터로 들어온 옛 팀 이름이 nm3 를 안 거치고 그려진 곳을, 방을 그린 뒤 글자만 훑어 바꾼다(입력 칸·데이터는 건드리지 않음)
+const NM_OLD=/관제센터|부대표|코칭팀|코칭실|개발팀|자료팀|취업팀|비서|자동설비|(?<![가-힣])앱팀/;
+function nmSweep(){for(const r of document.querySelectorAll('.room.on,#nav,#lvbar')){const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(NM_OLD.test(n.nodeValue)&&n.parentNode&&!n.parentNode.closest('textarea,input,script,style'))n.nodeValue=nm3(n.nodeValue)}}}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
 const V3_STATES=['status','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
-const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','부대표실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','코칭실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
+const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','PD실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','애니 리드실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={v4:'#CEA85E',today:'#CEA85E',board:'#CEA85E',lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
 const DEMO=/[?&]demo=1/.test(location.search);
 let worldLoad=null;   // route() 보다 먼저(3D 탭을 바로 열 때)
 // 옛 이름 → 용어집 v2 이름(보여 줄 때만 바꿈, 데이터는 그대로)
-const nm3=t=>String(t??'').replace(/관제센터/g,'부대표').replace(/레퍼런스 공장/g,'자료팀').replace(/애니·리깅 선생님/g,'코칭팀').replace(/취업 준비실/g,'취업팀').replace(/통합관리 앱/g,'앱팀');
+const NM3_J={이:'가',은:'는',을:'를',과:'와',으로:'로'};
+const nm3=t=>String(t??'').replace(/검수 (?:\uBD80\uB300\uD45C|PD)/g,'PM').replace(/\uAD00\uC81C\uC13C\uD130|\uBD80\uB300\uD45C/g,'PD').replace(/\uCF54\uCE6D\uC2E4/g,'애니 리드실').replace(/(?:\uCF54\uCE6D\uD300|애니·리깅 선생님)(으로|이|은|을|과)?(?![가-힣])/g,(m,p)=>'애니 리드'+(NM3_J[p]||'')).replace(/\uCF54\uCE6D\uD300|애니·리깅 선생님/g,'애니 리드').replace(/레퍼런스 공장|\uC790\uB8CC\uD300/g,'에셋팀').replace(/취업 준비실|\uCDE8\uC5C5\uD300/g,'커리어팀').replace(/통합관리 앱|(?<![가-힣])\uC571\uD300/g,'UI/UX팀').replace(/\uAC1C\uBC1C\uD300/g,'TA팀').replace(/\uBE44\uC11C/g,'어시스턴트').replace(/\uC790\uB3D9\uC124\uBE44/g,'인프라');   // 옛 이름(v1·v2) → 용어집 v3. 데이터는 그대로, 보여 줄 때만(옛 글자는 \u 로 적어 이 줄이 스스로 안 바뀌게)
 const S3={st:lsGet('v3_state',{}),room:'lobby',cur:0,answers:lsGet('v3_ans',{})};
 
 // ---- 그림(직접 그린 SVG) ----
@@ -2041,7 +2062,7 @@ function approvals(){const a=S3.st.hq_approvals;if(a&&Array.isArray(a.items)&&a.
    {id:'demo2',prio:'P1',q:'포폴 릴 첫 컷은 어떤 느낌으로 갈까요?',why:'소울라이크 묵직함과 캐주얼 톤 중 비중을 정해야 해요.',options:[{k:'A',label:'묵직한 실사 위주',hint:'소울라이크 지원에 맞아요'},{k:'B',label:'반반',hint:'폭넓게 보여 줘요'}]}]}:{demo:0,items:[],audit:null,rules:[]}}
 const pending=()=>approvals().items.filter(x=>!S3.answers[x.id]&&!x.answered&&!/✅|확정/.test(String(x.status||x.state||'')));   // 11/27: 확정된 것은 숨김
 
-// 로비·대표실·코칭실·일정·HB Library = hq.js
+// 로비·대표실·애니 리드실·일정·HB Library = hq.js
 function auditData(){const a=S3.st.audit_sample||{};const wk=a.week,items=a.items||[],loc=lsGet('v3_aud',{}),mine=loc.week===wk?loc.a||{}:{},srv=a.answers||{};const ans=Object.assign({},srv,mine);return {wk,items,ans}}
 function auditCard(){
   const {wk,items,ans}=auditData();
@@ -2050,14 +2071,14 @@ function auditCard(){
   const src=nx&&/^https?:/.test(nx.source||'')?`<a class="kv" href="${esc(nx.source)}" target="_blank" rel="noopener">원문 링크 열기</a>`:`<span class="kv">${nx?esc(nx.source||''):''}</span>`;
   return oct(`<h2 class="sec">표본 감사 <span class="cin sm">${esc(wk||'')}</span></h2><div class="num" style="font-size:28px">${n}<span class="kv"> / ${items.length}${bad?' · X '+bad:''}</span></div><div class="prog"><i style="width:${Math.round(n/items.length*100)}%"></i></div>
    ${nx?`<div class="rule" style="border:0"><span>◇</span><span><b>${esc(nx.title)}</b><br>${esc(nx.claim)}<br>${src}<br><span class="kv">${esc(nx.where||'')}</span></span></div>
-   <div class="nav2"><button class="btn pri2" data-aud="${esc(nx.id)}" data-c="O">⭕ 맞아요</button><button class="btn" data-aud="${esc(nx.id)}" data-c="X">❌ 이상해요</button></div>`:'<div class="kv">✅ 이번 주 20개 감사 끝! 부대표가 X 항목을 다시 확인해요</div>'}`)}
+   <div class="nav2"><button class="btn pri2" data-aud="${esc(nx.id)}" data-c="O">⭕ 맞아요</button><button class="btn" data-aud="${esc(nx.id)}" data-c="X">❌ 이상해요</button></div>`:'<div class="kv">✅ 이번 주 20개 감사 끝! PD가 X 항목을 다시 확인해요</div>'}`)}
 document.addEventListener('click',e=>{const b=e.target.closest('[data-aud]');if(!b)return;const a=S3.st.audit_sample||{},loc=lsGet('v3_aud',{});const cur=loc.week===a.week?loc:{week:a.week,a:{}};cur.a[b.dataset.aud]=b.dataset.c;lsSet('v3_aud',cur);Q.add('audit_answer',{week:a.week,id:b.dataset.aud,choice:b.dataset.c});Sync3.flush();toast(b.dataset.c==='O'?'⭕ 기록했어요':'❌ 다시 확인 목록에 올렸어요');render()});
 document.addEventListener('click',e=>{
   const p=e.target.closest('[data-pick]');
   if(p){const list=pending(),it=list[S3.cur];if(!it)return;const o=it.options[+p.dataset.pick];
     const a={choice:o.k,label:o.label,q:it.q,t:Date.now()};S3.answers[it.id]=a;lsSet('v3_ans',S3.answers);
     if(!approvals().demo)Q.add('v3_answer',{id:it.id,choice:o.k,label:o.label,q:it.q,state:'💬 동현 답함'});Sync3.flush();
-    toast('💬 답했어요. 부대표가 확정해요');render();return}
+    toast('💬 답했어요. PD가 확정해요');render();return}
   if(e.target.closest('[data-skip]')){S3.cur++;render()}
 });
 
@@ -2113,14 +2134,14 @@ function cxSet(c,patch){const a=cxStore(),k=c.date+'|'+c.day;a[k]=Object.assign(
 function cxTable(t){return `<div class="cxt"><table><thead><tr>${t.cols.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${t.rows.map(r=>`<tr>${r.map((x,i)=>i?`<td class="num">${esc(x)}</td>`:`<th>${esc(x)}</th>`).join('')}</tr>`).join('')}</tbody></table><div class="kv">단위 ${esc(t.unit||'')}</div></div>`}
 function codexCard(){
   const c=cxData();
-  if(!c)return oct(`<h2 class="sec">일일 퀘스트 · 도감 분석 <span class="cin sm">Codex</span></h2><div class="empty">오늘의 캐릭터를 아직 못 받았어요(코칭팀이 올리면 나타나요)</div>`);
+  if(!c)return oct(`<h2 class="sec">일일 퀘스트 · 도감 분석 <span class="cin sm">Codex</span></h2><div class="empty">오늘의 캐릭터를 아직 못 받았어요(애니 리드가 올리면 나타나요)</div>`);
   const r=cxRec(c),first=r.first||'',deb=r.debate||[],max=c.debate_max||2,done=!!r.done;
   const chars=c.chars.map(x=>`<div class="cxc"><b>${esc(x.role)}</b> ${esc(x.name)}<br><small>${esc(x.note||'')}</small></div>`).join('');
   const hasFirst=!!r.firstSaved;
-  const ev=hasFirst?`<div class="cxs"><b>③ 코칭팀 근거</b>${cxTable(c.table)}${(c.evidence||[]).map(e=>`<div class="cxe t${e.tag==='📏'?'f':e.tag==='🔍'?'i':'p'}"><span>${esc(e.tag)}</span> ${esc(e.text)}</div>`).join('')}<div class="kv">📏 사실(토론 대상 아님) · 🔍 해석(반박 가능) · 🎨 취향(동현 결정)</div></div>`:'';
+  const ev=hasFirst?`<div class="cxs"><b>③ 애니 리드 근거</b>${cxTable(c.table)}${(c.evidence||[]).map(e=>`<div class="cxe t${e.tag==='📏'?'f':e.tag==='🔍'?'i':'p'}"><span>${esc(e.tag)}</span> ${esc(e.text)}</div>`).join('')}<div class="kv">📏 사실(토론 대상 아님) · 🔍 해석(반박 가능) · 🎨 취향(동현 결정)</div></div>`:'';
   const debHtml=hasFirst?`<div class="cxs"><b>④ 토론 <small>(반박 ${deb.length}/${max})</small></b>${deb.map(d=>`<div class="cxd">나: ${esc(d)}</div>`).join('')}
-     ${deb.length<max&&!done?`<textarea class="cxin" id="cx-deb" rows="2" placeholder="코칭팀 해석에 반박하거나 질문 (선택)"></textarea><button class="btn" data-cx="deb">반박 보내기</button>`:''}
-     ${deb.length?'<div class="kv">코칭팀 답은 PC 코칭팀 창이 읽고 다음 도감 카드에 붙여요(실시간 아님)</div>':''}</div>`:'';
+     ${deb.length<max&&!done?`<textarea class="cxin" id="cx-deb" rows="2" placeholder="애니 리드 해석에 반박하거나 질문 (선택)"></textarea><button class="btn" data-cx="deb">반박 보내기</button>`:''}
+     ${deb.length?'<div class="kv">애니 리드 답은 PC 애니 리드 창이 읽고 다음 도감 카드에 붙여요(실시간 아님)</div>':''}</div>`:'';
   const vs=['고침','유지','보류'];
   const concl=hasFirst?`<div class="cxs"><b>⑤ 결론 (동현)</b><div class="cxv">${vs.map(v=>`<button class="btn ${r.verdict===v?'on':''}" data-cx="v" data-v="${v}" ${done?'disabled':''}>${v}</button>`).join('')}</div>
      <textarea class="cxin" id="cx-why" rows="2" placeholder="이유 한 줄" ${done?'disabled':''}>${esc(r.why||'')}</textarea>
@@ -2157,7 +2178,7 @@ document.addEventListener('click',e=>{
     giveErgo('cx|'+c.date+'|'+c.day,20);setTimeout(questClear,300);cxRender()}
 });
 // ---- 운영실 ----
-const STAFF=[['부대표','🛰️ 부대표 · 판단·설계·팀 지휘','#CEA85E',['control']],['팀','💻 개발팀','#68B096',['code','code-worker']],['자동설비','⚙️ 자동설비 · 추출기','#68B096',['pipeline','pipeline_stage2','pipeline_stage4']],['팀','📚 자료팀','#68B096',['ref_factory']],['팀','🎓 코칭팀','#7AA4D2',['anim_teacher','anim_teacher_explain','teacher_study']],['팀','💼 취업팀','#B58AC8',['job_prep']],['재무','자산관리실','#D2A27A',['finance','finance-plan3','money-app']],['팀','📱 앱팀','#68B096',['wc_app','app_v3','eagle_app']]];
+const STAFF=[['PD','🛰️ PD · 판단·설계·팀 지휘','#CEA85E',['control']],['팀','💻 TA팀','#68B096',['code','code-worker']],['인프라','⚙️ 인프라 · 추출기','#68B096',['pipeline','pipeline_stage2','pipeline_stage4']],['팀','📚 에셋팀','#68B096',['ref_factory']],['팀','🎓 애니 리드','#7AA4D2',['anim_teacher','anim_teacher_explain','teacher_study']],['팀','💼 커리어팀','#B58AC8',['job_prep']],['재무','자산관리실','#D2A27A',['finance','finance-plan3','money-app']],['팀','📱 UI/UX팀','#68B096',['wc_app','app_v3','eagle_app']]];
 function mask(c){return `<svg class="npc" viewBox="0 0 60 70" aria-hidden="true"><defs><clipPath id="cp"><rect width="60" height="70"/></clipPath></defs><g fill="#161618" stroke="${c}" stroke-width="1.3" stroke-linejoin="round"><path d="M6 70c0-16 10-24 24-24s24 8 24 24z"/><path d="M30 46v-6"/><path d="M18 22c0-9 5-15 12-15s12 6 12 15c0 9-5 17-12 17s-12-8-12-17z"/></g><g fill="${c}" opacity=".9"><path d="M21 21q4-3 7 0q-3 3-7 0zM32 21q4-3 7 0q-3 3-7 0z"/><path d="M30 24l-2 7h4z" opacity=".5"/></g><path d="M30 7v-4M26 8l-3-3M34 8l3-3" stroke="${c}" stroke-width="1" fill="none"/></svg>`}
 function ops(){
   const J=jobs();
@@ -2166,7 +2187,7 @@ function ops(){
     return {dept,name,c,ids,js,state,now:now.headline||now.now||'',upd:now.started||''}});
   const on=rows.filter(r=>r.state==='가동').length,off=rows.filter(r=>r.state==='정지').length;
   const stc={가동:'var(--green)',정지:'#E08A7E',대기:'var(--gold)','기록 없음':'var(--dim)'};
-  keepOpen($('#r-ops'),()=>$('#r-ops').innerHTML=`${h1('ops')}<p class="lead">막힌 일·저장 관리자·자동설비</p>${hz()}<div class="nav2" style="margin:0 0 16px"><a class="btn" href="#hb">📊 진행판 열기</a></div>
+  keepOpen($('#r-ops'),()=>$('#r-ops').innerHTML=`${h1('ops')}<p class="lead">막힌 일·저장 관리자·인프라</p>${hz()}<div class="nav2" style="margin:0 0 16px"><a class="btn" href="#hb">📊 진행판 열기</a></div>
   <div class="grid g2"><div class="stk">${blockCard()}${jobsCard()}${oct(`<h2 class="sec">팀 구성 <span class="cin sm">Team</span> <span class="kv" style="float:right">가동 ${on}팀 · 정지 ${off}팀</span></h2>
     ${rows.map(r=>`<button class="staff ${S3.staff===r.name?'open':''}" data-staff="${esc(r.name)}" style="--sc:${r.c}"><div class="stp">${mask(r.c)}</div><div class="stt"><span class="kv">${r.dept}</span><b>${r.name}</b><small>${esc(r.now)}</small></div><span class="ss" style="color:${stc[r.state]}">◆ ${r.state}</span></button>
       ${S3.staff===r.name?`<div class="sdet">${r.js.length?r.js.slice(0,3).map(j=>`<div class="rule"><span>◇</span><span>${esc(j.headline||j.name)}<br><span class="kv">${esc(j.status)}${typeof j.pct==='number'?' · '+Math.round(j.pct)+'%':''} · ${esc(j.now||'')}</span></span></div>`).join(''):'<div class="empty">연결된 작업 기록이 없어요</div>'}<div class="kv">최근 편지 보기는 연결 전이에요 <em class="draft">초안</em></div></div>`:''}`).join('')}`)}
@@ -2195,7 +2216,7 @@ function ttCard(){
 // ---- 오늘 크로키 카드: 키포즈 프레임 번호 · 타이머 15분 · 맥스에서 열기 · O/X (사진 업로드·웹 3D는 안 함) ----
 function croquisCard(){
   const c=S3.st.croquis||{},h=`<h2 class="sec">오늘 크로키 <span class="cin sm">Croquis</span></h2>`;
-  if(!c.ready)return oct(h+`<div class="empty">오늘 키포즈가 아직 안 왔어요 (코칭팀이 정하면 나타나요)</div>`);
+  if(!c.ready)return oct(h+`<div class="empty">오늘 키포즈가 아직 안 왔어요 (애니 리드가 정하면 나타나요)</div>`);
   const left=c.timer_start?Math.max(0,(c.timer_min||15)*60-(Math.floor(Date.now()/1000)-c.timer_start)):null,mm=n=>String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');
   const r=c.result;
   return oct(h+`<div class="kv">${esc(c.char||'')} · ${esc(c.clip||'')}</div>
@@ -2235,12 +2256,12 @@ document.addEventListener('click',e=>{
   if(e.target.id==='o-clock'){if(quitInfo().again&&!quitArm(out))return;quitSend();out();return}
 });
 
-// ---- 퇴근 일지·주간 (11/25): state journal(재료 숫자만). 기록이 없으면 0이 아니라 '기록 없음'. 글은 부대표·코칭팀이 쓴 것만 보여 준다 ----
+// ---- 퇴근 일지·주간 (11/25): state journal(재료 숫자만). 기록이 없으면 0이 아니라 '기록 없음'. 글은 PD·애니 리드가 쓴 것만 보여 준다 ----
 const JR_NM={worklog:'손 작업 기록',timetable:'출근·퇴근',plan:'계획',unlock:'잠금',max_compare:'맥스 비교',kp_feedback:'키포즈 피드백',croquis:'크로키'};
 const jrH=m=>m==null?'기록 없음':(m>=60?`${Math.floor(m/60)}시간 ${m%60}분`:`${m}분`);
 const jrT=s=>s?esc(String(s).slice(5,16).replace('T',' ')):'–';
 function jrTile(ic,nm,val,sub,none){return `<div class="jrt ${none?'no':''}"><span>${ic}</span><b class="num">${val}</b><small>${nm}${sub?'<br>'+sub:''}</small></div>`}
-function jrText(x){const t=x.text;if(!t)return `<div class="kv">✍️ 경고·내일 할 것·편지는 아직 안 왔어요 (부대표·코칭팀이 쓰면 여기 나와요)</div>`;
+function jrText(x){const t=x.text;if(!t)return `<div class="kv">✍️ 경고·내일 할 것·편지는 아직 안 왔어요 (PD·애니 리드가 쓰면 여기 나와요)</div>`;
   return `${(t.good||[]).map(w=>`<div class="recg">👍 ${esc(w)}</div>`).join('')}${(t.bad||[]).map(w=>`<div class="jrw">🔧 ${esc(w)}</div>`).join('')}${(t.warn||[]).map(w=>`<div class="jrw">⚠️ ${esc(w)}</div>`).join('')}${(t.next||[]).map((w,i)=>`<div class="rule"><span>${i+1}</span><span>${esc(w)}</span></div>`).join('')}${t.letter?`<div class="jrl">💌 ${esc(t.letter).replace(/\n/g,'<br>')}</div>`:''}${(t.links||[]).map(l=>`<a class="btn" href="${esc(l.u)}" target="_blank" rel="noopener">📄 ${esc(l.t)}</a>`).join('')}`}
 function jrDay(d){
   const w=d.wl,p=d.past,tot=w?Math.max(1,(w.hand_min||0)+(w.prep_min||0)+(w.off_min||0)+(w.away_min||0)):1;
@@ -2321,7 +2342,7 @@ function soon(id,name,color,k){$('#r-'+id).innerHTML=`<h1>${name}</h1><p class="
 // ---- 틀 ----
 
 // ---- Honey Badger HQ 현황판 (11/25): hb\state\gates.json(개수는 파일 값 그대로) = 제품 5묶음 + E2E ----
-const HBT={control:'부대표',code:'개발팀',ref_factory:'자료팀',anim_teacher:'코칭팀',wc_app:'앱팀',job_prep:'취업팀'};
+const HBT={control:'PD',code:'TA팀',ref_factory:'에셋팀',anim_teacher:'애니 리드',wc_app:'UI/UX팀',job_prep:'커리어팀'};
 const HBG=[['library','HB Library(자료실)'],['model','HB Model(모델)'],['animation','HB Animation(애니)'],['render','HB Render(렌더)'],['hq','HB HQ(본부 앱)'],['e2e','E2E 전체'],['studio','두 작품(HB Studio 작품)']];
 function gState(g){return g.pass!==true&&g.pass!==false&&/아직 안 잼/.test(String(g.value??'').slice(0,60))?['⚪','새 기준 · 아직','no']:g.pass===true?['✅','통과','ok']:(g.value!=null&&g.value!==''?['🟡','재는 중','mid']:['⚪','아직','no'])}
 
@@ -2383,7 +2404,7 @@ function render(){
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
   if(S3.room!=='world'&&window.World&&World.on)World.stop();if(S3.room!=='lib')libPause();document.body.classList.toggle('libon',S3.room==='lib');
   ({today:today2,board:board2,v4:v4Room,lobby,director,studio,ops:()=>{ops();jobJump()},out,title,world,review,log:recRoom,hb:hbBoard,two:twoRoom,lib:libRoom,coach,plan})[S3.room]?.();
-  nav();lvBar();
+  nav();lvBar();nmSweep();
 }
 function route(){
   let h=(location.hash||'').slice(1);
@@ -2392,7 +2413,7 @@ function route(){
   S3.rv='';if(/^review(\/|$)/.test(h)){S3.rv=decodeURIComponent(h.slice(7));h='review'}
   if(/^log(\/|$)/.test(h)){S3.recT=h.slice(4)||S3.recT||'space';h='log'}
   if(/^ops\//.test(h)){S3.jobOpen=h.slice(4);h='ops'}
-  h=({preview:'v4',work:'v4/ws',study:'v4/study',fun:'v4/trophy'})[h]||h;   // 부대표 설계 v1 주소(메뉴로 올리기 전까지 미리보기로)
+  h=({preview:'v4',work:'v4/ws',study:'v4/study',fun:'v4/trophy'})[h]||h;   // PD 설계 v1 주소(메뉴로 올리기 전까지 미리보기로)
   if(/^v4(\/|$)/.test(h)){S3.v4T=h.slice(3)||S3.v4T||'ws';h='v4'}
   if(/^board\//.test(h)){S3.bdJump=h.slice(6).replace(/[^a-z]/g,'');h='board'}
   if(/^ws\//.test(h))h='studio';   // 🎨 작업공간 고정 주소(#ws/<창>) — 창은 room.js 가 띄움
@@ -2498,7 +2519,7 @@ document.addEventListener('click',e=>{
   else if(id==='ep-s'){
     const list=memoList();if(!list.length)return;const h=memoHash(list);
     Q.add('ui_request',{build:BUILD,device:uiDev(),viewport:innerWidth+'x'+innerHeight,ui:uiPrefs()[uiDev()],memos:list,h});
-    lsSet(SENT_K,{h,t:Date.now()});Sync3.flush();toast('📨 부대표로 보냈어요');editPanel();
+    lsSet(SENT_K,{h,t:Date.now()});Sync3.flush();toast('📨 PD로 보냈어요');editPanel();
   }
 });
 (function(){ // 로고 길게 누르기
@@ -2509,6 +2530,64 @@ document.addEventListener('click',e=>{
 window.addEventListener('hashchange',()=>{if(EDIT.on)editPanel()});
 window.addEventListener('resize',()=>{uiApply();if(EDIT.on)editPanel()});
 uiApply();
+
+// ---- 옆 창(동현 06:55 ②): 드라이브·문서·작업공간·보고서는 새 탭 대신 HQ 안 옆 창으로 ----
+// PC(1000px 이상) = 오른쪽 절반, 폰 = 아래에서 올라오는 창. ✕ 로 닫고, 다른 탭으로 옮기면 자동으로 닫힌다.
+// HQ 안에 못 넣는 곳(제미나이 앱·Tripo)만 새 탭 그대로 — 버튼 글자 끝에 ↗ 를 붙인다.
+const SIDE_EXT=/(^|\.)gemini\.google\.com$|(^|\.)tripo3d\.ai$|(^|\.)tripo\.ai$|^accounts\.google\.com$/;
+function sideUrl(u){let x;try{x=new URL(u,location.href)}catch(e){return null}
+  if(x.protocol!=='https:'&&x.protocol!=='http:')return null;
+  const m=x.pathname.match(/^\/(document|spreadsheets|presentation)\/d\/([^/]+)/);
+  if(x.hostname==='docs.google.com'&&m)return 'https://docs.google.com/'+m[1]+'/d/'+m[2]+'/preview';
+  const f=x.pathname.match(/^\/file\/d\/([^/]+)/);if(x.hostname==='drive.google.com'&&f)return 'https://drive.google.com/file/d/'+f[1]+'/preview';
+  const d=x.pathname.match(/\/folders\/([^/?]+)/);if(x.hostname==='drive.google.com'&&d)return 'https://drive.google.com/embeddedfolderview?id='+d[1]+'#grid';
+  return x.href}
+const sideExt=u=>{try{return SIDE_EXT.test(new URL(u,location.href).hostname)}catch(e){return false}};
+function sideEl(){let el=$('#sidev');if(el)return el;el=document.createElement('div');el.id='sidev';el.hidden=true;
+  el.innerHTML='<div class="sd-h"><b id="sidev-t"></b><a id="sidev-o" class="btn" target="_blank" rel="noopener" title="안 보이면 새 탭에서 열어요 ↗">↗</a><button id="sidev-x" class="btn" title="옆 창 닫기" aria-label="닫기">✕</button></div><iframe id="sidev-f" referrerpolicy="no-referrer-when-downgrade" allow="autoplay; fullscreen"></iframe>';
+  document.body.appendChild(el);return el}
+function sideOpen(u,t){const s=sideUrl(u);if(!s)return false;const el=sideEl();$('#sidev-t').textContent=t||'';$('#sidev-o').href=u;$('#sidev-f').src=s;el.hidden=false;document.body.classList.add('side-on');return true}
+function sideClose(){const el=$('#sidev');if(!el||el.hidden)return;el.hidden=true;$('#sidev-f').src='about:blank';document.body.classList.remove('side-on')}
+document.addEventListener('click',e=>{
+  if(e.target.closest('#sidev-x')){sideClose();return}
+  const a=e.target.closest('a[href]');if(!a||a.id==='sidev-o'||e.ctrlKey||e.metaKey||e.shiftKey)return;
+  const h=a.getAttribute('href')||'';if(h.startsWith('#')||h.startsWith('javascript:'))return;
+  let x;try{x=new URL(h,location.href)}catch(err){return}
+  if(x.origin===location.origin&&x.pathname===location.pathname)return;   // HQ 안 주소
+  if(sideExt(h))return;                                                    // 제미나이·Tripo = 새 탭(↗)
+  if(a.target!=='_blank'&&!a.dataset.side&&x.origin===location.origin)return;
+  e.preventDefault();sideOpen(h,(a.textContent||'').replace(/\s+/g,' ').trim().slice(0,40));
+},true);
+addEventListener('hashchange',sideClose);
+addEventListener('keydown',e=>{if(e.key==='Escape')sideClose()});
+// 새 탭 링크 정리: 옆 창으로 여는 것은 target 을 떼고(data-side), 새 탭으로 남는 버튼(제미나이·Tripo)은 글자 끝에 ↗ — 화면을 다시 그려도 붙게
+(function(){const mark=()=>document.querySelectorAll('a[href][target=_blank]:not([data-ext])').forEach(a=>{if(!sideExt(a.href)){if(sideUrl(a.href)){a.removeAttribute('target');a.dataset.side='1'}return}{a.dataset.ext='1';if(!/↗/.test(a.textContent))a.insertAdjacentText('beforeend',' ↗');if(!a.title)a.title=(a.textContent||'').trim()+' — HQ 안에 못 넣는 곳이라 새 탭에서 열어요'}});
+  let q=false;new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(()=>{q=false;mark()})}}).observe(document.documentElement,{childList:true,subtree:true});mark()})();
+
+// ---- 버튼 설명(동현 06:55 ④): 마우스를 올리면 무엇을 하는지 한 줄. 손으로 적은 title 이 있으면 그대로 두고, 없는 것만 채운다 ----
+// 채우는 순서: aria-label → 목적지(탭 이동·HQ 안 문서·새 탭 ↗) + 버튼 글자. 화면을 다시 그려도 MutationObserver 가 새 버튼에 바로 붙인다.
+const TIP_ROOM={today:'🏠 오늘',board:'📊 진행판',studio:'🎨 작업실',lib:'📚 HB Library',director:'대표실',coach:'애니 리드실',rec:'기록실',sched:'일정',preview:'새 화면 미리보기',v4:'새 화면 미리보기',ws:'🎨 HB 작업공간'};
+const TIP_DATA=[['data-gdv','HQ 안에서 문서를 열어요'],['data-gdall','어시스턴트 결과를 모두 펼치거나 접어요'],['data-rpt','보고서를 HQ 안에서 열어요'],['data-wshelp','지금 화면을 어시스턴트와 같이 봐요'],['data-gk','눌러서 펼치거나 접어요']];
+function tipText(el){
+  const lab=(el.getAttribute('aria-label')||'').trim(),txt=(el.textContent||'').replace(/\s+/g,' ').trim().slice(0,40);
+  const nm=lab||txt||'버튼';
+  if(el.disabled)return nm+' — 지금은 누를 수 없어요';
+  const h=el.tagName==='A'?(el.getAttribute('href')||''):'';
+  if(h.startsWith('#')){const k=h.slice(1).split(/[/?]/)[0];return nm+' — '+(TIP_ROOM[k]||'다른 화면')+'(으)로 이동해요'}
+  if(h){return nm+(typeof sideExt==='function'&&!sideExt(h)?' — HQ 안 옆 창에서 열어요':' — 새 탭에서 열어요 ↗')}
+  for(const [a,d] of TIP_DATA)if(el.hasAttribute(a))return nm+' — '+d;
+  if(el.tagName==='SUMMARY')return nm+' — 눌러서 펼치거나 접어요';
+  return lab&&txt&&lab!==txt?lab+' — '+txt:nm==='✕'?'닫기':nm;
+}
+function tipFill(root){(root||document).querySelectorAll('button:not([title]),a[href]:not([title]),summary:not([title]),[role=button]:not([title]),[data-tipa]').forEach(el=>{const t=tipText(el);if(el.title!==t)el.title=t;el.dataset.tipa='1'})}   // data-tipa = 자동으로 붙인 것(글자가 바뀌면 다시 씀)
+(function(){let q=false;const run=()=>{q=false;tipFill()};
+  new MutationObserver(()=>{if(!q){q=true;requestAnimationFrame(run)}}).observe(document.documentElement,{childList:true,subtree:true});run()})();
+// ---- 보이는 글자만 새 팀 이름으로(용어집 v3): 데이터·파일 이름·속성은 그대로 두고 화면 글자(text node)만 nm3 로 바꾼다 ----
+(function(){const SKIP=/^(SCRIPT|STYLE|TEXTAREA|INPUT|CODE|PRE)$/,OLD=/\uBD80\uB300\uD45C|\uCF54\uCE6D|\uBE44\uC11C|\uAC1C\uBC1C\uD300|\uC790\uB8CC\uD300|\uCDE8\uC5C5\uD300|\uC790\uB3D9\uC124\uBE44|\uAD00\uC81C\uC13C\uD130|(?<![가-힣])\uC571\uD300/;
+  const fix=n=>{if(n.nodeType===3){const p=n.parentNode;if(!p||SKIP.test(p.nodeName)||p.isContentEditable)return;const v=n.nodeValue;if(OLD.test(v)){const t=nm3(v);if(t!==v)n.nodeValue=t}return}
+    if(n.nodeType!==1||SKIP.test(n.nodeName))return;const w=document.createTreeWalker(n,NodeFilter.SHOW_TEXT);let x;while((x=w.nextNode()))fix(x)};
+  if(typeof nm3!=='function')return;
+  new MutationObserver(rs=>{for(const r of rs){if(r.type==='characterData')fix(r.target);else r.addedNodes.forEach(fix)}}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});fix(document.body)})();
 </script>
 </body>
 </html>
