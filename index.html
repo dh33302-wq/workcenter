@@ -627,7 +627,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=42;
+const BUILD=43;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2167,16 +2167,19 @@ document.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-exdr
 // 한눈에: 제품 7줄(막대 n/N + 🟢🟡🔴 + 지금 손대는 일 한 줄) + 전체 n/N · ❌ 는 맨 위 빨강 → 줄을 누르면 통과 기준 목록(✅❌⏳·값·담당·측정 시각)·다음 할 것
 const HD_IC={ok:'✅',fail:'❌',wait:'⏳'};
 const hdT=s=>{s=String(s||'');const m=s.match(/(\d{4})-(\d\d)-(\d\d)[T ](\d\d):(\d\d)/);return m?`${+m[2]}/${+m[3]} ${m[4]}:${m[5]}`:esc(s.slice(0,16))};
-function hdWork(w){if(!w||!w.task)return `<div class="kv hdw" data-hdw="0">지금 손대는 일 없음</div>`;
-  const st=w.step!=null&&w.steps?` · 단계 ${+w.step}/${+w.steps}`:'',eta=w.eta!=null&&+w.eta>0?` · 약 ${esc(jrH(Math.round(+w.eta)))} 남음`:'';
-  return `<div class="kv hdw" data-hdw="1">🔨 ${w.team?`<b>${esc(w.team)}</b> · `:''}${esc(w.task)}${st}${eta}</div>`}
+const hdW1=w=>{const st=w.step!=null&&w.steps?` · 단계 ${+w.step}/${+w.steps}`:'',eta=w.eta!=null&&+w.eta>0?` · 약 ${esc(jrH(Math.round(+w.eta)))} 남음`:'';
+  return `${w.kind==='letter'?'📨':'🔨'} ${w.team?`<b>${esc(w.team)}</b> · `:''}${esc(w.task)}${w.kind==='letter'?' <small class="kv">(편지)</small>':st+eta}`};
+function hdWork(w){if(!w||!w.task)return `<div class="kv hdw" data-hdw="0">지금 손대는 일 없음</div>`;const n=(w.more||[]).length;
+  return `<div class="kv hdw" data-hdw="1">${hdW1(w)}${n?` <small class="kv">· 그 밖 ${n}</small>`:''}</div>`}
+function hdWorkList(w){if(!w||!w.task)return '';const L=[w].concat(w.more||[]);
+  return `<div class="kv hdql">지금 일 ${L.length}</div>${L.map((a,i)=>`<div class="kv hdq hdwl" data-hdwk="${esc(a.kind||'card')}">${hdW1(a)}${a.now?`<br><small class="kv">${esc(a.now)}</small>`:''}${a.at?` <small class="kv">· ${hdT(a.at)}</small>`:''}</div>`).join('')}`}
 function hdGate(g){return `<div class="hdg hd-${g.st}" data-hdg="${esc(g.id)}"><span class="hdi">${HD_IC[g.st]||'⏳'}</span><b class="num">${esc(g.id)}</b><span class="hdn">${esc(g.name)}</span>
   <span class="kv hdm">${g.value!=null&&g.value!==''?`값 <b>${esc(g.value)}</b>`:'아직 안 잼'}${g.limit?` · 기준 ${esc(g.limit)}`:''}${g.owner?` · ${esc(g.owner)}`:''}${g.at?` · ${hdT(g.at)}`:''}</span></div>`}
 function hdProd(p){const pc=p.N?Math.round(p.ok/p.N*100):0,cls=p.fail?'bad':p.N&&p.ok===p.N?'ok':'mid';
   const nx=(p.next||[]).length?`<div class="kv hdql">다음 할 것</div>${p.next.map((n,i)=>`<div class="kv hdq">${i+1}. ${esc(n)}</div>`).join('')}`:'';
   const ex=[p.ver?`버전 ${esc(p.ver)}`:'',p.bench?`벤치 ${esc(p.bench)}`:'',p.code_at?`코드 바뀐 때 ${hdT(p.code_at)}`:''].filter(Boolean).join(' · ');
   return `<details class="hdp hp-${cls}" id="hd-p-${esc(p.k)}" data-gk="hd:${esc(p.k)}"><summary><div class="hdr"><span class="hdl">${p.light||'🟡'}</span><b class="hdpn">${esc(p.name)}</b><span class="tkpb hdb"><i style="width:${p.ok?Math.max(2,pc):0}%"></i></span><b class="num hdnn">${+p.ok}/${+p.N}</b></div>${hdWork(p.work)}</summary>
-    <div class="hdgl">${(p.gates||[]).map(hdGate).join('')||'<div class="empty">통과 기준이 아직 없어요</div>'}</div>${nx}${ex?`<div class="kv hdx">${ex}</div>`:''}</details>`}
+    <div class="hdgl">${(p.gates||[]).map(hdGate).join('')||'<div class="empty">통과 기준이 아직 없어요</div>'}</div>${hdWorkList(p.work)}${nx}${ex?`<div class="kv hdx">${ex}</div>`:''}</details>`}
 function hbDevBlock(now){const H=S3.st.hb_dev;if(!H||!(H.products||[]).length)return '';
   const P=H.products,F=[].concat(...P.map(p=>(p.gates||[]).filter(g=>g.st==='fail').map(g=>Object.assign({pn:p.name},g))));
   const at=lvT(H.src==='feed'&&H.feed_updated?H.feed_updated:H.gates_updated);
@@ -2184,7 +2187,7 @@ function hbDevBlock(now){const H=S3.st.hb_dev;if(!H||!(H.products||[]).length)re
   const q=(H.next||[]).length?`<details class="hdnx" data-gk="hd:next"><summary class="kv">다음 할 것 대기 ${H.next.length}</summary>${H.next.map((n,i)=>`<div class="kv hdq">${i+1}. ${esc(n)}</div>`).join('')}</details>`:'';
   return `<div class="tc hdc" id="hd-card"><div class="tch"><span>🦡 <b>HB 개발 현황판</b> · 전체 <b class="num" id="hd-total">${+H.ok}/${+H.N}</b> 통과${H.fail?` · <b class="hdfc">❌ ${+H.fail}</b>`:''}</span>${lvF(at,now,!at)}</div>
     ${top}<div class="hdps" id="hd-ps">${P.map(hdProd).join('')}</div>${q}
-    <div class="kv tcm">${H.src==='feed'?'TA팀 현황판 자료':'통과 기준 파일에서 바로(TA팀 현황판 자료 기다리는 중)'} · 버전 ${esc(H.ver||'기준선 대기')} · 줄을 누르면 통과 기준</div></div>`}
+    <div class="kv tcm">${H.src==='feed'?'TA팀 현황판 자료':'통과 기준 파일에서 바로(TA팀 현황판 자료 기다리는 중)'} · 버전 ${esc(H.ver||'기준선 대기')}${H.bench?` · <span id="hd-bench">벤치 ${esc(H.bench)}</span>`:''} · 줄을 누르면 통과 기준</div></div>`}
 
 // ---- HB HQ 실시간 두 탭 (PD 11/27 04:47 p1_hq_live): 🏠 오늘 · 📊 진행판 ----
 // 숫자(일·팀·막힘·어시스턴트·Claude)는 status.json(S3.st.status, 모양 hq_status_v1 — TA팀 hub\tools\status_feed.py)에서만 읽는다.
