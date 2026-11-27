@@ -595,7 +595,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=40;
+const BUILD=41;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2020,7 +2020,7 @@ document.addEventListener('click',e=>{let b;
 window.addEventListener('resize',()=>{clearTimeout(layGrid.R);layGrid.R=setTimeout(()=>{if(layGrid.D!==layDev()){layGrid.D=layDev();render()}},200)});layGrid.D=layDev();
 
 // ---- 📊 진행판 '💬 AI끼리 대화' 카드(동현 11/27 07:03, control talk_view) ----
-// 원본 = TA팀 hub\state\talk.json → 지킴이 hq_talk.py 가 줄여서 state talk(목록·숫자, 30초마다) + talk_d1·talk_d2(편지, 줄기를 누를 때만 받음).
+// 원본 = TA팀 hub\state\talk.json → 지킴이 hq_talk.py 가 줄여서 state talk(목록·숫자, 30초마다) + talk_da·talk_db(편지, 줄기를 누를 때만 받음).
 // 카드: 맨 위 오늘 숫자 + 짝별 횟수 막대 / 줄기 목록(제목·팀 아이콘·왕복·진행/끝·○분 전) / 누르면 옆 창에 채팅처럼.
 // 팀 카드의 '💬 이 팀 대화' 버튼 = 그 팀 줄기만 거른 보기(S3.talkF).
 const TK_IC={PD:'🎬',PM:'🧭','TA팀':'🛠️','에셋팀':'📦','애니 리드':'🎓','UI/UX팀':'🖥️','커리어팀':'💼','어시스턴트':'🎃','대표':'👑'};
