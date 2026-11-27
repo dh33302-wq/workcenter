@@ -649,6 +649,8 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .hdage{display:inline-block;margin-right:6px;font-variant-numeric:tabular-nums}.hdage.h6{color:#e88}.hdage.h24{color:#fff;background:#c33;border-radius:4px;padding:0 5px}
 .hdlate{color:#e88;font-weight:600}.hdfr .hdnext{color:inherit}
 #pm-patrol .pmr{padding:2px 0;font-size:14px}#pm-patrol .pmr:first-of-type{font-weight:700}
+/* 편집 모드 메뉴 탭 순서·숨기기·이름 (11/28) */
+#ep-navl{display:grid;gap:6px;margin:6px 0}.ep-nav{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.ep-nav .ep-nm{flex:1 1 8em;min-width:0;min-height:44px;font-size:15px;padding:4px 8px;border-radius:8px;border:1px solid rgba(127,127,127,.4);background:transparent;color:inherit}.ep-nav .btn{min-width:44px;min-height:44px}.ep-nav.hid .ep-nm{opacity:.5;text-decoration:line-through}
 </style>
 </head>
 <body>
@@ -703,7 +705,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=52;
+const BUILD=53;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2119,7 +2121,7 @@ function layRows(html,n,o,nm){if(!n&&o!=='old'&&!nm)return html;const t=document
 function layGet(room){return Object.assign(layBlank(),JSON.parse(JSON.stringify(((layAll()[layDev()]||{})[room])||{})))}
 function laySave(A){A.t=Date.now();lsSet(LAY_K,A);clearTimeout(laySave.T);laySave.T=setTimeout(()=>{Q.add('layout_save',{layout:layAll()});Sync3.flush()},1500)}
 function laySet(room,L){const A=layAll(),d=layDev();A[d]=A[d]||{};const U=lsGet(LAY_U,[]);U.push({d,room,L:A[d][room]||null});lsSet(LAY_U,U.slice(-10));A[d][room]=L;laySave(A)}
-function layUndo(){const U=lsGet(LAY_U,[]),u=U.pop();if(!u){toast('되돌릴 것이 없어요');return}const A=layAll();A[u.d]=A[u.d]||{};if(u.L)A[u.d][u.room]=u.L;else delete A[u.d][u.room];lsSet(LAY_U,U);laySave(A);toast('↩ 한 판 되돌렸어요');render()}
+function layUndo(){const U=lsGet(LAY_U,[]),u=U.pop();if(!u){toast('되돌릴 것이 없어요');return}const A=layAll();A[u.d]=A[u.d]||{};if(u.L)A[u.d][u.room]=u.L;else delete A[u.d][u.room];lsSet(LAY_U,U);laySave(A);toast('↩ 한 판 되돌렸어요');render();if(u.room==='_nav'){nav();if(typeof editPanel==='function')editPanel()}}
 function layReset(room){laySet(room,layBlank());toast('기본 배치로 돌렸어요 · ↩ 로 되돌릴 수 있어요');render()}
 // PC 에 저장된 배치가 더 새것이면 받아 온다(다른 기기에서 바꾼 것)
 function layPull(){const r=S3.st.layout;if(r&&r.layout&&+r.layout.t>(+layAll().t||0)&&!window.LAYDRAG){lsSet(LAY_K,r.layout);return true}return false}
@@ -2174,6 +2176,20 @@ document.addEventListener('click',e=>{let b;
   const end=e=>{if(!D||e.pointerId!==D.id)return;const {c,g,k}=D;window.__layrs={k,moves:D.n,max_ms:Math.round(D.t*10)/10};const L=layFromDom(g),i=c.dataset.card;if(k==='w')L.w[i]=+D.w;else L.h[i]=D.h;D=null;window.LAYDRAG=0;c.classList.remove('rsz');laySet(g.dataset.room,L);render()};
   document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end)})();
 window.addEventListener('resize',()=>{clearTimeout(layGrid.R);layGrid.R=setTimeout(()=>{if(layGrid.D!==layDev()){layGrid.D=layDev();render()}},200)});layGrid.D=layDev();
+// ---- 2차(11/28, 공정표 UI/UX 4번): 🧭 메뉴 탭 순서·숨기기·이름(설계 7-2 '탭 자체') — 카드 배치와 같은 저장(기기 모양별 · ↩ 되돌리기 · PC 맞춤), 방 이름 '_nav'
+// 오늘 탭은 숨길 수 없음(돌아올 곳). 숨긴 탭도 주소(#study 등)로는 열림.
+function navList(all){const L=layGet('_nav'),{order}=layOrder(L,NAV5.map(x=>x[0]));
+  return order.map(id=>{const x=NAV5.find(n=>n[0]===id);return [x[0],(L.nm[id]||'').trim()||x[1],x[2],x[3],!!L.hide[id]&&id!=='today']}).filter(x=>all||!x[4])}
+function navEdHtml(){const L=navList(true);
+  return L.map((x,i)=>`<div class="ep-nav${x[4]?' hid':''}" data-navid="${x[0]}"><button class="btn" data-navmv="-1" title="이 탭을 메뉴에서 한 칸 앞으로" ${i?'':'disabled'}>↑</button><button class="btn" data-navmv="1" title="이 탭을 메뉴에서 한 칸 뒤로" ${i<L.length-1?'':'disabled'}>↓</button>`+
+    `<input class="ep-nm" data-navnm="${x[0]}" value="${esc(x[1])}" maxlength="10" aria-label="탭 이름" title="메뉴에 보일 이름(비우면 처음 이름)">`+
+    `<button class="btn" data-navhide title="${x[0]==='today'?'오늘 탭은 숨길 수 없어요':x[4]?'메뉴에 다시 보이기':'메뉴에서 숨기기(주소로는 열려요)'}" ${x[0]==='today'?'disabled':''}>${x[4]?'🚫 숨김':'👁 보임'}</button></div>`).join('')}
+function navEd(fn){const L=layGet('_nav'),b0=JSON.stringify(L);L.order=navList(true).map(x=>x[0]);const b1=JSON.stringify(L);fn(L);if(JSON.stringify(L)===b1)return;laySet('_nav',L);nav();if(typeof editPanel==='function'){editPanel();const d=document.querySelector('[data-gk="epnav"]');if(d)d.open=true}}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-navmv],[data-navhide]');if(!b)return;const id=b.closest('[data-navid]').dataset.navid;
+  if(b.dataset.navmv)navEd(L=>{const i=L.order.indexOf(id),j=i+(+b.dataset.navmv);if(j<0||j>=L.order.length)return;L.order.splice(i,1);L.order.splice(j,0,id)});
+  else navEd(L=>{if(id==='today')return;L.hide[id]=!L.hide[id];if(!L.hide[id])delete L.hide[id];toast(L.hide[id]?'메뉴에서 숨겼어요 · ↩ 로 되돌릴 수 있어요':'메뉴에 다시 보여요')})});
+document.addEventListener('change',e=>{const t=e.target;if(!t.dataset||!t.dataset.navnm)return;const id=t.dataset.navnm,v=t.value.trim().slice(0,10),d=(NAV5.find(n=>n[0]===id)||[])[1];
+  navEd(L=>{if(!v||v===d)delete L.nm[id];else L.nm[id]=v})});
 
 // ---- 📊 진행판 '💬 AI끼리 대화' 카드(동현 11/27 07:03, control talk_view) ----
 // 원본 = TA팀 hub\state\talk.json → 지킴이 hq_talk.py 가 줄여서 state talk(목록·숫자, 30초마다) + talk_da·talk_db(편지, 줄기를 누를 때만 받음).
@@ -3088,7 +3104,7 @@ function hbBoard(){
 function nav(){const el=$('#nav');el.style.display=S3.room==='title'?'none':'';document.body.classList.toggle('notab',S3.room==='title');const cur=navCur(),
   tn=todoN(),bn=(()=>{try{return Live.raw()?Live.jobs('blocked').length:0}catch(e){return 0}})(),
   item=([id,nm,k,href])=>`<a href="${href}" style="--c:${COLOR[id]||'#CEA85E'}" class="${cur===id?'on':''}" ${cur===id?'aria-current="page"':''}>${icon(k)}<span>${nm}</span>${id==='today'&&tn?`<i class="bdg" aria-label="결재·할 일 ${tn}">${tn>99?'99+':tn}</i>`:''}${id==='board'&&bn?`<i class="bdg" aria-label="막힌 일 ${bn}">${bn>99?'99+':bn}</i>`:''}</a>`;
-  const h=NAV5.map(item).join('');if(el._h!==h){el._h=h;el.innerHTML=h}}   // 바뀔 때만 다시 그림(⑥)
+  const h=(typeof navList==='function'?navList():NAV5).map(item).join('');if(el._h!==h){el._h=h;el.innerHTML=h}}   // 바뀔 때만 다시 그림(⑥)
 function render(){
   if(window.LAYDRAG)return;   // 카드를 끄는 동안은 다시 그리지 않는다
   {const ae=document.activeElement;if(ae&&ae.classList&&ae.classList.contains('cxin')&&ae.value&&(S3.room==='studio'||S3.room==='coach'||S3.room==='v4'))return}
@@ -3196,6 +3212,7 @@ function editPanel(){
   const v=uiPrefs()[uiDev()],room=S3.room,m=lsGet(MEMO_K,{}),list=memoList(),sent=lsGet(SENT_K,{}),same=list.length&&sent.h===memoHash(list);
   const nm=(ROOMS.find(r=>r[0]===room)||[room,room])[1];
   el.innerHTML=`<div class="ep-h"><b>✏ 편집 모드</b><span class="kv">${({cover:'커버',fold:'펼친',pc:'PC'})[layDev()]} 화면 배치 · 카드 위 버튼으로 옮기고 크기를 바꿔요</span><button class="btn" id="ep-undo">↩ 되돌리기</button><button class="btn" id="ep-def">기본값</button><button class="btn pri2" id="ep-x">완료</button></div>
+  <details class="gt" data-gk="epnav"><summary class="kv">🧭 메뉴 탭 순서·숨기기·이름</summary><div id="ep-navl">${typeof navEdHtml==='function'?navEdHtml():''}</div></details>
   <details class="gt" data-gk="epmore"><summary class="kv">글씨·카드 크기 · 이 탭에 바라는 것</summary>
   <label>글씨 크기 <b id="ep-fv">${Math.round(v.font*100)}%</b><input type="range" id="ep-f" min="70" max="160" step="5" value="${Math.round(v.font*100)}"></label>
   <label>카드 크기 <b id="ep-cv">${Math.round(v.card*100)}%</b><input type="range" id="ep-c" min="70" max="160" step="5" value="${Math.round(v.card*100)}"></label>
