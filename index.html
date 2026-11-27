@@ -531,7 +531,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=35;
+const BUILD=36;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -946,7 +946,32 @@ function gradeBox(d){
      ${q&&same?`<div class="cv cv-max"><div class="cvh"><b>🎬 미리보기(맥스)</b> <span class="kv">${hm(v.at)}${late||Date.parse(v.at)-Date.parse(sv)>900000?' · 채점한 판보다 뒤에 만든 영상':''}</span></div>${vidTag(q)}</div>`:k?`<a class="btn" href="#hb">🎞 클립 카드 보기${v&&v.at&&wday(v.at)!==d.date?` (미리보기는 ${hm(v.at)} 것)`:''}</a>`:''}</div>`};
   return `<h2 class="sec" style="margin-top:14px">퇴근 채점 <span class="kv">${ask||done?`${done}/${Math.max(ask,done)} 끝`:''}</span></h2>${gradeBasis(d,g,S3.st.quit)}<div class="kv">${head}${g&&g.made?` · ${done?'':g.clips.some(c=>c.re)?'앞 ':''}결과 ${hm(g.made)}`:''}</div>${g&&g.bad.length?`<div class="jrw">⚠️ 채점 ${g.bad.map(esc).join('·')} 파일을 못 읽었어요</div>`:''}${g&&g.clips.length?g.clips.map(clip).join('')+(g.n>g.clips.length?`<div class="kv">그 밖에 ${g.n-g.clips.length}개</div>`:''):'<div class="kv">그날 저장한 클립 기록 없음</div>'}`}
 // 펼친 카드는 새로 그려도 그대로 · 영상이 도는 동안은 새로 그리지 않는다
-function keepOpen(root,fn){const o=[...root.querySelectorAll('details[open][data-gk]')].map(e=>e.dataset.gk);fn();root.querySelectorAll('details[data-gk]').forEach(e=>{if(o.includes(e.dataset.gk))e.open=true})}
+// BUILD 36 · 동현 06:55 ⑥: 방 전체를 갈아 끼우지 않고 바뀐 칸만 바꾼다(누르려던 버튼·펼친 칸·입력 중인 글·옆 창 iframe 이 그대로 남음).
+// 부르는 곳은 그대로 root.innerHTML=... 을 쓰고, 여기서 그 대입을 가로채 새 HTML 과 지금 화면을 비교(morph)한다.
+const MORPH={n:0,full:0};
+function keepOpen(root,fn){if(!root)return fn();let h,got=false;
+  try{Object.defineProperty(root,'innerHTML',{configurable:true,get(){return Element.prototype.__lookupGetter__('innerHTML').call(root)},set(v){h=v;got=true}});fn()}finally{delete root.innerHTML}
+  if(!got)return;if(!root.firstChild){root.innerHTML=h;MORPH.full++;return}
+  const t=document.createElement('template');t.innerHTML=h;morphKids(root,t.content);MORPH.n++}
+function morphSame(a,b){return a.nodeType===b.nodeType&&a.nodeName===b.nodeName&&(a.nodeType!==1||(a.id||'')===(b.id||''))}
+function morphAttrs(a,b){
+  for(const at of [...a.attributes]){const k=at.name;if(b.hasAttribute(k))continue;
+    if(k==='open'&&a.nodeName==='DETAILS'||k==='data-ic'||k==='data-tipa'||(k==='title'&&a.hasAttribute('data-tipa'))||k==='style'&&a.closest&&a.closest('.lc.drag'))continue;a.removeAttribute(k)}
+  for(const at of [...b.attributes]){let v=at.value;if(at.name==='class'&&a.classList.contains('ico'))v=(v+' ico').trim();
+    if(a.getAttribute(at.name)!==v){if(a.nodeName==='IFRAME'&&(at.name==='src'||at.name==='srcdoc')&&a.getAttribute(at.name)===at.value)continue;a.setAttribute(at.name,v)}}}
+function morphKids(a,b){const A=[...a.childNodes],B=[...b.childNodes];
+  for(let i=0;i<B.length;i++){const x=A[i],y=B[i];
+    if(!x){a.appendChild(y);continue}
+    if(!morphSame(x,y)){a.replaceChild(y,x);continue}
+    if(x.nodeType===3||x.nodeType===8){if(x.nodeValue!==y.nodeValue)x.nodeValue=y.nodeValue;continue}
+    if(x.nodeType!==1)continue;
+    if(y.hasAttribute('data-keep')&&x.firstChild)continue;   // 다른 코드가 채우는 칸(집중 타이머 등)
+    morphAttrs(x,y);
+    if(x.nodeName==='IFRAME'||x.nodeName==='VIDEO'||x.nodeName==='CANVAS')continue;   // 속은 건드리지 않음(다시 불러오기·멈춤 없음)
+    if((x.nodeName==='TEXTAREA'||x.nodeName==='INPUT')&&x===document.activeElement)continue;   // 입력 중인 칸
+    if(x.nodeName==='TEXTAREA'){if(x.value!==y.textContent&&x.defaultValue!==y.textContent){x.defaultValue=y.textContent}continue}
+    morphKids(x,y)}
+  for(let i=A.length-1;i>=B.length;i--)A[i].remove()}
 function vidPlaying(){return [...document.querySelectorAll('.room.on video')].some(v=>!v.paused&&!v.ended)}
 // 영상은 바뀐 것만 받는다(30초마다 다시 받지 않음)
 function vidNeed(){const V=[].concat(...((S3.st.hb_gates||{}).clips||[]).map(c=>c.vids||(c.vs?[{vs:c.vs}]:[])),twVids());return [...new Set(V.filter(v=>v.vs&&!vidReady(v)).map(v=>v.vs))]}
@@ -1390,7 +1415,7 @@ const Focus=(()=>{
     const list=`<div class="fll">${B.map(b=>{const r=real(b,t),o2=ov.find(x=>x.f===b);return `<button class="fli k-${KC(b)}${S3.flSel===b.id?' on':''}${b.e<t&&!b.done&&b.k==='focus'?' miss':''}" data-flb="${esc(b.id)}"><b class="num">${hmOf(b.s)}</b><span>${b.done?'✅ ':''}${esc(b.c)}</span><small>${r?`실제 ${Math.round((r.e-r.s)/M)}분`:b.k==='focus'?`계획 ${Math.round((b.e-b.s)/M)}분`:''}${o2?' · 🔴 쉬는 시간 넘김':''}</small></button>`}).join('')}</div>`;
     const det=sel?(()=>{const r=real(sel,t);return `<div class="fl-d"><b>${esc(sel.c)}</b><div class="kv">계획 ${hmOf(sel.s)}~${hmOf(sel.e)} (${Math.round((sel.e-sel.s)/M)}분)${sel.ext?' · +30분 늘림':''} · 리미트 ${hmOf(sel.e)}</div><div class="kv">실제 ${r?`${hmOf(r.s)}~${sel.dn||sel.done?hmOf(r.e):'지금'} (${Math.round((r.e-r.s)/M)}분)`:sel.k==='focus'?'▶ 시작 기록 없음':'—'}</div>${sel.crit?`<div class="kv">완료 기준: ${esc(sel.crit)}</div>`:''}</div>`})():'';
     return `<div class="flw">${strip}${list}${det}</div>`}
-  const box=()=>'<div id="fx" class="fx"></div>';
+  const box=()=>'<div id="fx" class="fx" data-keep="1"></div>';   // data-keep: 방을 다시 그려도 이 칸은 tick 이 채운 그대로(keepOpen morph 가 건너뜀)
   // ---- PC 작은 창: 항상 위(문서 PiP) 또는 보통 창. 로그인은 HQ 창 것을 그대로 쓴다 ----
   let pip=null,pipK='';
   const PCSS='*{box-sizing:border-box}html,body{margin:0;height:100%}body{background:#141416;color:#F1E9D6;font:500 15px/1.4 system-ui,"Malgun Gothic",sans-serif;padding:10px 12px;overflow:auto;transition:background .3s}body[data-ph=focus]{background:#123a6b}body[data-ph=warn]{background:#8a4a00}body[data-ph=rest]{background:#14532d}body[data-ph=ok]{background:#14402a}body[data-ph=over]{background:#8f1414;animation:bl 1s steps(2,jump-none) infinite}@keyframes bl{from{background:#8f1414}to{background:#d92b2b}}@media(prefers-reduced-motion:reduce){body[data-ph=over]{animation:none;background:#b31d1d}}.fx-h b{font-size:17px;overflow-wrap:anywhere}.fx-h em{font-style:normal;display:block;font-size:14px}.fx-t{font:800 clamp(38px,17vw,84px)/1.05 system-ui,sans-serif;font-variant-numeric:tabular-nums;margin:2px 0}.fx-n,.nl{font-size:14px;overflow-wrap:anywhere}.fx-b{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.btn{min-height:40px;padding:0 12px;border:1px solid #ffffff66;border-radius:8px;background:#0006;color:inherit;font:700 15px system-ui,"Malgun Gothic",sans-serif;cursor:pointer}.pri2{background:#F1E9D6;color:#141416}.btn:disabled{opacity:.5}.btn:focus-visible{outline:2px solid #fff}.kv{font-size:13px;opacity:.9}.bad{margin-top:6px;padding:4px 8px;background:#0007;border-left:4px solid #ff6b5e;font-size:14px;overflow-wrap:anywhere}';
@@ -1414,7 +1439,7 @@ const Focus=(()=>{
   function tick(){
     const o=snap(),k=key(o);
     const el=document.getElementById('fx');
-    if(el&&(S3.room==='lobby'||S3.room==='today')){if(el.dataset.k!==k){const h=card();el.dataset.k=k;el.className='fx p-'+o.ph;el.innerHTML=h;el.hidden=!h}else{const t=el.querySelector('.fx-t');if(t)t.textContent=tm(o)}}
+    if(el&&(S3.room==='lobby'||S3.room==='today')){if(el.dataset.k!==k){const h=card();el.dataset.k=k;el.className='fx p-'+o.ph;keepOpen(el,()=>el.innerHTML=h);el.hidden=!h}else{const t=el.querySelector('.fx-t');if(t)t.textContent=tm(o)}}
     if(pip&&!pip.closed){try{const d=pip.document;if(pipK!==k){pipK=k;d.body.dataset.ph=o.ph;d.getElementById('p').innerHTML=pipHtml(o)}else{const t=d.querySelector('.fx-t');if(t)t.textContent=tm(o)}}catch(e){}
       if(now()-Cal.data.t>60000)Cal.load(false,60000)}
     notes(o);plan(o)}
