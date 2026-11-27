@@ -703,7 +703,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=51;
+const BUILD=52;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1355,8 +1355,10 @@ const Ask=(()=>{
   function open(t,id){
     if(t){to=t;lsSet('wc_ask_to2',to)}
     if(id){th[to]=id;lsSet('wc_ask_th',th)}
-    isOpen=true;$('#ask').hidden=false;UI.all(Sync.state);Sync.push();
+    isOpen=true;$('#ask').hidden=false;ping(true);UI.all(Sync.state);Sync.push();
   }
+  // H7(11/28): 채팅이 열리면 PC 에 '열림'(chat_open) → PC 가 3분 동안 2초마다 받은편지함을 봄. 열려 있는 동안 90초마다 다시.
+  let pingT=0;function ping(now){if(!now&&(!isOpen||Date.now()-pingT<90000))return false;pingT=Date.now();Q.add('chat_open',{});return true}
   function close(){isOpen=false;$('#ask').hidden=true;UI.all(Sync.state)}
   function send(text){
     text=(text||'').trim();if(!text)return;
@@ -1388,7 +1390,7 @@ const Ask=(()=>{
     const done=new Set();for(const T of (A&&A.threads)||[])for(const m of T.msgs)if(m.st==='ok'||m.st==='fail')done.add(m.id);
     return Q.of('ask').some(r=>r.st==='ok'&&!done.has(r.id)&&Date.now()/1000-r.t<900);
   }
-  return {render,click,bind,open,close,waiting,unseen,threads,NAME,get isOpen(){return isOpen}};
+  return {render,click,bind,open,close,waiting,unseen,threads,NAME,ping,get isOpen(){return isOpen}};
 })();
 
 // BUILD 9 📅 구글 캘린더 양방향(SPEC_v2 11/21 13:56): 원본 = 동현 기본 캘린더. 오늘±30일 읽기, 앱 켤 때·5분마다 새로고침.
@@ -1835,7 +1837,9 @@ const z2=n=>String(n).padStart(2,'0');
 const hmOf=ms=>{const d=new Date(ms);return z2(d.getHours())+':'+z2(d.getMinutes())};
 
 // ---- 묻기·캘린더(옮겨 온 것)가 쓰는 다리 ----
-const Sync={get state(){return S3.st},push(){clearTimeout(this._p);this._p=setTimeout(()=>Sync3.run(),300)}};
+const Sync={get state(){return S3.st},push(){clearTimeout(this._p);this._p=setTimeout(()=>{if(typeof Fast3!=='undefined')Fast3.run();Sync3.run()},300)}};   // H7: 보낼 것은 전체 동기화를 기다리지 않고 바로(Fast3)
+// 보내기는 한 번에 하나만(Fast3·Sync3 가 같이 불러도 같은 요청을 두 번 올리지 않게)
+const qFlush=()=>window.__qf||(window.__qf=Q.flush().finally(()=>{window.__qf=null}));
 const UI={last:{},put(id,h){const el=$(id);if(!el||this.last[id]===h&&el.innerHTML)return false;this.last[id]=h;el.innerHTML=h;return true},
   all(){Ask.render(S3.st);nav();const a=document.activeElement;if((S3.room==='plan'||S3.room==='lobby'||S3.room==='today'||S3.room==='coach')&&!(a&&a.matches&&a.matches('.room input,.room textarea')))render()}};
 
@@ -3114,14 +3118,18 @@ function route(){
 function clock(){const d=new Date(),z=n=>String(n).padStart(2,'0');$('#clk-d').textContent=`${d.getMonth()+1}/${d.getDate()}`;$('#clk-t').textContent=`${z(d.getHours())}:${z(d.getMinutes())}`}
 const Sync3={busy:false,
   async run(){if(this.busy)return;this.busy=true;this.t=Date.now();
-    try{await Q.flush();const res=await api.get(V3_STATES.filter(n=>!isVid(n)));if(!res.ok)throw new Error('상태 못 받음');
+    try{await qFlush();const res=await api.get(V3_STATES.filter(n=>!isVid(n)));if(!res.ok)throw new Error('상태 못 받음');
       S3.st=Object.assign({},S3.st,res.state);const nv=vidNeed();if(nv.length){const r2=await api.get(nv).catch(()=>null);if(r2&&r2.ok)Object.assign(S3.st,r2.state)}
       lsSet('v3_state',Object.fromEntries(Object.entries(S3.st).filter(([k])=>!isVid(k))));$('#sync').classList.remove('bad');$('#sync').title='PC 연결 좋음 · 마지막 받음 '+hmOf(Date.now());
       Q.applyDone(S3.st.meta&&S3.st.meta.done);layPull();mbTidy();rmSeen();Ask.render(S3.st);Push.check();if(S3.st.cal_cfg&&JSON.stringify(S3.st.cal_cfg)!==S3.calCfg){S3.calCfg=JSON.stringify(S3.st.cal_cfg);Cal.load(true)}}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
     this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('.room input,.room textarea')))&&!vidPlaying())render();jrOpen()},
-  flush(){Q.flush().catch(()=>{})}};
+  flush(){qFlush().catch(()=>{})}};
 window.addEventListener('hashchange',route);clock();setInterval(clock,20000);
-route();Ask.bind();Ask.render(S3.st);Sync3.run();Cal.load(true);checkBuild();setInterval(()=>{if(document.hidden)return;Cal.load();if(Date.now()-(Sync3.t||0)>=(Ask.waiting()?8000:30000))Sync3.run()},4000);setInterval(checkBuild,300000);
+route();Ask.bind();Ask.render(S3.st);Sync3.run();Cal.load(true);checkBuild();setInterval(()=>{if(document.hidden)return;Cal.load();if(Date.now()-(Sync3.t||0)>=(Ask.waiting()?8000:30000))Sync3.run()},4000);
+// H7(11/28): 답·받았어요를 기다리는 동안은 meta·answers 두 개만 2초마다(전체 동기화 40여 개는 그대로 8초) · 채팅이 열려 있으면 90초마다 PC 에 '열림'
+const Fast3={busy:false,t:0,n:0,async run(){if(this.busy)return;this.busy=true;this.t=Date.now();this.n++;
+  try{await qFlush();const r=await api.get(['meta','answers']);if(r&&r.ok){Object.assign(S3.st,r.state);Q.applyDone(S3.st.meta&&S3.st.meta.done);Ask.render(S3.st)}}catch(e){}this.busy=false}};
+setInterval(()=>{if(document.hidden)return;if(Ask.ping()){Fast3.run();return}if(Ask.waiting()&&Date.now()-Fast3.t>=2000)Fast3.run()},1000);setInterval(checkBuild,300000);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){Sync3.run();checkBuild();Cal.load()}});
 
 // ---- game1: 에르고 · 효과음(직접 만든 소리) · 진동 ----
