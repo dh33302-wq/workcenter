@@ -584,6 +584,27 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .exck .exckr{display:grid;grid-template-columns:22px 22px minmax(0,1fr) auto;gap:6px;align-items:start;padding:3px 4px;border-radius:6px;margin:2px 0}
 .exck .exckt{min-width:0;overflow-wrap:anywhere}.ck-ok{background:#68B0961f}.ck-no{background:#C460542a}.ck-na{opacity:.6}
 .exin-dl{background:#7AA4D233}
+
+/* ---- 대표 21:58 🏠 오늘 고치기 ---- */
+.clkc{display:flex;flex-direction:column;gap:8px}
+.clkb{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:4px;width:100%;min-height:64px;padding:14px 18px;border-radius:10px;font:800 calc(24px*var(--s))/1.2 system-ui,"Malgun Gothic",sans-serif;text-align:left}
+.clkb small{font:600 calc(14px*var(--s))/1.35 system-ui,"Malgun Gothic",sans-serif;opacity:.95;overflow-wrap:anywhere}
+.clkb.in{background:#e9b949;color:#1b1406}.clkb.out{background:#243b6b;color:#f1e9d6;border:1px solid #5b8fc9}.clkb.gone{cursor:default;background:#1d1d22;color:var(--dim);font-size:calc(18px*var(--s));min-height:48px}
+.clkb.gone a{color:var(--gold)}.clkb:focus-visible{outline:3px solid var(--ivory)}.clkb:disabled{opacity:.6;cursor:default}
+.clkpn{display:flex;flex-direction:column;gap:6px;padding:10px 12px;background:var(--bg-panel);border-left:3px solid var(--gold)}
+.clkpn textarea{display:block;width:100%;box-sizing:border-box;margin-top:4px;background:#111;color:var(--ivory);border:1px solid #444;border-radius:6px;padding:8px;font:500 calc(15px*var(--s))/1.4 system-ui,"Malgun Gothic",sans-serif;resize:vertical}
+.fx-np{margin:8px 0;padding:8px 10px;background:#2a2412;border-left:3px solid var(--gold);color:var(--ivory);font-size:calc(14px*var(--s));overflow-wrap:anywhere}
+.fx-cal{margin-top:6px}
+.fx-tl{font-size:calc(15px*var(--s))!important;color:var(--ivory);margin-top:6px;overflow-wrap:anywhere}.fx-tl b{color:var(--gold)}
+.fl-r>span.fw{background:rgba(95,211,141,.28);border:1px solid #5fd38d;top:0;bottom:0}.fl-r>span.fw.live{border-right:2px dashed #5fd38d}
+.rnl{display:flex;flex-direction:column;gap:2px}
+.rn{display:flex;flex-wrap:wrap;gap:2px 10px;align-items:baseline;min-height:44px;box-sizing:border-box;padding:8px 6px;text-decoration:none;color:var(--ivory);border-top:1px solid #26262a;font-weight:600;font-size:calc(15px*var(--s))}
+.rn:first-child{border-top:0}.rn .rns{flex:1 1 12em;min-width:0;overflow-wrap:anywhere}.rn .rnt{flex:0 1 auto;min-width:0;overflow-wrap:anywhere}.rn.tm{font-weight:500}.rn:hover,.rn:focus-visible{background:#1f1f24;outline:none}
+.hl{font:600 11px/1 system-ui,"Malgun Gothic",sans-serif;color:var(--ivory);opacity:.9;margin-left:3px;letter-spacing:0}
+#sync{display:inline-flex;align-items:center;font-size:12px}#sync .hl{color:var(--ivory)}#sync.bad .hl{color:#f0a49a}
+#snd{display:inline-flex;align-items:center;color:var(--ivory)}
+#lvbar{color:#e8e2d2;font-weight:700}#lvbar b{color:#fff}#lvbar .f-live{color:#7ef0a8}
+@media(max-width:380px){#ergo{display:inline}#ergo .hl{display:none}.clkb{font-size:calc(21px*var(--s))}}@media(max-width:380px){#top .brand{display:none}}
 </style>
 </head>
 <body>
@@ -591,7 +612,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <header id="top">
   <div id="top-med"><img src="hq-fav-64.png" width="36" height="36" alt=""></div>
   <div class="brand"><span class="cin">HB HQ</span><em class="tag" id="chan" hidden>시험</em></div>
-  <div class="clock"><b id="clk-d"></b><span id="clk-t"></span><span id="ergo" title="에르고">◈ <b id="ergo-n">0</b></span><button id="snd" title="효과음 켜기/끄기" aria-label="효과음">🔊</button><span id="sync" title="동기화">●</span></div>
+  <div class="clock"><b id="clk-d"></b><span id="clk-t"></span><span id="ergo" title="에르고 — 할 일·퀘스트를 끝내면 쌓이는 점수">◈ <b id="ergo-n">0</b><small class="hl">점수</small></span><button id="snd" title="효과음 켜기/끄기" aria-label="효과음">🔊<small class="hl">소리</small></button><span id="sync" title="PC 연결(초록 = 잘 받고 있음, 빨강 = 못 받음)">●<small class="hl">연결</small></span></div>
   <button id="ask-open" class="tbtn" aria-label="묻기">💬<span class="tl">묻기</span><i id="ask-badge" class="bdg"></i></button>
   <button id="ed-open" class="tbtn" type="button" aria-label="편집 모드">✏</button>
   <button id="mbb" class="tbtn" type="button" aria-label="아이디어함 열기" aria-expanded="false">💡</button>
@@ -637,7 +658,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=46;
+const BUILD=47;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1377,6 +1398,11 @@ const Cal=(()=>{
     const r=await api.gfetch(base('work')+'/'+rid(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
     if(r.ok){const e=c.items.find(x=>x.id===id);if(e){for(const k of ['summary','start','end'])if(b[k])e[k]=b[k];if(b.extendedProperties)e.x=Object.assign({},e.x,b.extendedProperties.private)}}
     return {ok:r.ok,status:r.status}}
+  // 출근·퇴근 표시(🏁 출근 / 🏁 퇴근): 🎬 작업 캘린더에만 새로 넣는다(대표 21:58 ①)
+  async function insert(b){if(!cid('work'))return {ok:false,status:0};
+    const r=await api.gfetch(base('work'),{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)}).catch(()=>({ok:false,status:0}));
+    if(r.ok){try{const e=await r.json();c.items.push({k:'work',id:'work|'+e.id,summary:e.summary||b.summary,start:e.start||b.start,end:e.end||b.end,status:e.status,x:{},dsc:''});lsSet('wc_cal3',c)}catch(e){}}
+    return {ok:r.ok,status:r.status}}
   const when=e=>allDay(e)?'종일':hm(st(e))+(en(e)?'~'+hm(en(e)):'');
   const row=(e,btn)=>{const f=btn&&e.k==='work'&&!allDay(e)&&!cancelled(e)?Focus.row(e):null;return `<div class="hqrow calrow k-${e.k}${cancelled(e)?' cx':''}${f&&f.draft?' dr':''}">${f&&!/^(rest|sleep)$/.test(f.k)?`<button class="fxk" data-fxk="${esc(e.id)}" aria-pressed="${f.done}" aria-label="${f.done?'끝 표시 지우기':'끝 표시'}">${f.done?'✅':'⬜'}</button>`:`<b>${{work:'🎬',me:'🙋',studio:'🦡'}[e.k]||'📅'}</b>`}<span>${esc(e.summary)}<br><small class="kv">${esc(when(e))}</small></span>${btn&&e.k!=='studio'?`<span class="fxb2">${f&&f.draft?`<button class="btn" data-fxd="${esc(e.id)}">확정</button>`:''}<button class="btn" data-calopen="${esc(e.id)}">고치기</button></span>`:''}</div>`};
   function status(){
@@ -1443,7 +1469,7 @@ const Cal=(()=>{
     if(t.id==='cal-close'){$('#cal').hidden=true;editId=null;return true}
     return false;
   }
-  return {load,patch,planDay,hasWork:()=>!!cid('work'),day,planHtml,workHtml,workN,chips,month,click,cancelled,get isOpen(){return !$('#cal').hidden},get data(){return c}};
+  return {load,patch,insert,planDay,hasWork:()=>!!cid('work'),day,planHtml,workHtml,workN,chips,month,click,cancelled,get isOpen(){return !$('#cal').hidden},get data(){return c}};
 })();
 
 // ⏱ 집중 타이머 · 오늘 🎬 블록 체크 · 퇴근 버튼 (11/26 동현 06:21·06:30, 기준 hub\control\하루패턴_v1_261126.md)
@@ -1460,7 +1486,11 @@ const Focus=(()=>{
   // 퇴근 뒤로 밀린 '🔁이월 🎯'(어시스턴트가 옮긴 것)은 타이머에서 빼고 목록에만
   function blocks(day){const L=all(day).filter(b=>b.k!=='mark'),w=L.find(b=>b.k==='wrap');if(w)L.forEach(b=>{if(b.s>=w.e&&/^(?:\s|✅|📝\s*(?:초안)?)*🔁\s*이월/u.test(b.t))b.k='hold'});return L}
   // 퇴근했나: HQ 퇴근 버튼 또는 어시스턴트가 만든 '🏁 퇴근' 일정
-  const gone=(day,t)=>((S3.st.quit||{}).leave||{}).d===day||all(day).some(b=>b.k==='mark'&&b.s<=t);
+  const gone=(day,t)=>((S3.st.quit||{}).leave||{}).d===day||all(day).some(b=>b.k==='mark'&&/퇴근/.test(b.c)&&b.s<=t);
+  // 출근·퇴근 시각(대표 21:58 ①): 캘린더 '🏁 출근/🏁 퇴근' 표시 > 이 기기에서 누른 기록 > PC 기록(timetable t0 · 퇴근 편지 시각)
+  const hmAt=(day,hm)=>{const m=/^(\d{1,2}):(\d\d)/.exec(String(hm||''));if(!m)return null;const d=new Date(day+'T00:00:00');d.setHours(+m[1],+m[2],0,0);if(+m[1]<5)d.setDate(d.getDate()+1);return +d};
+  function clk(day){const A=all(day),mi=A.find(b=>b.k==='mark'&&/출근/.test(b.c)),mo=A.find(b=>b.k==='mark'&&/퇴근/.test(b.c)),L=lsx('clk',{}),T=S3.st.timetable||{},lv=(S3.st.quit||{}).leave||{};
+    const i=mi?mi.s:L.d===day&&L.in?L.in:T.clocked_in&&wday()===day?hmAt(day,T.t0):null,o=mo?mo.s:L.d===day&&L.out?L.out:lv.d===day?hmAt(day,lv.t):null;return {in:i,out:o}}
   function all(day){return Cal.data.items.filter(e=>e.k==='work'&&e.start&&e.start.dateTime&&!Cal.cancelled(e)).map(e=>({id:e.id,s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime),t:e.summary,c:core(e.summary),k:kindOf(e.summary),done:isDone(e.summary),draft:isDraft(e.summary),on:!!(e.x||{}).hq_start,ext:!!(e.x||{}).hq_ext,crit:crit(e.dsc),st:Date.parse((e.x||{}).hq_start)||null,dn:Date.parse((e.x||{}).hq_done)||null}))
     .filter(b=>b.e>b.s&&Cal.planDay(new Date(b.s))===day).sort((a,b)=>a.s-b.s||a.e-b.e)}
   const mine=()=>Cal.data.items.filter(e=>e.k==='me'&&e.start&&e.start.dateTime&&!Cal.cancelled(e)).map(e=>({s:Date.parse(e.start.dateTime),e:Date.parse((e.end||{}).dateTime||e.start.dateTime)}));
@@ -1487,12 +1517,13 @@ const Focus=(()=>{
     for(const x of L)if(hits(P,x.s,x.e)&&!hits(P,x.b.s,x.b.e))return {no:`개인 일정과 겹쳐서 못 늘려요 (${hmOf(x.s)}~${hmOf(x.e)})`};
     const z=Z.e-Z.s<=30*M?{b:Z,x:1}:{b:Z,s:Z.s+30*M,e:Z.e};
     return {L:[z].concat(L.reverse()),n:mid.length}}
+  const hum=ms=>{const m=Math.max(0,Math.round(ms/M)),h=Math.floor(m/60);return h?`${h}시간 ${m%60}분`:`${m}분`};
   const dur=ms=>{const s=Math.max(0,Math.round(ms/1000)),h=Math.floor(s/3600);return (h?h+':'+z2(Math.floor(s%3600/60)):Math.floor(s/60))+':'+z2(s%60)};
   const NM={focus:'집중',warn:'10분 안에 끝',rest:'쉬는 시간',over:'쉬는 시간 넘음',ok:'끝냈어요',etc:'',idle:''};
   const now=()=>Date.now();
   let busy=false,arm=0;
   function snap(){const d=pday(),B=blocks(d),P=mine(),g=gone(d,now());return Object.assign({B,P,g},g?{ph:'idle',b:null,nx:null,left:0,over:0,start:null,done:null,ext:null}:phase(B,now(),P))}
-  const key=o=>[o.ph,o.g,o.b&&o.b.id,o.b&&o.b.t,o.b&&o.b.e,o.nx&&o.nx.id+o.nx.s,o.start&&o.start.id,o.done&&o.done.id,o.ext&&1,o.over,busy,arm&&now()-arm<6000,S3.fxOpen,o.B.map(b=>b.id+b.t+b.s+b.e+b.on).join(),blocked().length,Cal.data.err,pip&&!pip.closed?1:0,S3.flSel,Math.floor(now()/60000),o.B.map(b=>b.dn).join()].join('|');
+  const key=o=>[o.ph,o.g,o.b&&o.b.id,o.b&&o.b.t,o.b&&o.b.e,o.nx&&o.nx.id+o.nx.s,o.start&&o.start.id,o.done&&o.done.id,o.ext&&1,o.over,busy,arm&&now()-arm<6000,S3.fxOpen,o.B.map(b=>b.id+b.t+b.s+b.e+b.on).join(),blocked().length,Cal.data.err,pip&&!pip.closed?1:0,S3.flSel,Math.floor(now()/60000),o.B.map(b=>b.dn).join(),JSON.stringify(clk(pday()))].join('|');
   const tm=o=>o.ph==='over'?'+'+dur(now()-o.b.s):o.b||o.nx?dur(o.b?o.b.e-now():o.nx.s-now()):'–';
   const btns=o=>`<div class="fx-b">${o.start?`<button class="btn pri2" data-fx="start" ${busy?'disabled':''}>▶ 시작</button>`:o.b&&o.b.on&&!o.b.done?'<span class="kv">▶ 시작함</span>':''}${o.done?`<button class="btn" data-fx="done" ${busy?'disabled':''}>✅ 끝${o.done!==o.b?' <small>'+esc(o.done.c.slice(0,12))+'</small>':''}</button>`:''}${o.ext?`<button class="btn" data-fx="ext" ${busy?'disabled':''}>${arm&&now()-arm<6000?'한 번 더 → 뒤가 30분 밀려요':'+30분'}</button>`:''}</div>`;
   const head=o=>`<div class="fx-h"><b>${o.b?esc(o.b.c):o.g?'오늘은 퇴근했어요':o.nx?'비어 있어요':o.B.length?'오늘 블록이 끝났어요':'오늘 🎬 블록이 없어요'}</b>${NM[o.ph]?`<em>${o.ph==='over'?`쉬는 시간 ${o.over}분 넘음 → 시작을 눌러요`:NM[o.ph]}</em>`:''}</div>`;
@@ -1502,21 +1533,26 @@ const Focus=(()=>{
   const pcBtns=()=>IS_PC?`<div class="fx-b fx-pc">${pip&&!pip.closed?'<button class="btn sm" data-fx="pipx">작은 창 닫기</button>':`${'documentPictureInPicture' in window?'<button class="btn sm" data-fx="pip" title="남은 시간만 보이는 작은 창을 늘 위에 띄워요(PC)">📌 작은 창</button>':''}<button class="btn sm" data-fx="pop" title="남은 시간만 보이는 창을 따로 띄워요(PC · 다른 창 뒤로 갈 수 있음)">🗔 보통 창</button>`}</div>`:'';
   function card(){const o=snap(),D=o.B.filter(b=>b.k==='focus');
     if(!o.B.length){const x=nowNext();   // 작업 블록이 없으면 캘린더 지금·다음
-      return `<div class="fx-h"><small>지금</small><b>${x.cur||(x.all.length?esc(x.all[0])+' <span class="kv">종일</span>':Cal.data.err?'캘린더를 못 읽었어요':'오늘 🎬 블록이 없어요')}</b></div><div class="fx-n"><small>다음</small> ${x.nx||'<span class="kv">오늘은 더 없어요</span>'}</div>${pcBtns()}`}
+      return `<div class="fx-h"><small>지금</small><b>${x.cur||(x.all.length?esc(x.all[0])+' <span class="kv">종일</span>':Cal.data.err?'캘린더를 못 읽었어요':'오늘 🎬 블록이 없어요')}</b></div><div class="fx-n"><small>다음</small> ${x.nx||'<span class="kv">오늘은 더 없어요</span>'}</div>${noPlan(o)}${calLine(o)}${pcBtns()}`}
     const b=o.b,p=b?Math.min(1,Math.max(0,(now()-b.s)/(b.e-b.s))):0;
-    return `<div class="fx-h"><small>지금</small>${head(o).replace('<div class="fx-h">','').replace(/<\/div>$/,'')}</div><div class="fx-tl kv">${o.ph==='over'?'쉬는 시간을 넘긴 시간':o.b?'이 블록 끝까지 남은 시간':o.nx?'다음 블록까지 남은 시간':''}</div><div class="fx-t num" title="${o.ph==='over'?'쉬는 시간을 넘긴 시간':o.b?'지금 블록이 끝날 때까지 남은 시간':'다음 블록이 시작할 때까지 남은 시간'}">${tm(o)}</div>${b?`<div class="fx-bar" role="progressbar" aria-label="지금 블록 진행" aria-valuenow="${Math.round(p*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${(p*100).toFixed(1)}%"></i></div>`:''}${b&&b.crit?`<div class="kv">✅ ${esc(b.crit)}</div>`:''}${nxt(o)||'<div class="fx-n kv">다음 블록 없음</div>'}${btns(o)}
+    return `<div class="fx-h"><small>지금</small>${head(o).replace('<div class="fx-h">','').replace(/<\/div>$/,'')}</div><div class="fx-tl" id="fx-tl">${tlab(o)}</div><div class="fx-t num" title="${o.ph==='over'?'쉬는 시간을 넘긴 시간':o.b?'지금 블록이 끝날 때까지 남은 시간':'다음 블록이 시작할 때까지 남은 시간'}">${tm(o)}</div>${b?`<div class="fx-bar" role="progressbar" aria-label="지금 블록 진행" aria-valuenow="${Math.round(p*100)}" aria-valuemin="0" aria-valuemax="100"><i style="width:${(p*100).toFixed(1)}%"></i></div>`:''}${b&&b.crit?`<div class="kv">✅ ${esc(b.crit)}</div>`:''}${nxt(o)||'<div class="fx-n kv">다음 블록 없음</div>'}${btns(o)}
       ${D.length?`<div class="fxcs" role="group" aria-label="오늘 🎯 ${D.filter(b=>b.done).length}/${D.length}">${D.map(d=>{const s=d.done?'done':d===b||d.on?'now':'wait';return `<button class="fxc s-${s}" data-flb="${esc(d.id)}" aria-pressed="${S3.flSel===d.id}" title="${esc(d.c)}">${s==='done'?'✅':s==='now'?'▶':'🎯'} <span>${esc(d.c.replace(/^🎯\s*/u,'').slice(0,14))}</span></button>`}).join('')}</div>`:''}
-      ${flow(o)}${pcBtns()}${o.B.some(b=>b.draft)||S3.fxOpen?`<div class="fx-b"><button class="btn sm" data-fx="list" aria-expanded="${!!S3.fxOpen}">✅ 체크 목록${o.B.some(b=>b.draft)?' · 📝 초안 '+o.B.filter(b=>b.draft).length:''} ${S3.fxOpen?'▴':'▾'}</button></div>`:`<div class="fx-b"><button class="btn sm" data-fx="list" aria-expanded="false">✅ 체크 목록 ▾</button></div>`}${S3.fxOpen?o.B.map(li).join(''):''}`}
+      ${noPlan(o)}${flow(o)}${calLine(o)}${pcBtns()}${o.B.some(b=>b.draft)||S3.fxOpen?`<div class="fx-b"><button class="btn sm" data-fx="list" aria-expanded="${!!S3.fxOpen}">✅ 체크 목록${o.B.some(b=>b.draft)?' · 📝 초안 '+o.B.filter(b=>b.draft).length:''} ${S3.fxOpen?'▴':'▾'}</button></div>`:`<div class="fx-b"><button class="btn sm" data-fx="list" aria-expanded="false">✅ 체크 목록 ▾</button></div>`}${S3.fxOpen?o.B.map(li).join(''):''}`}
+  // 큰 숫자 옆 설명(대표 21:58 ③): 무엇까지 남은 시간인지 말로 — '23:00 취침까지 1시간 2분'
+  const tlab=o=>o.ph==='over'?`☕ 쉬는 시간을 ${esc(hum(now()-o.b.s))} 넘겼어요`:o.b?`<b>${hmOf(o.b.e)}</b> ${esc(o.b.c)} 끝까지 <b>${hum(o.b.e-now())}</b>`:o.nx?`<b>${hmOf(o.nx.s)}</b> ${esc(o.nx.c)}까지 <b>${hum(o.nx.s-now())}</b>`:'';
+  // 오늘 계획이 비었으면(🎯 블록 0) 안내 · 캘린더를 언제 읽었는지(못 읽었으면 그 까닭)
+  const noPlan=o=>o.g||o.B.some(b=>b.k==='focus')?'':`<div class="fx-np" id="fx-np">📭 오늘 계획 없음 — 어시스턴트에게 <b>'일어났어'</b>라고 하면 오늘 블록을 만들어요</div>`;
+  const calLine=o=>{const D=Cal.data,e=(D.errs||{}).work;return `<div class="kv fx-cal" id="fx-cal">🎬 작업 캘린더 ${!Cal.hasWork()?'연결 전':e?'⚠ 못 읽음('+esc(e)+') · 저장본':'읽음 '+(D.t?hmOf(D.t):'–')} · 오늘 블록 ${o.B.length}개${o.B.length?' ('+hmOf(o.B[0].s)+'~'+hmOf(Math.max(...o.B.map(b=>b.e)))+')':''}</div>`};
   // 실제: ▶시작(hq_start) ~ ✅끝(hq_done, 없으면 계획 끝) · 아직 안 끝났으면 지금까지. 쉬는 시간 넘김 = 쉬는 블록 끝 뒤 1분 넘어 ▶ (또는 아직 안 누름)
   function real(b,t){if(b.k!=='focus'||!b.st)return null;const e=b.dn||(b.done?b.e:Math.min(t,b.e));return e>b.st?{s:b.st,e}:null}
   function overs(B,t){const L=[];B.forEach(f=>{if(f.k!=='focus'||!restBefore(B,f))return;const r=B.filter(x=>x!==f&&x.e<=f.s+M&&(x.k==='rest'||x.k==='meal')).pop();if(!r)return;const s=f.st||(f.done?null:t);if(s&&s-r.e>M)L.push({f,s:r.e,e:Math.min(s,f.e)})});return L}
   function dayStats(B,t){const F=B.filter(b=>b.k==='focus'),pm=F.reduce((a,b)=>a+(b.e-b.s),0),rm=F.reduce((a,b)=>{const r=real(b,t);return a+(r?r.e-r.s:0)},0);return {done:F.filter(b=>b.done).length,n:F.length,plan:Math.round(pm/M),real:Math.round(rm/M),over:overs(B,t).length}}
   const KC=b=>b.k==='focus'?'f':b.k==='rest'||b.k==='meal'?'r':b.k==='hold'?'h':'g';
-  function flow(o){const B=o.B;if(!B.length)return '';const t=now(),t0=B[0].s,t1=Math.max(...B.map(b=>b.e)),W=t1-t0||1,X=v=>((Math.min(t1,Math.max(t0,v))-t0)/W*100).toFixed(2);
+  function flow(o){const B=o.B;if(!B.length)return '';const t=now(),K=clk(pday()),ke=K.in?K.out||t:null,t0=Math.min(B[0].s,K.in||Infinity),t1=Math.max(...B.map(b=>b.e),ke||0),W=t1-t0||1,X=v=>((Math.min(t1,Math.max(t0,v))-t0)/W*100).toFixed(2);
     const box=(s,e,c,inner,extra='')=>`<span class="${c}" style="left:${X(s)}%;width:${Math.max(0.4,X(e)-X(s))}%"${extra}>${inner||''}</span>`;
     const ov=overs(B,t),sel=B.find(b=>b.id===S3.flSel);
     const strip=`<div class="fl" aria-label="오늘 흐름 ${hmOf(t0)}~${hmOf(t1)}"><div class="fl-l">계획</div><div class="fl-r fl-p">${B.map(b=>`<button class="fb k-${KC(b)}${b.done?' dn':''}${S3.flSel===b.id?' on':''}" style="left:${X(b.s)}%;width:${Math.max(0.4,X(b.e)-X(b.s))}%" data-flb="${esc(b.id)}" aria-label="${esc(b.c)} ${hmOf(b.s)}~${hmOf(b.e)}">${b.done?'✅':esc([...b.c][0]||'')}</button>`).join('')}${t>=t0&&t<=t1?`<i class="fl-now" style="left:${X(t)}%"></i>`:''}</div>
-      <div class="fl-l">실제</div><div class="fl-r">${B.map(b=>{const r=real(b,t);return r?box(r.s,r.e,'fa'+(b.done?' dn':'')):''}).join('')}${ov.map(x=>box(x.s,x.e,'fo')).join('')}${t>=t0&&t<=t1?`<i class="fl-now" style="left:${X(t)}%"></i>`:''}</div>
+      <div class="fl-l">실제</div><div class="fl-r">${K.in?box(K.in,ke,'fw'+(K.out?'':' live'),'',` title="출근 ${hmOf(K.in)} ~ ${K.out?'퇴근 '+hmOf(K.out):'지금'}" id="fl-work"`):''}${B.map(b=>{const r=real(b,t);return r?box(r.s,r.e,'fa'+(b.done?' dn':'')):''}).join('')}${ov.map(x=>box(x.s,x.e,'fo')).join('')}${t>=t0&&t<=t1?`<i class="fl-now" style="left:${X(t)}%"></i>`:''}</div>
       <div class="fl-l"></div><div class="fl-r fl-ax"><small style="left:0">${hmOf(t0)}</small><small style="right:0">${hmOf(t1)}</small></div></div>`;
     const list=`<div class="fll">${B.map(b=>{const r=real(b,t),o2=ov.find(x=>x.f===b);return `<button class="fli k-${KC(b)}${S3.flSel===b.id?' on':''}${b.e<t&&!b.done&&b.k==='focus'?' miss':''}" data-flb="${esc(b.id)}"><b class="num">${hmOf(b.s)}</b><span>${b.done?'✅ ':''}${esc(b.c)}</span><small>${r?`실제 ${Math.round((r.e-r.s)/M)}분`:b.k==='focus'?`계획 ${Math.round((b.e-b.s)/M)}분`:''}${o2?' · 🔴 쉬는 시간 넘김':''}</small></button>`}).join('')}</div>`;
     const det=sel?(()=>{const r=real(sel,t);return `<div class="fl-d"><b>${esc(sel.c)}</b><div class="kv">계획 ${hmOf(sel.s)}~${hmOf(sel.e)} (${Math.round((sel.e-sel.s)/M)}분)${sel.ext?' · +30분 늘림':''} · 리미트 ${hmOf(sel.e)}</div><div class="kv">실제 ${r?`${hmOf(r.s)}~${sel.dn||sel.done?hmOf(r.e):'지금'} (${Math.round((r.e-r.s)/M)}분)`:sel.k==='focus'?'▶ 시작 기록 없음':'—'}</div>${sel.crit?`<div class="kv">완료 기준: ${esc(sel.crit)}</div>`:''}</div>`})():'';
@@ -1588,7 +1624,7 @@ const Focus=(()=>{
   const pd=e=>{const b=blocks(Cal.planDay(new Date(Date.parse(e.start.dateTime)))).find(x=>x.id===e.id);return b||null};
   setInterval(()=>{if((S3.room==='lobby'||S3.room==='today')&&!document.hidden||pip)tick()},1000);
   const today=()=>{const d=pday(),B=blocks(d);return {B,g:gone(d,now()),st:dayStats(B,now())}};
-  return {box,tick,quitBtn,quitAt,today,act,row:pd,li,core,kindOf,isDone,isDraft,phase,extPlan,blocks,restBefore,title,get pip(){return pip},pipOn}})();
+  return {box,tick,quitBtn,quitAt,today,clk,hum,act,row:pd,li,core,kindOf,isDone,isDraft,phase,extPlan,blocks,restBefore,title,get pip(){return pip},pipOn}})();
 
 // HB HQ 폰 알림(웹 푸시, 11/26 동현 03:54). 실제 주소에서만. 폰이 허용하면 주소를 PC로 보내고, 받은 시각은 서비스워커가 적어 두었다가 앱을 열 때 PC로 보낸다(도착률·지연).
 const Push=(()=>{
@@ -2307,19 +2343,66 @@ function lvBlocked(now){const s=Live.raw();if(!s)return {rows:[],n:0,none:1};con
 function lvBlockedCard(now){const B=lvBlocked(now);
   if(B.none)return `<div class="al al-ok" id="lv-blk">⚪ 막힌 일 · 실시간 상태를 기다려요</div>`;
   if(!B.all)return `<div class="al al-ok" id="lv-blk" data-n="0">🟢 막힌 일 없음</div>`;
-  return oct(`<h2 class="sec">🔴 막힌 일 <span class="num" id="lv-n-blk">${B.all}</span></h2>${B.rows.map(r=>`<div class="hqrow"><b>${r.ic}</b><span>${esc(lvNoIc(r.t))}${r.s||r.w||r.at?`<br><small class="kv">${r.at?lvF(lvT(r.at),now)+' · ':''}${esc([r.w,r.s].filter(Boolean).join(' · ').slice(0,140))}</small>`:''}</span>${r.x?`<a class="btn" href="${esc(r.x)}" target="_blank" rel="noopener">제미나이 ↗</a>`:r.h?`<a class="btn" href="${r.h}">보기</a>`:''}</div>`).join('')}`,'lvc'+(B.n?' lv-bad':''))}
+  return oct(`<h2 class="sec">🔴 막힌 일 <span class="num" id="lv-n-blk">${B.all}</span></h2>${B.rows.map(r=>`<div class="hqrow"><b>${r.ic}</b><span>${esc(lvNoIc(r.t))}${r.s||r.w||r.at?`<br><small class="kv">${r.at?lvF(lvT(r.at),now)+(now-lvT(r.at)>6*3600&&lvT(r.at)?' <b class="bdays">⏳ 오래됨 · 다시 확인 필요</b>':'')+' · ':''}${esc([r.w,r.s].filter(Boolean).join(' · ').slice(0,140))}</small>`:''}</span>${r.x?`<a class="btn" href="${esc(r.x)}" target="_blank" rel="noopener">제미나이 ↗</a>`:r.h?`<a class="btn" href="${r.h}">보기</a>`:''}</div>`).join('')}`,'lvc'+(B.n?' lv-bad':''))}
+
+
+// ---- ☀️ 출근 / 🌙 퇴근 큰 버튼 하나(대표 21:58 ①): 지금 상태에 따라 바뀐다 ----
+// 출근 = PC 출근 기록(clockin) + 🎬 작업 캘린더 '🏁 출근' + 오늘 첫 블록·할 일 3줄
+// 퇴근 = 스탠드업(한 것·다음·막힌 것) + 내일 초안 확인 → PC 퇴근(clockout: 집계 + PD 내일 초안 편지에 스탠드업을 붙임) + '🏁 퇴근'
+const CLK={st(){const d=pday(),K=Focus.clk(d),q=S3.st.quit||{},g=!!K.out||(q.leave||{}).d===d;return {d,K,g,ph:g?'gone':K.in?'in':'before'}},
+  tmr(){const t=new Date(pday()+'T12:00:00');t.setDate(t.getDate()+1);const z=n=>String(n).padStart(2,'0');return `${t.getFullYear()}-${z(t.getMonth()+1)}-${z(t.getDate())}`},
+  mark(nm){const n=new Date(),e=new Date(n.getTime()+60000),iso=x=>({dateTime:x.toISOString(),timeZone:'Asia/Seoul'});
+    return Cal.insert({summary:'🏁 '+nm,start:iso(n),end:iso(e),description:'HQ '+nm+' 버튼'}).then(r=>{if(!r.ok)toast('⚠️ 캘린더에 '+nm+' 표시를 못 넣었어요'+(r.status?' ('+r.status+')':'')+' · 기록은 PC에 남아요');return r})}};
+function clkCard(){const S=CLK.st(),i=quitInfo(),K=S.K;
+  const b=S.ph==='before'?`<button class="clkb in" id="clk-btn" data-clk="in">☀️ 출근<small>누르면 시각을 적고 오늘 첫 블록을 보여 줘요</small></button>`
+   :S.ph==='in'?`<button class="clkb out" id="clk-btn" data-clk="out" aria-expanded="${S3.clkOpen==='out'}" ${i.wait?'disabled':''}>🌙 퇴근<small>${i.wait?esc(i.wait):`출근 ${K.in?hmOf(K.in):''} · 지금까지 ${K.in?Focus.hum(Date.now()-K.in):''} · 누르면 스탠드업`}</small></button>`
+   :`<div class="clkb gone" id="clk-btn">🌙 퇴근했어요<small>${K.in?'출근 '+hmOf(K.in)+' · ':''}퇴근 ${K.out?hmOf(K.out):esc(((S3.st.quit||{}).leave||{}).t||'')}${K.in&&K.out?' · '+Focus.hum(K.out-K.in):''} · <a href="#out">기록·채점 보기</a></small></div>`;
+  return `<div class="clkc" id="clk-card">${b}${i.rej?`<div class="jrw">🔴 ${esc(i.rej)}</div>`:''}<div id="clkp" data-keep="1"></div></div>`}
+function clkPanel(){const el=document.getElementById('clkp');if(!el)return;const m=S3.clkOpen||'',S=CLK.st(),k=m+'|'+S.ph+'|'+(m==='out'?CLK.tmr()+(Cal.data.t||0):Math.floor(Date.now()/60000));if(el.dataset.k===k)return;el.dataset.k=k;
+  if(m==='in'){const B=Focus.blocks(S.d).filter(b=>b.k!=='hold'),f=B.find(b=>b.k==='focus'&&b.e>Date.now())||B.find(b=>b.e>Date.now()),T=lvTodo().rows.slice(0,3),F=B.filter(b=>b.k==='focus'&&!b.done&&b.e>Date.now()).slice(0,3);
+    el.innerHTML=`<div class="clkpn" id="clk-in">${f?`<div class="hqrow"><b>▶</b><span>오늘 첫 블록 <b class="num">${hmOf(f.s)}</b> ${esc(f.c)}</span></div>`:`<div class="fx-np">📭 오늘 계획 없음 — 어시스턴트에게 <b>'일어났어'</b>라고 하면 오늘 블록을 만들어요</div>`}
+      <div class="kv"><b>오늘 할 일</b></div>${(T.length?T.map((r,j)=>`<div class="hqrow"><b class="num">${j+1}</b><span>${esc(r.t)}</span></div>`):F.map((b,j)=>`<div class="hqrow"><b class="num">${j+1}</b><span>${esc(b.c)} <small class="kv">${hmOf(b.s)}</small></span></div>`)).join('')||'<div class="kv">적힌 할 일이 없어요</div>'}<button class="btn sm" data-clk="close">접기</button></div>`;return}
+  if(m==='out'){const B=Focus.blocks(S.d).filter(b=>b.k==='focus'),blk=lvBlocked(Date.now()/1000).rows.filter(r=>r.ic==='🔴').map(r=>lvNoIc(r.t)),su=S3.su||(S3.su={done:B.filter(b=>b.done).map(b=>b.c).join('\n'),next:B.filter(b=>!b.done).map(b=>b.c).join('\n'),blk:blk.slice(0,3).join('\n')});
+    const D=Focus.blocks(CLK.tmr()).filter(b=>b.k!=='hold'),dr=D.filter(b=>b.draft);
+    el.innerHTML=`<div class="clkpn" id="clk-out"><b>스탠드업</b>
+      <label class="kv">✅ 오늘 한 것<textarea id="su-done" rows="3" maxlength="800">${esc(su.done)}</textarea></label>
+      <label class="kv">➡️ 다음(내일 이어서)<textarea id="su-next" rows="2" maxlength="800">${esc(su.next)}</textarea></label>
+      <label class="kv">🔴 막힌 것<textarea id="su-blk" rows="2" maxlength="800">${esc(su.blk)}</textarea></label>
+      <div class="kv"><b>내일 초안</b> ${D.length?`${D.length}개 · 📝 초안 ${dr.length}`:''}</div>${D.length?D.slice(0,8).map(b=>`<div class="hqrow fxr${b.draft?' dr':''}"><b class="num">${hmOf(b.s)}</b><span>${esc(b.c)}${b.draft?' <small class="kv">📝 초안</small>':''}</span>${b.draft?`<button class="btn" data-sudr="${esc(b.id)}">확정</button>`:''}</div>`).join(''):'<div class="kv" id="su-nodraft">내일 초안이 아직 없어요 — 퇴근을 보내면 PD가 20분 안에 만들어 캘린더에 넣어요</div>'}
+      <div class="fx-b"><button class="btn pri2" data-clk="send" id="su-send">🌙 퇴근 보내기</button><button class="btn" data-clk="close">닫기</button></div></div>`;return}
+  el.innerHTML=''}
+document.addEventListener('input',e=>{const t=e.target;if(t&&/^su-(done|next|blk)$/.test(t.id)){S3.su=S3.su||{};S3.su[t.id.slice(3)]=t.value}});
+document.addEventListener('click',e=>{const t=e.target.closest&&e.target.closest('[data-clk],[data-sudr]');if(!t)return;const a=t.dataset.clk;
+  if(t.dataset.sudr){const b=Focus.blocks(CLK.tmr()).find(x=>x.id===t.dataset.sudr);if(!b)return;t.disabled=true;Cal.patch(b.id,{summary:Focus.title(b,b.done)}).then(r=>{toast(r.ok?'확정했어요':'⚠️ 못 바꿨어요 ('+r.status+')');const p=$('#clkp');if(p)p.dataset.k='';clkPanel()});return}
+  if(a==='close'){S3.clkOpen='';clkPanel();return}
+  if(a==='in'){const d=pday();Q.add('clockin',{date:today()});lsSet('v3_clk',{d,in:Date.now()});Sync3.flush();S3.clkOpen='in';CLK.mark('출근').then(()=>render());toast('☀️ 출근했어요 · '+hmOf(Date.now()));render();return}
+  if(a==='out'){S3.clkOpen=S3.clkOpen==='out'?'':'out';render();return}
+  if(a==='send'){if(quitInfo().wait)return;const su=S3.su||{},d=pday(),L=lsx('clk',{});
+    Q.add('clockout',{date:wday(),standup:{done:String(su.done||'').slice(0,800),next:String(su.next||'').slice(0,800),blk:String(su.blk||'').slice(0,800)}});
+    S3.jrWant=Date.now();S3.jrD=wday();lsSet('v3_clk',Object.assign(L.d===d?L:{d},{out:Date.now()}));Sync3.flush();S3.clkOpen='';S3.su=null;CLK.mark('퇴근').then(()=>render());toast('🌙 퇴근을 보냈어요 · 스탠드업은 PD 내일 초안 편지에 붙어요');render()}});
+// ---- 🟢 지금 돌고 있는 것(대표 21:58 ②): 시계 칸 바로 아래 — 와일즈 대검 · PC 정리 · 딥리서치 · 팀별 지금 하는 일. 줄을 누르면 진행판 ----
+const RUN_TEAMS=['code','infra','ref_factory','wc_app','anim_teacher'];
+function lvRunNow(now){const R=[],x=typeof Ex!=='undefined'?Ex.get():null,c=x&&x.cur||{},p=c.prog;
+  if(p){const m=p.motion||[],dn=p.done!=null?+p.done:m[0],N=m[1],rt=p.rate||{};
+    R.push({id:'wilds',h:'#board/teams',t:`⚔️ ${esc(c.game?String(c.game).replace(/^MONSTER HUNTER WILDS$/i,'와일즈'):'추출')} 대검 <b class="num">${dn!=null?dn:'?'}/${N!=null?N:'?'}</b>`,s:rt.per_h!=null?`시간당 <b class="num">${rt.per_h}</b>개 · 끝 예상 <b class="num">${rt.eta_at?esc(String(rt.eta_at).slice(11,16)):'?'}</b>${rt.eta_min!=null&&rt.eta_min>=1440?' (하루 넘음)':''}`:'속도 재는 중(20분 뒤 나와요)'})}
+  const cl=x&&x.cleanup;const pj=Live.jobs('run').concat(Live.jobs('quiet')).find(j=>j.id==='pc_cleanup');
+  if(cl||pj){const done=cl&&/완료|끝/.test(cl.status||'');R.push({id:'clean',h:'#board/run',t:`🧹 PC 정리 ${done?'끝':''} 비운 <b class="num">${cl&&cl.freed!=null?Math.round(+cl.freed):'?'}GB</b>`,s:done?'':`남음 <b class="num">${cl&&cl.left!=null?Math.round(+cl.left):'?'}GB</b>${cl&&cl.eta!=null?' · 약 '+esc(jrH(Math.round(+cl.eta))):''}`})}
+  const rs=Live.get('research',null);if(rs){const wt=rs.unjudged!=null?+rs.unjudged:(rs.items||[]).filter(i=>!i.judged_at).length;R.push({id:'research',h:'#board/news',t:`🔎 딥리서치 오늘 <b class="num">${+rs.today||0}</b>건`,s:`판정 기다림 <b class="num">${wt}</b>${+rs.waiting?' · 대기 '+(+rs.waiting):''}${rs.pause?' · ⏸ 하루 '+(+rs.cap||12)+'건 넘어 쉼':''}`})}
+  const T=Live.get('teams',[]);for(const k of RUN_TEAMS){const t=T.find(y=>y.key===k);if(!t)continue;R.push({id:'tm-'+k,h:'#board/teams',t:`${TEAM_IC[k]||''} ${esc(nm3(t.name))} ${esc(t.light||'⚪')}`,s:esc(nm3(t.task||t.why||'쉼')).slice(0,80),tm:1})}
+  if(!R.length)return Live.raw()?'':`<div class="al al-ok" id="lv-runnow">⚪ 지금 돌고 있는 것 · 실시간 상태를 기다려요</div>`;
+  return oct(`<h2 class="sec">🟢 지금 돌고 있는 것 <span class="kv">누르면 진행판</span></h2><div class="rnl" id="lv-runnow">${R.map(r=>`<a class="rn${r.tm?' tm':''}" href="${r.h}" data-rn="${r.id}"><span class="rnt">${r.t}</span><span class="kv rns">${r.s}</span></a>`).join('')}</div>`,'lvc lv-run')}
 
 // ---- 🏠 오늘 ----
 function trophyN(){const tr=lsx('trophy',{}),tot=TROPHIES.reduce((a,t)=>a+t[2].length,0);return [Object.keys(tr).filter(k=>tr[k]).length,tot]}
 function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=quitInfo(),dd=Math.ceil((new Date(JOB_DEADLINE+'T00:00:00')-Date.now())/864e5),[tg,tt]=trophyN();
   const L=$('#r-lobby');if(L.firstElementChild)L.replaceChildren();   // 지금 카드(#fx)는 한 곳에만
-  const C=[{id:'now',name:'지금 블록',html:Focus.box()+(x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:'')},
-    {id:'todo',name:'🙋 결재·할 일',view:1,html:lvTodoCard()},{id:'blk',name:'🔴 막힌 일',view:1,html:lvBlockedCard(now)},
+  const C=[{id:'clk',name:'☀️ 출근 · 🌙 퇴근',html:clkCard()},{id:'now',name:'지금 블록',html:Focus.box()+(x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:'')},
+    {id:'runnow',name:'🟢 지금 돌고 있는 것',html:lvRunNow(now)},{id:'todo',name:'🙋 결재·할 일',view:1,html:lvTodoCard()},{id:'blk',name:'🔴 막힌 일',view:1,html:lvBlockedCard(now)},
     {id:'teams',name:'팀 신호등',html:lvTeamsLine(now)},
     {id:'links',name:'오늘 시간표',html:oct(`<details class="gt ttd" data-gk="ttday"><summary>📅 <b>오늘 시간표</b> <span class="kv">🎬 동현 작업 ${Cal.workN(pday())}개 · 눌러서 펼치기</span></summary>${Cal.workHtml(pday())}</details>`,'lvc')},
-    {id:'end',name:'하루 마무리',html:`${Push.hint()}<div class="lvend">${Focus.quitBtn()||`<a class="btn" href="#out" title="오늘 기록을 보고 퇴근·채점해요">🌙 퇴근·채점${q.again?' · 퇴근했어요':''}</a>`}<span class="kv">입사 목표까지 ${dd}일 · 🏆 ${tg}/${tt}</span></div>`}];
+    {id:'end',name:'하루 마무리',html:`${Push.hint()}<div class="lvend"><a class="btn" href="#out" title="오늘 기록·채점을 봐요(출근·퇴근은 맨 위 큰 버튼)">🌙 기록·채점${q.again?' · 퇴근했어요':''}</a><span class="kv">입사 목표까지 ${dd}일 · 🏆 ${tg}/${tt}</span></div>`}];
   keepOpen($('#r-today'),()=>$('#r-today').innerHTML=`<h1 class="sr">오늘</h1>${layGrid('today',C)}`);
-  Focus.tick();lvBar();lvCount('today',t0)}
+  Focus.tick();clkPanel();lvBar();lvCount('today',t0)}
 
 // ---- 팀별 지금 하는 일 (PD 11/27 05:58, 동현 06:00 "팀이 뭘 몇 단계까지 했는지 안 보임") ----
 // status.teams[] 의 task · steps[{n,s:todo|doing|done}] · step · eta_min · queue · updated · results(결과 편지 최근 3, 지킴이가 붙임)
@@ -2780,7 +2863,7 @@ const Sync3={busy:false,
   async run(){if(this.busy)return;this.busy=true;this.t=Date.now();
     try{await Q.flush();const res=await api.get(V3_STATES.filter(n=>!isVid(n)));if(!res.ok)throw new Error('상태 못 받음');
       S3.st=Object.assign({},S3.st,res.state);const nv=vidNeed();if(nv.length){const r2=await api.get(nv).catch(()=>null);if(r2&&r2.ok)Object.assign(S3.st,r2.state)}
-      lsSet('v3_state',Object.fromEntries(Object.entries(S3.st).filter(([k])=>!isVid(k))));$('#sync').classList.remove('bad');
+      lsSet('v3_state',Object.fromEntries(Object.entries(S3.st).filter(([k])=>!isVid(k))));$('#sync').classList.remove('bad');$('#sync').title='PC 연결 좋음 · 마지막 받음 '+hmOf(Date.now());
       Q.applyDone(S3.st.meta&&S3.st.meta.done);layPull();mbTidy();rmSeen();Ask.render(S3.st);Push.check();if(S3.st.cal_cfg&&JSON.stringify(S3.st.cal_cfg)!==S3.calCfg){S3.calCfg=JSON.stringify(S3.st.cal_cfg);Cal.load(true)}}catch(e){$('#sync').classList.add('bad');$('#sync').title=e.message}
     this.busy=false;const a=document.activeElement;if(!(a&&a.closest&&(a.closest('.optb')||a.matches('.room input,.room textarea')))&&!vidPlaying())render();jrOpen()},
   flush(){Q.flush().catch(()=>{})}};
@@ -2814,8 +2897,8 @@ function giveErgo(key,amt){const given=lsx('ergo_given',{}),dk=today()+'|'+key;i
     setTimeout(()=>{const t0=performance.now(),dur=600;const el=$('#ergo');el.classList.add('pop');vib([30,40,60]);sfx('done');
       (function step(t){const p=Math.min(1,(t-t0)/dur);ergoShow(Math.round(from+(to-from)*p));if(Math.floor(p*12)!==Math.floor(((t-16-t0)/dur)*12))sfx('tick');if(p<1)requestAnimationFrame(step);else setTimeout(()=>el.classList.remove('pop'),250)})(t0)},650+n*14)
   },120)}
-function sndBtn(){const b=$('#snd');if(b)b.textContent=lsx('snd',!IS_PC)?'🔊':'🔇'}
-document.addEventListener('click',e=>{if(e.target.id==='snd'){lsSet('v3_snd',!lsx('snd',!IS_PC));sndBtn();sfx('tick')}});
+function sndBtn(){const b=$('#snd');if(b){const on=lsx('snd',!IS_PC);b.innerHTML=(on?'🔊':'🔇')+`<small class="hl">${on?'소리':'소리 끔'}</small>`}}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('#snd')){lsSet('v3_snd',!lsx('snd',!IS_PC));sndBtn();sfx('tick')}});
 ergoShow(ergoGet());sndBtn();
 
 // ---- game2: 3D 키우기 탭 (열 때만 three.js 로딩) ----
