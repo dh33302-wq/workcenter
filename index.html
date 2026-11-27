@@ -524,6 +524,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .exg{flex:1 1 10em;min-width:0;overflow-wrap:break-word}
 .exs{font-size:12px;padding:1px 6px;border-radius:9px;background:rgba(127,127,127,.16);white-space:nowrap}
 .ex-run{border-left-color:#68B096}.ex-run .exs{background:#68B09633;color:#68B096}
+.extl{flex:0 1 auto;min-width:0;max-width:16em;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:help}.extl small{font-size:11px}
 .ex-inst{border-left-color:#D2A27A}.ex-inst .exs{background:#D2A27A33}
 .ex-buy{border-left-color:#CEA85E}.ex-buy .exs{background:#CEA85E33}
 .ex-bad{border-left-color:#d66}.ex-bad .exs{background:#d6633}
@@ -534,7 +535,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .exadd input[type=text],.exadd #ex-add-n{flex:1;min-width:0;padding:7px;border-radius:8px;border:1px solid #8886;background:transparent;color:inherit}
 .exact{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
 .ex-ok{color:#68B096}
-@media (max-width:420px){.exs{max-width:7em;overflow:hidden;text-overflow:ellipsis}.exbtn .btn{min-width:30px}}
+@media (max-width:420px){.extl small{display:none}.exs{max-width:7em;overflow:hidden;text-overflow:ellipsis}.exbtn .btn{min-width:30px}}
 
 /* 📦 표·1바퀴/2바퀴(10:36 덧붙임) */
 .exfm{font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(122,164,210,.18);color:#7AA4D2;white-space:nowrap}
@@ -627,7 +628,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=43;
+const BUILD=44;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2119,8 +2120,11 @@ function exBf(c){const b=c.backfill;if(!b)return {line:'',body:''};const r1=b.r1
   const body=G.length?`<details class="exbf" data-gk="ex:bf"><summary class="kv">2바퀴 게임별 남은 것 ${G.length}</summary>${G.map(g=>`<div class="kv exbfr">· <b>${esc(g.game)}</b> — ${g.motions!=null?`모션 ${+g.motions}`:''}${g.motions!=null&&g.dex!=null?' · ':''}${g.dex!=null?`도감 ${+g.dex}`:''}${g.motions==null&&g.dex==null&&g.left!=null?`${+g.left}개`:''}${g.etc?` · 기타 ${+g.etc}`:''}${g.reinstall?' · ⚠ 재설치 필요':''}</div>`).join('')}</details>`:'';
   return {line:l1+l2,body}}
 document.addEventListener('click',e=>{const t=e.target.closest('[data-extab]');if(!t)return;e.preventDefault();S3.exTab=t.dataset.extab;render()});
+// 덧붙임(control 13:31): 추출 도구 신호 — tool 칸 맨 앞 🟢(도구 있음)·🟡(될 듯·확인 중)·❓(모름)·🔴(안 됨), 누르면/가리키면 전체 글
+const exTk=s=>{s=String(s||'').trim();return /^🟢/.test(s)?'ok':/^🟡/.test(s)?'mid':/^🔴/.test(s)?'no':s?'q':''};
+function exTool(g){const k=exTk(g.tool);if(!k)return '';const ic={ok:'🟢',mid:'🟡',no:'🔴',q:'❓'}[k],tx=String(g.tool).replace(/^(🟢|🟡|🔴|❓)\s*/,'');return `<span class="extl extl-${k}" title="추출 도구: ${esc(tx)}">${ic}<small class="kv"> ${esc(tx.length>28?tx.slice(0,27)+'…':tx)}</small></span>`}
 function exRow(g,i,ed,n){const k=Ex.stK(g.state);
-  return `<div class="exr ex-${k}${ed?' ed':''}" data-exi="${i}">${ed?`<span class="exh" data-exdrag="${i}" title="끌어서 순서를 바꿔요">⠿</span>`:''}<span class="num exn">${i+1}</span><span class="exo" title="${g.owned?'보유':'구매 대기'}">${g.owned?'🔵':'🟡'}</span><span class="exg"><b>${esc(g.game)}</b>${g.note?`<small class="kv"> · ${esc(g.note)}</small>`:''}</span><span class="exs">${esc(g.state||'대기')}</span>${ed?`<span class="exbtn"><button class="btn" data-exmv="${i}:-1" ${i?'':'disabled'} title="위로">↑</button><button class="btn" data-exmv="${i}:1" ${i<n-1?'':'disabled'} title="아래로">↓</button><button class="btn" data-exdel="${i}" title="순서에서 빼요(기록은 남아요)">✕</button></span>`:''}</div>`}
+  return `<div class="exr ex-${k}${ed?' ed':''}" data-exi="${i}">${ed?`<span class="exh" data-exdrag="${i}" title="끌어서 순서를 바꿔요">⠿</span>`:''}<span class="num exn">${i+1}</span><span class="exo" title="${g.owned?'보유':'구매 대기'}">${g.owned?'🔵':'🟡'}</span><span class="exg"><b>${esc(g.game)}</b>${g.note?`<small class="kv"> · ${esc(g.note)}</small>`:''}</span>${exTool(g)}<span class="exs">${esc(g.state||'대기')}</span>${ed?`<span class="exbtn"><button class="btn" data-exmv="${i}:-1" ${i?'':'disabled'} title="위로">↑</button><button class="btn" data-exmv="${i}:1" ${i<n-1?'':'disabled'} title="아래로">↓</button><button class="btn" data-exdel="${i}" title="순서에서 빼요(기록은 남아요)">✕</button></span>`:''}</div>`}
 function exSentLine(){const id=S3.exSent;if(!id)return '';const q=Q.list().find(r=>r.id===id);
   if(!q)return '';if(q.st==='ok')return `<div class="kv ex-ok" id="ex-sent">✅ PC가 고쳤어요${q.msg?' · '+esc(q.msg):''}</div>`;
   if(q.st==='fail')return `<div class="kv f-old" id="ex-sent">⚠ 못 고쳤어요${q.msg?' · '+esc(q.msg):''}</div>`;return `<div class="kv" id="ex-sent">⏳ PC로 보내는 중…</div>`}
@@ -2139,10 +2143,10 @@ function exBlock(now){const x=Ex.get();if(!x)return '';const c=x.cur||{},Q0=x.qu
   const fm=c.face_mode!=null&&c.face_mode!==''?(EX_FACE[String(c.face_mode).toLowerCase()]??c.face_mode):'',BF=exBf(c);
   return `<details class="tc exc" id="ex-card" data-gk="ex:q"${ed?' open':''}><summary><div class="tch"><span>📦 <b>추출 중 · ${game?esc(game):'<span class="kv">게임 세는 중</span>'}</b>${gi}${fm?` <small class="exfm" id="ex-face" title="이 게임의 얼굴 애니 방식">얼굴 ${esc(fm)}</small>`:''}</span>${lvF(at,now,!at&&c.src!=='none')}</div>
     ${bars}<div class="kv exnow" id="ex-now">지금: ${nowL}</div>${BF.line}<div class="kv tcm">${eta} · 대기 ${(Q0.games||[]).length}개(🔵 ${cnt.own} · 🟡 ${cnt.buy}) · 눌러서 순서</div></summary>
-    ${c.src==='extract'?exTable(c):''}${BF.body}<div class="kv exql">대기 게임 순서</div><div class="exq" id="ex-q">${G.map((g,i)=>exRow(g,i,!!ed,G.length)).join('')||'<div class="empty">대기 게임이 없어요</div>'}</div>
+    ${c.src==='extract'?exTable(c):''}${BF.body}<div class="kv exql">대기 게임 순서${(()=>{const c={ok:0,mid:0,no:0,q:0};(Q0.games||[]).forEach(g=>{const k=exTk(g.tool);if(k)c[k]++});const s=[['ok','🟢'],['mid','🟡'],['q','❓'],['no','🔴']].filter(([k])=>c[k]).map(([k,i])=>i+' '+c[k]).join(' · ');return s?' · 추출 도구 '+s:''})()}</div><div class="exq" id="ex-q">${G.map((g,i)=>exRow(g,i,!!ed,G.length)).join('')||'<div class="empty">대기 게임이 없어요</div>'}</div>
     <div class="kv">순서 고친 때 ${esc(String(Q0.updated||'').slice(5,16).replace('T',' '))} · ${esc(Q0.by||'')}</div>${tools}</details>`}
 function exRe(){render()}
-function exEdit(on){const x=Ex.get();if(!x)return;S3.exEd=on?{base:x.queue.updated,games:(x.queue.games||[]).map(g=>({game:g.game,owned:g.owned,state:g.state,note:g.note})),dirty:false}:null;exRe()}
+function exEdit(on){const x=Ex.get();if(!x)return;S3.exEd=on?{base:x.queue.updated,games:(x.queue.games||[]).map(g=>({game:g.game,owned:g.owned,state:g.state,note:g.note,tool:g.tool})),dirty:false}:null;exRe()}
 function exMove(i,j){const E=S3.exEd;if(!E||j<0||j>=E.games.length||i===j)return;const [g]=E.games.splice(i,1);E.games.splice(j,0,g);E.dirty=true;exRe()}
 function exSave(){const E=S3.exEd;if(!E)return;if(!E.dirty){exEdit(false);return}
   const r=Q.add('extract_queue',{base:E.base,games:E.games});S3.exSent=r&&r.id;S3.exEd=null;Sync3.flush();toast('📦 순서를 PC로 보냈어요 · 1분 안에 바뀌어요');exRe()}
