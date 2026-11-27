@@ -263,6 +263,10 @@ body:has(#r-world.on) #mbb{bottom:auto;top:calc(60px*var(--s) + 62px)}
 #disk-card,#disk-card .rule>span{min-width:0;overflow-wrap:anywhere}.quitn{margin-top:8px}
 .idc summary b{font-weight:700}.idf{padding:8px 0;border-top:1px solid #222;line-height:1.55;overflow-wrap:anywhere}.idf>b{display:block;color:var(--gold);font-size:.92em;margin-bottom:2px}.idtb{display:grid;gap:8px;margin-top:6px}.idr{border:1px solid #2a2a2a;border-radius:8px;padding:8px 10px;min-width:0}.idr>b{display:block;margin-bottom:4px}.idr>div{margin:2px 0;overflow-wrap:anywhere}@media(min-width:900px){.idtb{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
+/* 11/27 커버 가로 넘침 381px 원인 = #fog(inset -20% + 이동). 화면 안에서 배경 위치만 움직이게 */
+#fog{inset:0;transform:none;background-size:140% 140%;animation-name:fog2}
+@keyframes fog2{from{background-position:0% 50%}to{background-position:100% 30%}}
+
 /* ==== HB HQ 11/26: 탭 4개 + 로비 카드, 넓으면 왼쪽 메뉴, 묻기·일정 ==== */
 :root{--navh:calc(66px + env(safe-area-inset-bottom));--toph:calc(60px*var(--s));--side:0px}
 .oldn{font:600 calc(13px*var(--s)) system-ui,"Malgun Gothic",sans-serif;color:var(--dim);letter-spacing:0;white-space:nowrap}
@@ -542,7 +546,35 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .ext thead th{color:#8a8a8a;font-weight:500}.ext tbody th{text-align:left;color:#bbb;font-weight:500}
 .ext .extot th,.ext .extot td{border-top:1px solid #8885;font-weight:700}
 .exmb{display:block;height:4px;border-radius:2px;background:rgba(127,127,127,.18);overflow:hidden;margin-bottom:2px}.exmb i{display:block;height:100%;background:var(--ok,#68B096)}
-.exbf{margin:6px 0}.exbfr{padding-left:6px}.exql{margin-top:8px}</style>
+.exbf{margin:6px 0}.exbfr{padding-left:6px}.exql{margin-top:8px}
+/* 🦡 HB 개발 현황판(11/27 hb_dev_board_ui) */
+.hdc{border-left:3px solid #CEA85E}
+.hdps{display:grid;gap:4px;margin-top:6px}
+.hdp{border-radius:8px;background:rgba(127,127,127,.07);border-left:3px solid #8888;padding:5px 8px;min-width:0}
+.hdp.hp-ok{border-left-color:var(--ok,#68B096)}.hdp.hp-mid{border-left-color:#CEA85E}.hdp.hp-bad{border-left-color:#d05a5a}
+.hdp>summary{list-style:none;cursor:pointer}.hdp>summary::-webkit-details-marker{display:none}
+.hdr{display:grid;grid-template-columns:1.4em minmax(5.5em,8em) minmax(0,1fr) auto;gap:6px;align-items:center;font-size:14px;min-width:0}
+.hdpn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.hdb{display:block;height:8px;border-radius:4px;background:rgba(127,127,127,.18);overflow:hidden;min-width:0}
+.hdb i{display:block;height:100%;background:var(--ok,#68B096)}
+.hp-bad .hdb i{background:#d05a5a}.hp-mid .hdb i{background:#CEA85E}
+.hdw{margin:2px 0 0 1.9em;font-size:12.5px;overflow-wrap:anywhere}
+.hdgl{display:grid;gap:3px;margin:6px 0 4px}
+.hdg{display:flex;flex-wrap:wrap;gap:2px 6px;align-items:baseline;padding:4px 6px;border-radius:6px;background:rgba(127,127,127,.06);min-width:0}
+.hdg .hdn{flex:1 1 12em;min-width:0;overflow-wrap:anywhere}
+.hdg .hdm{flex-basis:100%;font-size:12px;overflow-wrap:anywhere}
+.hdg.hd-fail{background:rgba(208,90,90,.14);color:#e88}
+.hdf{display:grid;gap:3px;margin-top:6px}
+.hdfr{padding:5px 8px;border-radius:6px;background:rgba(208,90,90,.16);color:#e88;font-size:13px;overflow-wrap:anywhere}
+.hdfc{color:#e88}
+.hdql{margin-top:4px}.hdq{padding-left:8px;overflow-wrap:anywhere}.hdx{margin-top:3px}
+.hdnx{margin-top:6px}
+/* 11/27 카드 제목줄이 길면 시각 표시가 오른쪽 밖으로 밀리던 것(커버 381px) → 줄바꿈 */
+.tch{flex-wrap:wrap;min-width:0}.tch>span:first-child{min-width:0;flex:1 1 12em;overflow-wrap:anywhere}
+
+/* 11/27 진행판 카드 안 버튼 43px → 누르기 기준 44px */
+.exc .btn,.btn.tkbtn{min-height:44px}
+</style>
 </head>
 <body>
 <div id="fog"></div>
@@ -595,7 +627,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=41;
+const BUILD=42;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2130,6 +2162,30 @@ document.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-exdr
   const up=()=>{box.removeEventListener('pointermove',mv);box.removeEventListener('pointerup',up);box.removeEventListener('pointercancel',up);box.classList.remove('drag');box.querySelectorAll('.drg').forEach(x=>x.classList.remove('drg'))};
   box.addEventListener('pointermove',mv);box.addEventListener('pointerup',up);box.addEventListener('pointercancel',up)});
 
+// ---- 📊 진행판 · 🦡 HB 개발 현황판 카드(동현 11/27 12:31, control hb_dev_board_ui) — 추출 카드 바로 아래 ----
+// 자료 = 지킴이 hq_hbdev.py → state hb_dev {products:[{k,name,ok,N,fail,wait,light,gates:[{id,name,st,value,limit,owner,at,ev}],work,next}], ok,N,fail,ver,next,src}
+// 한눈에: 제품 7줄(막대 n/N + 🟢🟡🔴 + 지금 손대는 일 한 줄) + 전체 n/N · ❌ 는 맨 위 빨강 → 줄을 누르면 통과 기준 목록(✅❌⏳·값·담당·측정 시각)·다음 할 것
+const HD_IC={ok:'✅',fail:'❌',wait:'⏳'};
+const hdT=s=>{s=String(s||'');const m=s.match(/(\d{4})-(\d\d)-(\d\d)[T ](\d\d):(\d\d)/);return m?`${+m[2]}/${+m[3]} ${m[4]}:${m[5]}`:esc(s.slice(0,16))};
+function hdWork(w){if(!w||!w.task)return `<div class="kv hdw" data-hdw="0">지금 손대는 일 없음</div>`;
+  const st=w.step!=null&&w.steps?` · 단계 ${+w.step}/${+w.steps}`:'',eta=w.eta!=null&&+w.eta>0?` · 약 ${esc(jrH(Math.round(+w.eta)))} 남음`:'';
+  return `<div class="kv hdw" data-hdw="1">🔨 ${w.team?`<b>${esc(w.team)}</b> · `:''}${esc(w.task)}${st}${eta}</div>`}
+function hdGate(g){return `<div class="hdg hd-${g.st}" data-hdg="${esc(g.id)}"><span class="hdi">${HD_IC[g.st]||'⏳'}</span><b class="num">${esc(g.id)}</b><span class="hdn">${esc(g.name)}</span>
+  <span class="kv hdm">${g.value!=null&&g.value!==''?`값 <b>${esc(g.value)}</b>`:'아직 안 잼'}${g.limit?` · 기준 ${esc(g.limit)}`:''}${g.owner?` · ${esc(g.owner)}`:''}${g.at?` · ${hdT(g.at)}`:''}</span></div>`}
+function hdProd(p){const pc=p.N?Math.round(p.ok/p.N*100):0,cls=p.fail?'bad':p.N&&p.ok===p.N?'ok':'mid';
+  const nx=(p.next||[]).length?`<div class="kv hdql">다음 할 것</div>${p.next.map((n,i)=>`<div class="kv hdq">${i+1}. ${esc(n)}</div>`).join('')}`:'';
+  const ex=[p.ver?`버전 ${esc(p.ver)}`:'',p.bench?`벤치 ${esc(p.bench)}`:'',p.code_at?`코드 바뀐 때 ${hdT(p.code_at)}`:''].filter(Boolean).join(' · ');
+  return `<details class="hdp hp-${cls}" id="hd-p-${esc(p.k)}" data-gk="hd:${esc(p.k)}"><summary><div class="hdr"><span class="hdl">${p.light||'🟡'}</span><b class="hdpn">${esc(p.name)}</b><span class="tkpb hdb"><i style="width:${p.ok?Math.max(2,pc):0}%"></i></span><b class="num hdnn">${+p.ok}/${+p.N}</b></div>${hdWork(p.work)}</summary>
+    <div class="hdgl">${(p.gates||[]).map(hdGate).join('')||'<div class="empty">통과 기준이 아직 없어요</div>'}</div>${nx}${ex?`<div class="kv hdx">${ex}</div>`:''}</details>`}
+function hbDevBlock(now){const H=S3.st.hb_dev;if(!H||!(H.products||[]).length)return '';
+  const P=H.products,F=[].concat(...P.map(p=>(p.gates||[]).filter(g=>g.st==='fail').map(g=>Object.assign({pn:p.name},g))));
+  const at=lvT(H.src==='feed'&&H.feed_updated?H.feed_updated:H.gates_updated);
+  const top=F.length?`<div class="hdf" id="hd-fail">${F.map(g=>`<div class="hdfr" data-hdf="${esc(g.id)}">❌ <b>${esc(g.pn)} ${esc(g.id)}</b> ${esc(g.name)}${g.owner?` · ${esc(g.owner)}`:''}</div>`).join('')}</div>`:'';
+  const q=(H.next||[]).length?`<details class="hdnx" data-gk="hd:next"><summary class="kv">다음 할 것 대기 ${H.next.length}</summary>${H.next.map((n,i)=>`<div class="kv hdq">${i+1}. ${esc(n)}</div>`).join('')}</details>`:'';
+  return `<div class="tc hdc" id="hd-card"><div class="tch"><span>🦡 <b>HB 개발 현황판</b> · 전체 <b class="num" id="hd-total">${+H.ok}/${+H.N}</b> 통과${H.fail?` · <b class="hdfc">❌ ${+H.fail}</b>`:''}</span>${lvF(at,now,!at)}</div>
+    ${top}<div class="hdps" id="hd-ps">${P.map(hdProd).join('')}</div>${q}
+    <div class="kv tcm">${H.src==='feed'?'TA팀 현황판 자료':'통과 기준 파일에서 바로(TA팀 현황판 자료 기다리는 중)'} · 버전 ${esc(H.ver||'기준선 대기')} · 줄을 누르면 통과 기준</div></div>`}
+
 // ---- HB HQ 실시간 두 탭 (PD 11/27 04:47 p1_hq_live): 🏠 오늘 · 📊 진행판 ----
 // 숫자(일·팀·막힘·어시스턴트·Claude)는 status.json(S3.st.status, 모양 hq_status_v1 — TA팀 hub\tools\status_feed.py)에서만 읽는다.
 // 원본 바꿔 끼우기(C2): Live 의 raw·at·pcAt 만 고친다. 화면(오늘·진행판)은 그대로.
@@ -2219,7 +2275,7 @@ function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=q
 const STEP_NO='①②③④⑤⑥⑦⑧';
 function lvSteps(t){const S=t.steps||[];if(!S.length)return '';const cur=S.findIndex(x=>x.s==='doing'),ci=cur>=0?cur:(S.every(x=>x.s==='done')?-1:Math.max(0,Math.min(S.length-1,(+t.step||1)-1)));
   return `<div class="tst">${S.map((x,i)=>{const k=x.s==='done'?'done':i===ci?'now':'todo';return `<span class="ts ts-${k}">${STEP_NO[i]||i+1} ${esc(nm3(x.n))} ${k==='done'?'✅':k==='now'?'▶':'⬜'}</span>`}).join('')}</div>`}
-function lvTeamCard(t,now){if(t.key==='ref_factory'&&typeof exBlock==='function'&&Ex.get()&&!t._ex)return `<div class="tcx" id="lv-tc-ref">${exBlock(now)}${lvTeamCard(Object.assign({},t,{_ex:1}),now)}</div>`;const ic=TEAM_IC[t.key]||'',at=lvT(t.updated)||lvT(t.last_progress),R=t.results||[],Q=t.queue||[],busy=!!t.task||t.light==='🔴'||t.light==='🟡'||t.running;
+function lvTeamCard(t,now){if(t.key==='ref_factory'&&typeof exBlock==='function'&&Ex.get()&&!t._ex)return `<div class="tcx" id="lv-tc-ref">${exBlock(now)}${typeof hbDevBlock==='function'?hbDevBlock(now):''}${lvTeamCard(Object.assign({},t,{_ex:1}),now)}</div>`;const ic=TEAM_IC[t.key]||'',at=lvT(t.updated)||lvT(t.last_progress),R=t.results||[],Q=t.queue||[],busy=!!t.task||t.light==='🔴'||t.light==='🟡'||t.running;
   if(!busy)return `<div class="tc idle" data-team="${esc(t.key)}"><span>${esc(t.light||'⚪')} ${ic} <b>${esc(nm3(t.name))}</b> · ${esc(nm3(t.why||'쉼'))}</span>${lvF(lvT(t.last_progress),now)}</div>`;
   const alld=(t.steps||[]).length&&t.steps.every(x=>x.s==='done');
   return `<details class="tc" data-team="${esc(t.key)}" data-gk="tc:${esc(t.key)}"><summary><div class="tch"><span>${ic} <b>${esc(nm3(t.name))}</b> ${esc(t.light||'⚪')}</span>${lvF(at,now)}</div>
@@ -2231,7 +2287,8 @@ function lvTeamCard(t,now){if(t.key==='ref_factory'&&typeof exBlock==='function'
     <div class="kv">열린 편지 ${+t.inbox_open||0}${t.inbox_new?' · 새 편지 '+t.inbox_new:''} · 도는 일 ${+t.jobs_run||0}${t.jobs_blocked?' · 막힌 일 '+t.jobs_blocked:''}</div>${talkTeamBtn(t.key)}</details>`}
 function lvTeamCards(now){const T=Live.get('teams',[]);if(!T.length)return '';const busy=T.filter(t=>t.task||t.light==='🔴'||t.light==='🟡'||t.running||(t.key==='ref_factory'&&typeof Ex!=='undefined'&&Ex.get())),idle=T.filter(t=>!busy.includes(t));
   busy.sort((a,b)=>(b.key==='ref_factory')-(a.key==='ref_factory'));   // 📦 에셋팀 추출 카드를 맨 위로
-  return `<div class="tcs" id="lv-tcs">${busy.map(t=>lvTeamCard(t,now)).join('')}</div>${idle.length?`<div class="tci">${idle.map(t=>lvTeamCard(t,now)).join('')}</div>`:''}`}
+  const hd=typeof hbDevBlock==='function'&&!(busy[0]&&busy[0].key==='ref_factory'&&typeof Ex!=='undefined'&&Ex.get())?hbDevBlock(now):'';   // 추출 카드가 없으면 🦡 HB 개발 현황판을 맨 위에
+  return `<div class="tcs" id="lv-tcs">${hd?`<div class="tcx" id="lv-tc-hd">${hd}</div>`:''}${busy.map(t=>lvTeamCard(t,now)).join('')}</div>${idle.length?`<div class="tci">${idle.map(t=>lvTeamCard(t,now)).join('')}</div>`:''}`}
 function lvSystem(now){const S=Live.get('system',[]);if(!S.length&&!Live.get('auto_jobs',[]).length)return '';
   const AJ=Live.get('auto_jobs',[]),aj=AJ.length?`<div class="lvsys" id="lv-auto"><span class="kv syl">⚙️ 자동 작업 ${AJ.length}</span>${AJ.map(x=>{const p=typeof x.pct==='number'?Math.round(x.pct):null;return `<details class="sy ${x.bucket==='blocked'?'bad':''}" data-gk="aj:${esc(x.id)}"><summary>${esc(nm3(x.title||x.id))}${p!=null?` <b class="num">&nbsp;${p}%</b>`:''}</summary><div class="kv">${esc(nm3(x.now||''))}<br>${esc(x.status||'')}${x.eta_min!=null?' · 남은 시간 약 '+esc(jrH(Math.round(+x.eta_min))):''} · ${lvFresh(lvT(x.changed),now)[0]}</div></details>`}).join('')}</div>`:'';
   return `<div class="lvsys" id="lv-sys"><span class="kv syl">🖥️ 시스템</span>${S.map(x=>`<details class="sy ${x.bucket==='blocked'?'bad':''}" data-gk="sy:${esc(x.id)}"><summary>${esc(nm3(x.title||x.id))}</summary><div class="kv">${esc(nm3(x.now||''))}<br>${esc(x.status||'')} · ${lvFresh(lvT(x.changed),now)[0]}</div></details>`).join('')}</div>${aj}`}
@@ -2277,7 +2334,7 @@ const NM_OLD=/관제센터|부대표|코칭팀|코칭실|개발팀|자료팀|취
 function nmSweep(){for(const r of document.querySelectorAll('.room.on,#nav,#lvbar')){const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(NM_OLD.test(n.nodeValue)&&n.parentNode&&!n.parentNode.closest('textarea,input,script,style'))n.nodeValue=nm3(n.nodeValue)}}}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['status','talk','extract','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['status','talk','extract','hb_dev','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','PD실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','애니 리드실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={v4:'#CEA85E',today:'#CEA85E',board:'#CEA85E',lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
