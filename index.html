@@ -660,6 +660,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .lc.v-table details.bv2,.lc.v-table details.hqrow{display:block}.lc.v-table .bv2>summary,.lc.v-table .hqrow>summary{display:flex;flex-wrap:nowrap;gap:0 8px;align-items:baseline;overflow:hidden;white-space:nowrap;padding-top:2px;padding-bottom:2px}
 .lc.v-table .bv2>summary>*,.lc.v-table .hqrow>summary>*{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lc.v-table .bv2>summary .bt{flex:1 1 auto}
 .lc.v-table .prog,.lc.v-table .tkpb{display:none}
+.lcflt{margin:2px 0 6px;color:var(--gold)}
 </style>
 </head>
 <body>
@@ -714,7 +715,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=54;
+const BUILD=55;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2093,7 +2094,7 @@ function boardSplit(L,now){const run=[],stop=[],done=[],ds=bDayStart(now);
 function bRow(x,now){const j=x.raw||{},[fr,fk]=bFresh(x.t,now),age=now-(x.t||0),k=x.status==='완료'?'done':x.k;
   const ic=k==='run'?(j.status==='대기'?'⏳':'🟢'):k==='blk'?'🔴':k==='stale'?'⏸️':k==='quiet'?'⏸️':(j.res===0?'🟡':'✅');
   const sub=k==='stale'?`<b class="bdays">${Math.floor(age/86400)}일째 멈춤</b>`:k==='blk'?'<b class="bblk">막힘</b>':k==='quiet'?`<span class="kv">${j.status==='멈춤'?(j.hold?'보류':'멈춤'):Math.floor(age/3600)?Math.floor(age/3600)+'시간째 조용':Math.floor(age/60)+'분째 조용'}</span>`:k==='run'&&x.pct!=null?`<span class="kv num">${x.pct}%</span>`:'';
-  return `<details class="bv2 jobd s-${k}" data-gk="job:${esc(x.id)}"><summary><span class="bi">${ic}</span><b class="bt">${esc(bNoIc(x.title))}</b>${sub}<span class="fr f-${fk}">${fr}</span>${k==='run'&&x.pct!=null?`<span class="prog"><i style="width:${x.pct}%"></i></span>`:''}</summary>
+  return `<details class="bv2 jobd s-${k}" data-gk="job:${esc(x.id)}" data-tm="${esc(j.owner||'')}" data-tmn="${esc(j.owner||'')}"><summary><span class="bi">${ic}</span><b class="bt">${esc(bNoIc(x.title))}</b>${sub}<span class="fr f-${fk}">${fr}</span>${k==='run'&&x.pct!=null?`<span class="prog"><i style="width:${x.pct}%"></i></span>`:''}</summary>
     <div class="bful">${esc(x.title)}</div>${typeof jobDet==='function'?jobDet(j):''}<div class="kv">${j.now?esc(nm3(j.now))+'<br>':''}${j.eta_min!=null&&j.status!=='완료'?`남은 시간 약 ${esc(jrH(Math.round(j.eta_min)))}<br>`:''}${esc(j.status||'')}${x.pct!=null?' · '+x.pct+'%':''} · ${esc(nm3(j.name||x.id))}${j.started?' · 시작 '+esc(String(j.started).slice(5)):''}</div></details>`}
 const bBad=b=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(b.id)}</b><span class="fr">${esc(agoT(b.t))}</span></div></div>`;
 function boardCard(){const now=Date.now()/1000;
@@ -2117,16 +2118,25 @@ const layVs=h=>{const rows=/class="[^"]*\b(bv2|hqrow)\b/.test(h),tm=rows&&/\b\d{
 const layDev=()=>innerWidth<600?'cover':innerWidth<1100?'fold':'pc';
 const layAll=()=>lsGet(LAY_K,{});
 const layEd=()=>{try{return !!EDIT.on}catch(e){return false}};   // edit.js 가 뒤에 실리므로 처음 그릴 때는 아직 없음
-const layBlank=()=>({order:[],w:{},h:{},v:{},hide:{},n:{},o:{},nm:{},c:{}});
+const layBlank=()=>({order:[],w:{},h:{},v:{},hide:{},n:{},o:{},nm:{},c:{},f:{}});
+// 거르기(11/28, 설계 7-2): 줄의 팀(data-tm) · 상태(class s-*) — 카드에 2가지 넘게 있을 때만 버튼이 나옴
+const LAY_ST={run:'🟢 도는 중',blk:'🔴 막힘',stale:'⏸️ 멈춤',quiet:'⏸️ 조용',done:'✅ 끝남',bad:'⚠ 읽기 실패'};
+function layFOpts(h){const T=new Map(),S=new Set();const re=/<(?:details|div)\b[^>]*class="[^"]*\b(?:bv2|hqrow)\b[^"]*"[^>]*>/g;let m;
+  while(m=re.exec(h)){const t=m[0],tm=(t.match(/data-tm="([^"]*)"/)||[])[1],tn=(t.match(/data-tmn="([^"]*)"/)||[])[1],st=(t.match(/class="[^"]*\bs-(\w+)/)||[])[1];if(tm)T.set(tm,tn||tm);if(st&&LAY_ST[st])S.add(st)}
+  return {tm:[...T.entries()],st:[...S]}}
 // 2차(11/28): 모서리 끌기(너비·높이) · ⋯ 더보기(개수 3·5·10·전부 · 정렬 새것/오래된 것 · 이름 바꾸기 · 강조색)
 const LAY_N=[0,3,5,10],LAY_C=[['','없음'],['#d4a94a','금색'],['#d9534f','빨강'],['#4caf6a','초록'],['#4a8fd4','파랑'],['#9a6ad4','보라']];
 // 카드 안 줄(.bv2·.hqrow)을 정렬·개수대로 — 그리기 전에 글(html)에서 바꾼다(다시 그려도 그대로)
-function layRows(html,n,o,nm){if(!n&&o!=='old'&&!nm)return html;const t=document.createElement('template');t.innerHTML=html;const F=t.content;
+function layRows(html,n,o,nm,f){f=f||{};if(!n&&o!=='old'&&!nm&&!f.tm&&!f.st)return html;const t=document.createElement('template');t.innerHTML=html;const F=t.content;
   if(nm){const h=F.querySelector('h2');const tx=h&&[...h.childNodes].find(x=>x.nodeType===3&&x.data.trim());if(tx)tx.data=nm+' ';else{const e=document.createElement('h2');e.className='sec lcn';e.textContent=nm;F.prepend(e)}}
   let R=[...F.querySelectorAll('.bv2,.hqrow')].filter(r=>!r.parentNode.closest('.bv2,.hqrow'));
+  if(f.tm||f.st){const ok=r=>(!f.tm||r.dataset.tm===f.tm)&&(!f.st||r.classList.contains('s-'+f.st)),out=R.filter(r=>!ok(r));out.forEach(r=>r.classList.add('lnh'));R=R.filter(ok);
+    const nt=f.tm&&((F.querySelector(`[data-tm="${CSS.escape(f.tm)}"]`)||{}).dataset||{}).tmn,b=document.createElement('div');b.className='kv lcflt';
+    b.textContent=`🔎 거름: ${[f.tm?'팀 '+(nt||f.tm):'',f.st?'상태 '+(LAY_ST[f.st]||f.st):''].filter(Boolean).join(' · ')} · 맞는 줄 ${R.length}개${out.length?' · 숨긴 줄 '+out.length+'개':''}${R.length?'':' — 맞는 줄이 없어요'} · ✏ › ⋯ 에서 풀기`;
+    const h2=F.querySelector('h2');if(h2&&h2.parentNode)h2.after(b);else F.prepend(b)}
   if(o==='old'){const P=new Map();R.forEach(r=>{P.has(r.parentNode)||P.set(r.parentNode,[]);P.get(r.parentNode).push(r)});
     for(const rs of P.values()){const ph=rs.map(r=>{const m=document.createComment('');r.replaceWith(m);return m}),rv=rs.slice().reverse();ph.forEach((m,k)=>m.replaceWith(rv[k]))}
-    R=[...F.querySelectorAll('.bv2,.hqrow')].filter(r=>!r.parentNode.closest('.bv2,.hqrow'))}
+    R=[...F.querySelectorAll('.bv2,.hqrow')].filter(r=>!r.parentNode.closest('.bv2,.hqrow')&&!r.classList.contains('lnh'))}
   if(n&&R.length>n){R.slice(n).forEach(r=>r.classList.add('lnh'));const m=document.createElement('div');m.className='kv lcmore';m.textContent=`그 밖 ${R.length-n}개 · ✏ › ⋯ › 개수에서 더 보기`;F.append(m)}
   const d=document.createElement('div');d.append(F);return d.innerHTML}
 function layGet(room){return Object.assign(layBlank(),JSON.parse(JSON.stringify(((layAll()[layDev()]||{})[room])||{})))}
@@ -2141,8 +2151,9 @@ function layOrder(L,ids){if(!L.order.length)return {order:ids,fresh:[]};const kn
 function layGrid(room,cards){cards=cards.filter(c=>c.html);const L=layGet(room),dev=layDev(),ed=layEd(),by=Object.fromEntries(cards.map(c=>[c.id,c])),{order,fresh}=layOrder(L,cards.map(c=>c.id));
   const vis=order.filter(i=>!L.hide[i]),hid=order.filter(i=>L.hide[i]),hn=k=>(LAY_H.find(x=>x[0]===k)||LAY_H[0])[1],vn=k=>(LAY_V.find(x=>x[0]===k)||LAY_V[0])[1];
   const cell=i=>{const c=by[i],w=LAY_W[dev].includes(+L.w[i])?+L.w[i]:12,h=L.h[i]||'a',vs=c.view?layVs(c.html):['list'],v=vs.includes(L.v[i])?L.v[i]:'list',n=c.view?+L.n[i]||0:0,o=c.view&&L.o[i]==='old'?'old':'new',nm=String(L.nm[i]||'').slice(0,30),cc=(LAY_C.find(x=>x[0]&&x[0]===L.c[i])||LAY_C[0]),mo=ed&&layGrid.M===room+'/'+i;
-    let body=c.html;try{body=layRows(c.html,n,o,nm)}catch(x){}
-    return `<div class="lc h-${h} v-${v}${ed?' ed':''}${cc[0]?' cl':''}" data-vs="${vs.join(',')}" data-card="${i}" data-w="${w}" style="grid-column:span ${w}${cc[0]?';--lcc:'+cc[0]:''}">${ed?`<div class="lct"><span class="lch" data-lh="1" role="button" aria-label="${esc(c.name)} 끌어서 옮기기">⠿</span><b>${esc(nm||c.name)}${fresh.includes(i)?' 🆕':''}</b><span class="lcbs"><button data-la="up" aria-label="위로">↑</button><button data-la="dn" aria-label="아래로">↓</button><button data-la="w">↔ ${LAY_WN[w]}</button><button data-la="h">↕ ${hn(h)}</button>${c.view?`<button data-la="v">👁 ${vn(v)}</button>`:''}<button data-la="fold">${h==='s'?'펴기':'접기'}</button><button data-la="hide">숨기기</button><button data-la="more" aria-expanded="${mo}" aria-label="${esc(c.name)} 더보기">⋯</button></span>${mo?`<span class="lcbs lcm">${c.view?`<button data-la="n">개수 ${n?n+'개':'전부'}</button><button data-la="o">정렬 ${o==='old'?'오래된 것':'새것'} 먼저</button>`:''}<button data-la="nm">이름 바꾸기</button><button data-la="c">색 ${cc[1]}</button></span>`:''}</div>`:''}<div class="lcb">${body}</div>${ed?`<span class="lcrw" data-lrs="w" role="separator" aria-label="오른쪽 모서리 끌어 너비"></span><span class="lcrh" data-lrs="h" role="separator" aria-label="아래 모서리 끌어 높이"></span>`:''}</div>`};
+    const fo=c.view?layFOpts(c.html):{tm:[],st:[]},f0=L.f[i]||{},f={tm:fo.tm.some(x=>x[0]===f0.tm)?f0.tm:'',st:fo.st.includes(f0.st)?f0.st:''},ftn=f.tm?(fo.tm.find(x=>x[0]===f.tm)||[])[1]:'';
+    let body=c.html;try{body=layRows(c.html,n,o,nm,f)}catch(x){}
+    return `<div class="lc h-${h} v-${v}${ed?' ed':''}${cc[0]?' cl':''}" data-vs="${vs.join(',')}" data-ft="${esc(fo.tm.map(x=>x[0]).join(','))}" data-fs="${fo.st.join(',')}" data-card="${i}" data-w="${w}" style="grid-column:span ${w}${cc[0]?';--lcc:'+cc[0]:''}">${ed?`<div class="lct"><span class="lch" data-lh="1" role="button" aria-label="${esc(c.name)} 끌어서 옮기기">⠿</span><b>${esc(nm||c.name)}${fresh.includes(i)?' 🆕':''}</b><span class="lcbs"><button data-la="up" aria-label="위로">↑</button><button data-la="dn" aria-label="아래로">↓</button><button data-la="w">↔ ${LAY_WN[w]}</button><button data-la="h">↕ ${hn(h)}</button>${c.view?`<button data-la="v">👁 ${vn(v)}</button>`:''}<button data-la="fold">${h==='s'?'펴기':'접기'}</button><button data-la="hide">숨기기</button><button data-la="more" aria-expanded="${mo}" aria-label="${esc(c.name)} 더보기">⋯</button></span>${mo?`<span class="lcbs lcm">${c.view?`<button data-la="n">개수 ${n?n+'개':'전부'}</button><button data-la="o">정렬 ${o==='old'?'오래된 것':'새것'} 먼저</button>${fo.tm.length>1?`<button data-la="ft" title="이 팀 줄만 보기(누를 때마다 다음 팀)">팀 ${f.tm?esc(ftn||f.tm):'전부'}</button>`:''}${fo.st.length>1?`<button data-la="fs" title="이 상태 줄만 보기(누를 때마다 다음 상태)">상태 ${f.st?LAY_ST[f.st]:'전부'}</button>`:''}`:''}<button data-la="nm">이름 바꾸기</button><button data-la="c">색 ${cc[1]}</button></span>`:''}</div>`:''}<div class="lcb">${body}</div>${ed?`<span class="lcrw" data-lrs="w" role="separator" aria-label="오른쪽 모서리 끌어 너비"></span><span class="lcrh" data-lrs="h" role="separator" aria-label="아래 모서리 끌어 높이"></span>`:''}</div>`};
   return `<div class="lvgrid${ed?' ed':''}" data-room="${room}" data-hid="${esc(hid.join(','))}">${vis.map(cell).join('')}${ed?`<div class="lcadd"><b>＋ 카드</b>${hid.length?hid.map(i=>`<button class="btn" data-ladd="${esc(i)}">＋ ${esc(by[i].name)}</button>`).join(''):'<span class="kv">숨긴 카드가 없어요 — 이 탭 카드는 모두 나와 있어요</span>'}</div>`:''}</div>`}
 function layFromDom(g){const L=layGet(g.dataset.room);L.order=[...[...g.querySelectorAll(':scope>.lc')].map(e=>e.dataset.card),...(g.dataset.hid?g.dataset.hid.split(','):[])];return L}
 document.addEventListener('click',e=>{let b;
@@ -2162,9 +2173,10 @@ document.addEventListener('click',e=>{let b;
     else if(a==='n')L.n[i]=cyc(LAY_N,+L.n[i]||0);
     else if(a==='o')L.o[i]=L.o[i]==='old'?'new':'old';
     else if(a==='c')L.c[i]=cyc(LAY_C.map(x=>x[0]),L.c[i]||'');
+    else if(a==='ft'||a==='fs'){const kk=a==='ft'?'tm':'st',opt=['',...(c.dataset[a]||'').split(',').filter(Boolean)],f=Object.assign({},L.f[i]||{});f[kk]=cyc(opt,opt.includes(f[kk]||'')?f[kk]||'':'');if(!f[kk])delete f[kk];if(f.tm||f.st)L.f[i]=f;else delete L.f[i]}
     else if(a==='nm'){const cur=L.nm[i]||'',t=prompt('카드 이름 (비우면 원래 이름)',cur||(c.querySelector('.lct>b')||{}).textContent||'');if(t===null)return;const v2=t.replace(/\s+/g,' ').trim().slice(0,30);if(v2)L.nm[i]=v2;else delete L.nm[i]}
     laySet(g.dataset.room,L);render();
-    if(/^(n|o|c|nm)$/.test(a)){const n3=document.querySelector(`.room.on .lc[data-card="${CSS.escape(i)}"] [data-la="${a}"]`);if(n3)n3.focus({preventScroll:true})}
+    if(/^(n|o|c|nm|ft|fs)$/.test(a)){const n3=document.querySelector(`.room.on .lc[data-card="${CSS.escape(i)}"] [data-la="${a}"]`);if(n3)n3.focus({preventScroll:true})}
     if(a==='up'||a==='dn'){const n=document.querySelector(`.room.on .lc[data-card="${CSS.escape(i)}"] [data-la="${a}"]`);if(n)n.focus({preventScroll:true})}}});
 // 끌어서 순서 바꾸기(손잡이 ⠿): 마우스·터치 같은 코드. 끄는 동안은 다시 그리지 않는다(30초 갱신이 와도 튀지 않게)
 (function(){let D=null;
@@ -2591,7 +2603,7 @@ function lvRow(x,k,now){const p=typeof x.pct==='number'?Math.round(x.pct):null,c
   const ic=k==='run'?'🟢':k==='blocked'?'🔴':k==='done'?'✅':'⏸️';
   const sub=k==='stall'?`<b class="bdays">${lvT(x.changed)?Math.max(1,Math.floor((now-lvT(x.changed))/86400))+'일째 멈춤':'멈춤'}</b>`:k==='blocked'?'<b class="bblk">막힘</b>':k==='quiet'?`<span class="kv">${x.status==='대기'?'기다림':x.status==='멈춤'?'멈춤':'조용'}</span>`:k==='run'&&p!=null?`<span class="kv num">${p}%</span>`:'';
   const tm=TEAM_NM(x.owner);
-  return `<details class="bv2 jobd s-${c}" data-gk="lv:${esc(x.id)}"><summary><span class="bi">${ic}</span><b class="bt">${esc(lvNoIc(nm3(x.notify_title||x.title||x.id)))}</b>${sub}${lvF(lvT(x.changed),now,x.conf==='unknown')}${k==='run'&&p!=null?`<span class="prog"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></span>`:''}</summary>
+  return `<details class="bv2 jobd s-${c}" data-gk="lv:${esc(x.id)}" data-tm="${esc(x.owner||'')}" data-tmn="${esc(tm||x.owner||'')}"><summary><span class="bi">${ic}</span><b class="bt">${esc(lvNoIc(nm3(x.notify_title||x.title||x.id)))}</b>${sub}${lvF(lvT(x.changed),now,x.conf==='unknown')}${k==='run'&&p!=null?`<span class="prog"><i style="width:${Math.max(0,Math.min(100,p))}%"></i></span>`:''}</summary>
     <div class="bful">${esc(nm3(x.title||x.id))}</div><div class="kv">${x.now?esc(nm3(x.now))+'<br>':''}${x.eta_min!=null&&k!=='done'?`남은 시간 약 ${esc(jrH(Math.round(x.eta_min)))}<br>`:''}${esc(x.status||'')}${p!=null?' · '+p+'%':''}${tm?' · '+esc(tm):''} · 내용이 바뀐 때 ${esc(String(x.changed||'').slice(5,16))}${x.conf==='seed'?' (추정)':''}</div></details>`}
 const TEAM_NM=k=>{const t=Live.get('teams',[]).find(t=>t.key===k);return t?nm3(t.name):''};
 // 팀 신호등 한 줄: 팀마다 신호(🟢 30분 안 진행 · 🟡 편지 기다림 · 🔴 실패·막힘 · ⚪ 쉼) + 마지막 진행 신선도
