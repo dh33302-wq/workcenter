@@ -478,6 +478,31 @@ body.editing #main{padding-bottom:240px}#editp .ep-h .btn{margin-left:0}#editp .
 /* 누르는 줄(보고·조사·트로피 목록)도 글씨와 구별되게: 칸 테두리 + 배경 + 눌림 */
 button.hqrow,.trow,.qrow{border:1px solid #2c2820!important;border-radius:8px;background:var(--bg-row);padding:10px 12px;margin-top:6px;box-shadow:0 2px 0 #000;transition:background .12s,transform .06s}
 button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:active,.trow:active,.qrow:active{transform:translateY(2px);box-shadow:none;background:#101010}
+
+/* ---- 💬 AI끼리 대화(talk.js, 11/27 talk_view) ---- */
+.tkh{display:flex;flex-wrap:wrap;gap:6px 16px;margin:2px 0 8px;font-size:calc(14px*var(--s))}
+.tkps{display:grid;gap:4px;margin-bottom:8px}
+.tkp{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) 34px;gap:8px;align-items:center;font-size:calc(13px*var(--s))}
+.tkpn{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tkpb{height:10px;background:#20252d;border-radius:5px;overflow:hidden}.tkpb i{display:block;height:100%;background:#5b8def;border-radius:5px}
+.tkp .num{text-align:right}
+.tkf{display:flex;align-items:center;gap:8px;margin:4px 0 6px;font-size:calc(14px*var(--s))}
+.tkl,.tkm{display:grid;gap:4px;grid-template-columns:minmax(0,1fr)}.tkl>*,.tkm>*{min-width:0}#lv-talk,.tkh,.tkps{min-width:0;max-width:100%}
+.tkr{display:flex;gap:8px;align-items:flex-start;width:100%;min-height:44px;text-align:left;background:#15181d;border:1px solid #2a313c;border-radius:10px;padding:6px 10px;color:inherit;font:inherit;cursor:pointer}
+.tkr.on{border-color:#3d6b4a}.tkr:hover{background:#1b2027}
+.tki{flex:none;white-space:nowrap}.tkb{min-width:0;display:flex;flex-direction:column}
+.tkb b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.tkon{color:#6fd08c}
+.tkbtn{margin-top:6px;min-height:44px}
+#sidev-b{flex:1;overflow:auto;padding:10px 10px 24px}#sidev-b[hidden]{display:none}
+.tkc{display:flex;flex-direction:column;gap:8px}.tkc0{text-align:center}
+.tkm1{display:flex}.tkm1.r{justify-content:flex-end}
+.tkw{max-width:86%;border-radius:14px;padding:8px 11px;border:1px solid #2a313c;background:#1a1e25;font-size:calc(14px*var(--s));overflow-wrap:anywhere}
+.tkm1.r .tkw{border-bottom-right-radius:4px}.tkm1.l .tkw{border-bottom-left-radius:4px}
+.tkw.k-req{background:#17243a;border-color:#2f4f86}.tkw.k-res{background:#16291d;border-color:#2f6a42}
+.tkw.k-dec{background:#33230f;border-color:#a8651d}.tkw.k-ntc{background:#1d2026;border-color:#3a414d}
+.tkw.k-ai{background:#30260c;border-color:#b8871a}
+.tkwh{font-size:calc(12px*var(--s));opacity:.85;margin-bottom:3px}.tkwt{margin-bottom:2px}
+.tkt{white-space:pre-wrap}.tkfull summary{cursor:pointer;list-style:none;display:block}.tkfull summary::-webkit-details-marker{display:none}.tkmore{display:inline-flex;align-items:center;min-height:32px;color:#9fb6e8;font-size:calc(13px*var(--s))}.tkfull[open] summary .tkt{display:none}.tkfull[open] .tkmore::after{content:' 접기'}.tkfull[open] .tkmore{font-size:0}.tkfull[open] .tkmore::after{font-size:calc(13px*var(--s))}
 </style>
 </head>
 <body>
@@ -531,7 +556,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=38;
+const BUILD=39;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1955,6 +1980,49 @@ document.addEventListener('click',e=>{let b;
   document.addEventListener('pointerup',end);document.addEventListener('pointercancel',end)})();
 window.addEventListener('resize',()=>{clearTimeout(layGrid.R);layGrid.R=setTimeout(()=>{if(layGrid.D!==layDev()){layGrid.D=layDev();render()}},200)});layGrid.D=layDev();
 
+// ---- 📊 진행판 '💬 AI끼리 대화' 카드(동현 11/27 07:03, control talk_view) ----
+// 원본 = TA팀 hub\state\talk.json → 지킴이 hq_talk.py 가 줄여서 state talk(목록·숫자, 30초마다) + talk_d1·talk_d2(편지, 줄기를 누를 때만 받음).
+// 카드: 맨 위 오늘 숫자 + 짝별 횟수 막대 / 줄기 목록(제목·팀 아이콘·왕복·진행/끝·○분 전) / 누르면 옆 창에 채팅처럼.
+// 팀 카드의 '💬 이 팀 대화' 버튼 = 그 팀 줄기만 거른 보기(S3.talkF).
+const TK_IC={PD:'🎬',PM:'🧭','TA팀':'🛠️','에셋팀':'📦','애니 리드':'🎓','UI/UX팀':'🖥️','커리어팀':'💼','어시스턴트':'🎃','대표':'👑'};
+const TK_KEY={control:'PD',pm:'PM',control_auto:'PM',code:'TA팀',ref_factory:'에셋팀',anim_teacher:'애니 리드',wc_app:'UI/UX팀',job_prep:'커리어팀',gemini:'어시스턴트'};
+const TK_KIND={'부탁':'req','결과':'res','❓결정':'dec','결정':'dec','알림':'ntc'};
+const tkIc=n=>TK_IC[n]||'•';
+function tkAgo(s,now){const t=lvT(s);if(!t)return '';const m=Math.max(0,Math.round((now-t)/60));return m<1?'방금':m<60?m+'분 전':m<1440?Math.round(m/60)+'시간 전':Math.round(m/1440)+'일 전'}
+const Talk={get(){const t=S3.st.talk;return t&&!t.missing&&Array.isArray(t.threads)?t:null},
+  apiN(t){const A=(t.today||{}).api||{};return Object.keys(A).filter(k=>k!=='실패').reduce((a,k)=>a+(+A[k]||0),0)},
+  list(f){const t=this.get();if(!t)return [];const L=[...t.threads].sort((a,b)=>String(b.l).localeCompare(String(a.l)));return f?L.filter(x=>(x.tm||[]).includes(f)):L},
+  teamN(name){return this.list(name).length}};
+function talkCard(now){const t=S3.st.talk;
+  if(!t)return '';
+  if(t.missing||!Array.isArray(t.threads))return oct(`<h2 class="sec" id="lv-talk">💬 AI끼리 대화</h2><div class="kv f-old" id="tk-miss">⚠ ${esc(t.why||'대화 묶음을 기다려요')}</div>`,'lvc');
+  const T=t.today||{},P=(T.pairs||[]).slice(0,8),mx=Math.max(1,...P.map(p=>+p.n||0)),f=S3.talkF||'',L=Talk.list(f),fail=+((T.api||{})['실패'])||0;
+  const row=x=>`<button class="tkr${x.st==='진행'?' on':''}" data-talk="${esc(x.id)}" title="눌러서 옆 창에 채팅처럼 봐요"><span class="tki">${(x.tm||[]).map(tkIc).join('')}</span><span class="tkb"><b>${esc(x.ti)}</b><small class="kv">${(x.tm||[]).map(esc).join(' · ')} · 왕복 ${+x.tu||0} · 편지 ${+x.n||0}${x.na?` · 🎃 ${+x.na}`:''} · ${x.st==='진행'?'<b class="tkon">진행</b>':esc(x.st||'끝')} · ${tkAgo(x.l,now)}</small></span></button>`;
+  const head=`<div class="tkh" id="tk-head"><span>오늘 대화 <b class="num" id="tk-n-th">${+T.threads||0}</b>줄기</span><span>편지 <b class="num" id="tk-n-l">${+T.letters||0}</b>통</span><span>어시스턴트 호출 <b class="num" id="tk-n-api">${Talk.apiN(t)}</b>${fail?` <small class="kv">(실패 ${fail})</small>`:''}</span></div>`;
+  const bars=P.length?`<div class="tkps" id="tk-pairs">${P.map(p=>`<div class="tkp" title="${esc(p.f)} → ${esc(p.t)} 오늘 ${+p.n}통"><span class="tkpn">${tkIc(p.f)} ${esc(p.f)} → ${tkIc(p.t)} ${esc(p.t)}</span><span class="tkpb"><i style="width:${Math.max(4,Math.round((+p.n||0)/mx*100))}%"></i></span><b class="num">${+p.n||0}</b></div>`).join('')}</div>`:'';
+  const fl=f?`<div class="tkf" id="tk-filter">${tkIc(f)} <b>${esc(f)}</b> 줄기만 ${L.length}개 <button class="btn" data-talkf="" title="모든 팀 줄기를 다시 봐요">모두 보기</button></div>`:'';
+  const first=L.slice(0,10),more=L.slice(10);
+  return oct(`<h2 class="sec" id="lv-talk">💬 AI끼리 대화 <span class="kv">최근 ${t.threads.length}줄기 · 눌러서 채팅처럼</span></h2>${head}${bars}${fl}<div class="tkl" id="tk-list">${first.map(row).join('')||'<div class="empty">줄기가 없어요</div>'}</div>${more.length?`<details class="tkm" data-gk="tkmore"><summary class="kv">더 보기 ${more.length}</summary>${more.map(row).join('')}</details>`:''}`,'lvc')}
+// 채팅 보기: 오른쪽 = 처음 보낸 팀, 왼쪽 = 받는 팀. 말풍선 색 = 부탁 파랑 · 결과 초록 · ❓결정 주황 · 알림 회색 · 어시스턴트 호박색
+function talkBody(x,D){const s1=x.s1||((D.L||[])[0]||{}).f||'';const other=(x.tm||[]).filter(n=>n!==s1);
+  const it=[...(D.L||[]).map(m=>({at:m.at,m})),...(D.A||[]).map(a=>({at:a.at,a}))].sort((p,q)=>String(p.at).localeCompare(String(q.at)));
+  const txt=(s,n)=>{s=String(s||'');if(s.length<=n)return `<div class="tkt">${esc(s)}</div>`;return `<details class="tkfull"><summary><div class="tkt">${esc(s.slice(0,n))}…</div><span class="tkmore">전체 보기</span></summary><div class="tkt">${esc(s)}</div>${/…$/.test(s)?'<small class="kv">앞부분만 와요 · 원문은 PC 편지함</small>':''}</details>`};
+  const b=e=>{if(e.m){const m=e.m,r=m.f===s1;return `<div class="tkm1 ${r?'r':'l'}"><div class="tkw k-${TK_KIND[m.k]||'ntc'}"><div class="tkwh">${tkIc(m.f)} <b>${esc(m.f)}</b> → ${tkIc(m.t)} ${esc(m.t)} · <span class="tkk">${esc(m.k)}</span> · ${esc(String(m.at).slice(11))}${m.d?'':' · 열림'}</div><div class="tkwt"><b>${esc(m.ti)}</b></div>${txt(m.b,90)}</div></div>`}
+    const a=e.a;return `<div class="tkm1 l"><div class="tkw k-ai"><div class="tkwh">🎃 <b>어시스턴트</b> · ${esc(a.w)} · ${esc(String(a.at).slice(11))}${a.ok?'':' · ⚠ 실패'}</div>${a.q?`<div class="tkt"><small class="kv">물음</small> ${esc(a.q)}</div>`:''}${txt(a.a,90)}</div></div>`};
+  return `<div class="tkc" id="tk-chat"><div class="kv tkc0">왼쪽 받는 팀 ${other.map(n=>tkIc(n)+' '+esc(n)).join(' · ')||'–'} · 오른쪽 보낸 팀 ${tkIc(s1)} ${esc(s1)} · 왕복 ${+x.tu||0} · ${esc(x.st||'')}</div>${D.cut?`<div class="kv tkc0">앞 편지 ${+D.cut}통은 줄여서 뺐어요</div>`:''}${it.map(b).join('')||'<div class="empty">편지 내용이 아직 안 왔어요</div>'}</div>`}
+async function talkOpen(id){const t=Talk.get();if(!t)return;const x=t.threads.find(z=>z.id===id);if(!x)return;
+  sideHtml(`💬 ${x.ti}`,'<div class="empty" id="tk-wait">불러오는 중…</div>');
+  S3.talkd=S3.talkd||{};let P=S3.talkd[x.p];
+  try{if(!P||Date.now()-P.t>60000||!(P.d.th||{})[id]){const q=await api.get([x.p]);const d=q&&q.state&&q.state[x.p];if(!d||!d.th)throw new Error('아직 안 왔어요');P=S3.talkd[x.p]={t:Date.now(),d}}
+    const D=(P.d.th||{})[id];if(!D)throw new Error('이 줄기는 새로 바뀌어 다시 받아야 해요');
+    if(sideOn())sideHtml(`💬 ${x.ti}`,talkBody(x,D))}
+  catch(e){if(sideOn())sideHtml(`💬 ${x.ti}`,`<div class="kv f-old" id="tk-err">⚠ 편지를 못 받았어요 · ${esc(e.message||e)}<br>조금 뒤 다시 눌러 주세요</div>`)}}
+function talkFilter(f){S3.talkF=f||'';if(S3.room!=='board'){location.hash='#board';setTimeout(()=>{const e=$('#lv-talk');if(e)e.scrollIntoView({block:'start'})},120);return}
+  render();setTimeout(()=>{const e=$('#lv-talk');if(e)e.scrollIntoView({block:'start'})},30)}
+const talkTeamBtn=key=>{const n=TK_KEY[key];if(!n||!Talk.get())return '';const c=Talk.teamN(n);return `<button class="btn tkbtn" data-talkf="${esc(n)}" title="${esc(n)}가 낀 대화 줄기만 봐요">💬 이 팀 대화 ${c}</button>`};
+document.addEventListener('click',e=>{const a=e.target.closest('[data-talk]');if(a){e.preventDefault();talkOpen(a.dataset.talk);return}
+  const f=e.target.closest('[data-talkf]');if(f){e.preventDefault();talkFilter(f.dataset.talkf)}});
+
 // ---- HB HQ 실시간 두 탭 (PD 11/27 04:47 p1_hq_live): 🏠 오늘 · 📊 진행판 ----
 // 숫자(일·팀·막힘·어시스턴트·Claude)는 status.json(S3.st.status, 모양 hq_status_v1 — TA팀 hub\tools\status_feed.py)에서만 읽는다.
 // 원본 바꿔 끼우기(C2): Live 의 raw·at·pcAt 만 고친다. 화면(오늘·진행판)은 그대로.
@@ -2053,7 +2121,7 @@ function lvTeamCard(t,now){const ic=TEAM_IC[t.key]||'',at=lvT(t.updated)||lvT(t.
     ${TEAM_ROLE[t.key]?`<div class="kv tcr">실제 회사에서: ${esc(TEAM_ROLE[t.key])}</div>`:''}
     ${Q.length?`<div class="tcq"><b>다음 할 일 ${Q.length}</b>${Q.map(q=>`<div class="kv">· ${esc(nm3(q))}</div>`).join('')}</div>`:''}
     <div class="tcq"><b>결과 편지 최근 ${R.length}</b>${R.map(r=>`<div class="kv">${esc(r.t)} → ${esc(TEAM_NM(r.to)||r.to)} · ${esc(lvNoIc(nm3(r.title)))}</div>`).join('')||'<div class="kv">아직 없어요</div>'}</div>
-    <div class="kv">열린 편지 ${+t.inbox_open||0}${t.inbox_new?' · 새 편지 '+t.inbox_new:''} · 도는 일 ${+t.jobs_run||0}${t.jobs_blocked?' · 막힌 일 '+t.jobs_blocked:''}</div></details>`}
+    <div class="kv">열린 편지 ${+t.inbox_open||0}${t.inbox_new?' · 새 편지 '+t.inbox_new:''} · 도는 일 ${+t.jobs_run||0}${t.jobs_blocked?' · 막힌 일 '+t.jobs_blocked:''}</div>${talkTeamBtn(t.key)}</details>`}
 function lvTeamCards(now){const T=Live.get('teams',[]);if(!T.length)return '';const busy=T.filter(t=>t.task||t.light==='🔴'||t.light==='🟡'||t.running),idle=T.filter(t=>!busy.includes(t));
   return `<div class="tcs" id="lv-tcs">${busy.map(t=>lvTeamCard(t,now)).join('')}</div>${idle.length?`<div class="tci">${idle.map(t=>lvTeamCard(t,now)).join('')}</div>`:''}`}
 function lvSystem(now){const S=Live.get('system',[]);if(!S.length&&!Live.get('auto_jobs',[]).length)return '';
@@ -2069,7 +2137,7 @@ function board2(){const now=Date.now()/1000,t0=performance.now(),s=Live.raw();
   const run=Live.jobs('run'),blk=Live.jobs('blocked'),quiet=Live.jobs('quiet'),stall=Live.jobs('stall'),done=Live.jobs('done_today'),C0=s.counts||{},er=s.errors||[];
   const stopN=blk.length+stall.length+er.length,G=(S3.st.hb_gates||{}).gates||[],gp=G.filter(g=>g.pass===true).length;
   const sec=(id,h,body)=>oct(`<h2 class="sec" id="${id}">${h}</h2>${body}`,'bv2c lvc');
-  const C=[{id:'line',name:'상태 줄 · 시스템',html:lvStatusLine()+lvSystem(now)},{id:'tcards',name:'팀별 지금 하는 일',html:oct(`<h2 class="sec" id="lv-teams">팀별 지금 하는 일 <span class="kv">눌러서 다음 할 일·결과 편지</span></h2>${lvTeamCards(now)}`,'lvc')},{id:'run',name:'🟢 지금 도는 일',view:1,html:sec('lv-run',`🟢 지금 도는 일 <span class="num" id="lv-n-run">${run.length}</span> <span class="kv">30분 안에 내용이 바뀐 것</span>`,(run.map(x=>lvRow(x,'run',now)).join('')||'<div class="empty">지금 도는 일이 없어요</div>')+(quiet.length?`<div class="kv lvq" id="lv-quiet">조용한 일 <b class="num" id="lv-n-quiet">${quiet.length}</b> · 30분 넘게 소식 없음(하루 안)</div>${quiet.map(x=>lvRow(x,'quiet',now)).join('')}`:''))},{id:'stop',name:'🔴 멈춘 일',view:1,html:sec('lv-stop',`🔴 멈춘 일 <span class="num" id="lv-n-stop">${stopN}</span> <span class="kv">막힘 · 하루 넘게 그대로 · 읽기 실패</span>`,er.map(e=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(e.file)}</b><span class="fr"></span></div></div>`).join('')+[...blk.map(x=>lvRow(x,'blocked',now)),...stall.map(x=>lvRow(x,'stall',now))].join('')||'<div class="ok">멈춘 일이 없어요</div>')},
+  const C=[{id:'line',name:'상태 줄 · 시스템',html:lvStatusLine()+lvSystem(now)},{id:'tcards',name:'팀별 지금 하는 일',html:oct(`<h2 class="sec" id="lv-teams">팀별 지금 하는 일 <span class="kv">눌러서 다음 할 일·결과 편지</span></h2>${lvTeamCards(now)}`,'lvc')},{id:'talk',name:'💬 AI끼리 대화',html:talkCard(now)},{id:'run',name:'🟢 지금 도는 일',view:1,html:sec('lv-run',`🟢 지금 도는 일 <span class="num" id="lv-n-run">${run.length}</span> <span class="kv">30분 안에 내용이 바뀐 것</span>`,(run.map(x=>lvRow(x,'run',now)).join('')||'<div class="empty">지금 도는 일이 없어요</div>')+(quiet.length?`<div class="kv lvq" id="lv-quiet">조용한 일 <b class="num" id="lv-n-quiet">${quiet.length}</b> · 30분 넘게 소식 없음(하루 안)</div>${quiet.map(x=>lvRow(x,'quiet',now)).join('')}`:''))},{id:'stop',name:'🔴 멈춘 일',view:1,html:sec('lv-stop',`🔴 멈춘 일 <span class="num" id="lv-n-stop">${stopN}</span> <span class="kv">막힘 · 하루 넘게 그대로 · 읽기 실패</span>`,er.map(e=>`<div class="bv2 s-bad"><div class="bsum"><span class="bi">⚠</span><b class="bt">읽기 실패 · ${esc(e.file)}</b><span class="fr"></span></div></div>`).join('')+[...blk.map(x=>lvRow(x,'blocked',now)),...stall.map(x=>lvRow(x,'stall',now))].join('')||'<div class="ok">멈춘 일이 없어요</div>')},
     {id:'done',name:'✅ 오늘 끝난 일',html:oct(`<details class="bdone" data-gk="lvdone"><summary><h2 class="sec" style="display:inline">✅ 오늘 끝난 일 <span class="num" id="lv-n-done">${+C0.done_today||0}</span></h2> <span class="kv">눌러서 보기 · 지금까지 모두 ${+C0.done||0}개</span></summary>${done.map(x=>lvRow(x,'done',now)).join('')||'<div class="empty">오늘 끝난 일은 아직 없어요</div>'}${(+C0.done_today||0)>done.length?`<div class="kv">최근 ${done.length}개만 보여요</div>`:''}</details>`,'bv2c lvc')},{id:'news',name:'📰 보고',html:`<div id="lv-news">${rptTop()||oct('<h2 class="sec">📰 보고 · 🎃 어시스턴트 결과</h2><div class="empty">새 보고가 없어요</div>','lvc')}</div>`},{id:'gates',name:'🎯 통과 기준',html:oct(`<div class="hqrow"><b>🎯</b><span><b>통과 기준</b> ${G.length?`${gp} / ${G.length} 통과`:'기다리는 중'}<br><small class="kv">제품별 품질 관문 · 클립</small></span><a class="btn" href="#hb">열기</a></div><div class="hqrow"><b>🗂️</b><span><b>끝난 일 전체 · 일 자세히</b><br><small class="kv">옛 PD실</small></span><a class="btn" href="#ops">열기</a></div>`,'lvc')},{id:'health',name:'🩺 배달 기록(팀 건강)',html:healthCard()?`<details class="gt lvhl" data-gk="lvhealth"><summary>🩺 배달 기록 · 팀 건강 <span class="kv">눌러서 보기</span></summary>${healthCard()}</details>`:''}];
   keepOpen($('#r-board'),()=>$('#r-board').innerHTML=`<h1>진행판</h1><p class="lead">잘 돌아가고 있나 · 모든 일 ${(+C0.run||0)+(+C0.quiet||0)+(+C0.stall||0)+(+C0.blocked||0)+(+C0.done||0)}개</p>${hz()}${layGrid('board',C)}`);
   if(S3.bdJump){const e=$('#lv-'+S3.bdJump);S3.bdJump='';if(e)setTimeout(()=>e.scrollIntoView({block:'start'}),30)}
@@ -2101,7 +2169,7 @@ const NM_OLD=/관제센터|부대표|코칭팀|코칭실|개발팀|자료팀|취
 function nmSweep(){for(const r of document.querySelectorAll('.room.on,#nav,#lvbar')){const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(NM_OLD.test(n.nodeValue)&&n.parentNode&&!n.parentNode.closest('textarea,input,script,style'))n.nodeValue=nm3(n.nodeValue)}}}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['status','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['status','talk','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','PD실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','애니 리드실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={v4:'#CEA85E',today:'#CEA85E',board:'#CEA85E',lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
@@ -2614,9 +2682,13 @@ function sideUrl(u){let x;try{x=new URL(u,location.href)}catch(e){return null}
   return x.href}
 const sideExt=u=>{try{return SIDE_EXT.test(new URL(u,location.href).hostname)}catch(e){return false}};
 function sideEl(){let el=$('#sidev');if(el)return el;el=document.createElement('div');el.id='sidev';el.hidden=true;
-  el.innerHTML='<div class="sd-h"><b id="sidev-t"></b><a id="sidev-o" class="btn" target="_blank" rel="noopener" title="안 보이면 새 탭에서 열어요 ↗">↗</a><button id="sidev-x" class="btn" title="옆 창 닫기" aria-label="닫기">✕</button></div><iframe id="sidev-f" referrerpolicy="no-referrer-when-downgrade" allow="autoplay; fullscreen"></iframe>';
+  el.innerHTML='<div class="sd-h"><b id="sidev-t"></b><a id="sidev-o" class="btn" target="_blank" rel="noopener" title="안 보이면 새 탭에서 열어요 ↗">↗</a><button id="sidev-x" class="btn" title="옆 창 닫기" aria-label="닫기">✕</button></div><iframe id="sidev-f" referrerpolicy="no-referrer-when-downgrade" allow="autoplay; fullscreen"></iframe><div id="sidev-b" hidden></div>';
   document.body.appendChild(el);return el}
-function sideOpen(u,t){const s=sideUrl(u);if(!s)return false;const el=sideEl();$('#sidev-t').textContent=t||'';$('#sidev-o').href=u;$('#sidev-f').src=s;el.hidden=false;document.body.classList.add('side-on');return true}
+function sideOpen(u,t){const s=sideUrl(u);if(!s)return false;const el=sideEl();sideMode(0);$('#sidev-t').textContent=t||'';$('#sidev-o').href=u;$('#sidev-f').src=s;el.hidden=false;document.body.classList.add('side-on');return true}
+// 11/27 talk_view: 주소 대신 HQ 안 글(채팅 보기 등)을 옆 창에 — iframe 은 숨기고 #sidev-b 에 그림
+function sideMode(h){const f=$('#sidev-f'),b=$('#sidev-b'),o=$('#sidev-o');if(f)f.hidden=!!h;if(b){b.hidden=!h;if(!h)b.replaceChildren()}if(o){o.hidden=!!h;o.style.display=h?'none':''}}
+function sideHtml(t,html){const el=sideEl();sideMode(1);$('#sidev-f').src='about:blank';$('#sidev-t').textContent=t||'';$('#sidev-b').innerHTML=html;el.hidden=false;document.body.classList.add('side-on');return true}
+const sideOn=()=>{const el=$('#sidev');return !!el&&!el.hidden};
 function sideClose(){const el=$('#sidev');if(!el||el.hidden)return;el.hidden=true;$('#sidev-f').src='about:blank';document.body.classList.remove('side-on')}
 document.addEventListener('click',e=>{
   if(e.target.closest('#sidev-x')){sideClose();return}
