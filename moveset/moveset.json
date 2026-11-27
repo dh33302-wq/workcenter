@@ -1,0 +1,21 @@
+{
+  "title": "검술 무브셋 영상",
+  "updated": "2026-11-27",
+  "note": "보유 = 게임 계정표(hub/control/재편/게임_계정표.csv)에 본인·친구 공유로 있는 게임, 구매 = 계정표에 없는 게임. 반실사/실사는 UI/UX팀 추정(고치면 이 파일만 바꾸면 됨). start = 시작 초.",
+  "items": [
+    {"game": "파이널 판타지 XVI", "char": "클라이브", "weapon": "한손검", "yt": "IgihGyohtjk", "own": "보유", "acct": "본인", "look": "실사"},
+    {"game": "파이널 판타지 VII 리버스", "char": "클라우드", "weapon": "버스터 소드(대검)", "yt": "fPjztyCjo_4", "own": "보유", "acct": "본인", "look": "반실사"},
+    {"game": "퍼스트 버서커: 카잔", "char": "카잔", "weapon": "대검", "yt": "U61TnyrojL8", "own": "보유", "acct": "친구 공유", "look": "반실사"},
+    {"game": "로스트 소울 어사이드", "char": "카이저", "weapon": "검", "yt": "6wTXkGxncXA", "own": "보유", "acct": "본인", "look": "반실사"},
+    {"game": "데빌 메이 크라이 5", "char": "단테", "weapon": "리벨리온(대검)", "yt": "YVPKoh-6bJo", "own": "보유", "acct": "본인", "look": "실사"},
+    {"game": "귀무자: 길 오브 더 소드", "char": "미야모토 무사시", "weapon": "카타나", "yt": "Ace_0gtOhB8", "own": "보유", "acct": "본인+친구", "look": "실사"},
+    {"game": "P의 거짓", "char": "P(피노키오)", "weapon": "대검", "yt": "bjEJWvIxmq0", "own": "보유", "acct": "친구 공유", "look": "실사"},
+    {"game": "드래곤즈 도그마 2", "char": "각성자(워리어)", "weapon": "양손 대검", "yt": "MWKgxVnEVH4", "own": "보유", "acct": "본인", "look": "실사"},
+    {"game": "몬스터 헌터 와일즈", "char": "헌터", "weapon": "대검", "yt": "q6HtPZLx4IU", "own": "보유", "acct": "본인", "look": "실사"},
+    {"game": "파이널 판타지 XV", "char": "글라디올러스", "weapon": "대검", "yt": "CEjpnoiVqVg", "own": "구매", "acct": "", "look": "실사"},
+    {"game": "스트레인저 오브 파라다이스", "char": "잭", "weapon": "대검", "yt": "VDASixhwsYw", "own": "구매", "acct": "", "look": "실사"},
+    {"game": "코드 베인", "char": "주인공", "weapon": "검(영상 확인)", "yt": "gmKDjaT1HNQ", "own": "구매", "acct": "", "look": "반실사"},
+    {"game": "니어 레플리칸트", "char": "니어", "weapon": "검", "yt": "NuZwJph8p7A", "own": "구매", "acct": "", "look": "반실사"},
+    {"game": "닌자 가이덴 2 블랙", "char": "류 하야부사", "weapon": "용검(카타나)", "yt": "Bh2lkvoeqdY", "start": 4, "own": "구매", "acct": "", "look": "실사"}
+  ]
+}

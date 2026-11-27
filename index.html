@@ -531,7 +531,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=36;
+const BUILD=37;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2087,7 +2087,8 @@ function v4Room(){const t=V4T.some(x=>x[0]===S3.v4T)?S3.v4T:'ws',[tg,tt]=trophyN
   const body=t==='ws'?[wrCard(),motionCard(),tw?twEntry():'',oct(`<h2 class="sec">매일</h2><div class="nav2"><a class="btn" href="#log/mail" title="아이디어 회의 기록을 열어요">💡 아이디어</a><a class="btn" href="#study" title="오늘 공부 카드로 가요">📖 공부</a><button class="btn" data-askto2="anim_teacher" title="애니 리드에게 질문을 보내요">🎓 애니 리드에 묻기</button></div>`),
       `<div class="kv msl" title="포폴 마일스톤">🏁 마일스톤 ${STAGES.map((x,i)=>`<span class="${i===ms?'cur':i<ms?'past':''}">${i<ms?'✅ ':i===ms?'▶ ':''}${esc(x[0])}</span>`).join(' → ')} <span>· ${esc(STAGES[ms]?STAGES[ms][1]:'')}</span></div>`].filter(Boolean).join(gap)
    :t==='study'?[codexCard(),oct(`<h2 class="sec">🎓 애니 리드에 묻기 <span class="num">${un||''}</span></h2><div class="nav2"><button class="btn pri2" data-askto2="anim_teacher" title="애니 리드에게 질문을 보내요">질문하기</button><a class="btn" href="#coach" title="애니 리드 피드백과 묻기 기록을 열어요">최근 피드백 ${fb.length}개 · 묻기 기록</a></div>`),
-      oct(`<h2 class="sec">📚 HB Library</h2><div class="nav2"><a class="btn pri2" href="#lib" title="레퍼런스 클립 검색·영상 자료실을 열어요">자료 열기</a><span class="kv">레퍼런스 클립 검색 · 영상</span></div>`),handoffCard(),codexList(),
+      oct(`<h2 class="sec">📚 HB Library</h2><div class="nav2"><a class="btn pri2" href="#lib" title="레퍼런스 클립 검색·영상 자료실을 열어요">자료 열기</a><span class="kv">레퍼런스 클립 검색 · 영상</span></div>`),
+      oct(`<h2 class="sec">⚔️ 검술 무브셋 영상</h2><div class="nav2"><a class="btn pri2" href="moveset/" title="게임별 검술 무브셋 유튜브 영상 14개를 바로 재생해요(보유·구매, 반실사·실사로 거르기)">영상 보기</a><span class="kv">게임 14개 · 누르면 재생</span></div>`),handoffCard(),codexList(),
       oct(`<h2 class="sec">📓 기록</h2><div class="nav2"><a class="btn" href="#log/space" title="작업 공간 기록을 열어요">🧰 작업 공간</a><a class="btn" href="#log" title="일지·주간 작업일지·변경 이력을 열어요">일지 · 주간 · 변경 이력</a></div>`)].filter(Boolean).join(gap)
    :[oct(`<h2 class="sec">🏆 트로피 <span class="num">${tg}/${tt}</span> <em class="draft">초안 · 동현 확인 전</em></h2>${tg?'':'<div class="kv">아직 0개예요 — 첫 화면에는 숫자 한 줄만 나와요</div>'}<details class="gt" data-gk="v4tr" ${tg?'open':''}><summary>트로피 판 ${tt}개 <span class="kv">눌러서 달성 표시(이 기기에만)</span></summary>${TROPHIES.map(([id,nm,L])=>`<div class="tgrp"><b>${nm}</b>${L.map((x,i)=>{const k=id+i;return `<button class="trow ${tr[k]?'got':''}" data-t="${k}" title="눌러서 달성 표시를 켜고 꺼요"><i></i>${esc(x)}</button>`}).join('')}</div>`).join('')}</details>`),
       oct(`<h2 class="sec">🧊 3D 걸어서 보기</h2><div class="nav2"><a class="btn" href="#world" title="3D 공간을 걸어서 봐요">3D 열기</a></div>`)].join(gap);

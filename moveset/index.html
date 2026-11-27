@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ko"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>검술 무브셋 영상 · HB HQ</title>
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<style>
+:root{--bg:#0B0B0C;--panel:#111113;--row:#161618;--ivory:#E8DFC8;--dim:#968C78;--gold:#CEA85E;--blue:#7AA4D2;--green:#68B096}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ivory);font:500 16px/1.5 "Noto Sans KR","Malgun Gothic",system-ui,sans-serif}
+header{position:sticky;top:0;z-index:2;background:var(--bg);padding:12px 16px 8px;border-bottom:1px solid #222}
+h1{margin:0 0 8px;font-size:20px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+h1 small{color:var(--dim);font-size:13px;font-weight:500}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grp{display:flex;gap:4px;flex-wrap:nowrap}
+.btn{min-height:44px;min-width:44px;padding:0 14px;border:1px solid #3a3630;border-radius:8px;background:var(--row);color:var(--ivory);font:inherit;font-size:15px;white-space:nowrap;cursor:pointer;display:inline-flex;align-items:center;gap:6px;text-decoration:none}
+.btn:active{transform:translateY(1px);filter:brightness(.85)}
+.btn.on{background:#2a2418;border-color:var(--gold);color:var(--gold)}
+main{padding:12px 16px 40px;display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:700px){main{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1180px){main{grid-template-columns:repeat(3,1fr)}}
+.card{background:var(--panel);border:1px solid #222;border-radius:10px;overflow:hidden}
+.v{position:relative;aspect-ratio:16/9;background:#000}
+.v button.play{all:unset;position:absolute;inset:0;cursor:pointer;display:block}
+.v img{width:100%;height:100%;object-fit:cover;display:block;opacity:.85}
+.v .tri{position:absolute;left:50%;top:50%;width:68px;height:48px;margin:-24px 0 0 -34px;background:rgba(0,0,0,.65);border-radius:12px;display:flex;align-items:center;justify-content:center}
+.v .tri:after{content:"";border-left:20px solid var(--ivory);border-top:12px solid transparent;border-bottom:12px solid transparent;margin-left:4px}
+.v iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.t{padding:10px 12px 12px;display:flex;gap:8px;align-items:center;justify-content:space-between}
+.t b{font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.t span{color:var(--dim);font-size:13px;white-space:nowrap}
+.tag{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid #3a3630;color:var(--dim);white-space:nowrap}
+.tag.own{color:var(--green);border-color:#2f5446}.tag.buy{color:var(--blue);border-color:#2d4157}
+.line{min-width:0;display:flex;flex-direction:column}
+.tags{display:flex;gap:4px;flex-shrink:0}
+#empty,#err{color:var(--dim);padding:24px 16px}
+</style></head><body>
+<header>
+  <h1><a class="btn" href="../#study" title="HB HQ 공부·자료로 돌아가기">◀ HQ</a>⚔️ 검술 무브셋 영상 <small id="cnt"></small></h1>
+  <div class="bar">
+    <div class="grp" id="f-own">
+      <button class="btn on" data-v="" title="보유·구매 모두 보기">전체</button>
+      <button class="btn" data-v="보유" title="계정에 있는 게임(본인·친구 공유)만 보기">보유</button>
+      <button class="btn" data-v="구매" title="아직 없는 게임(사야 하는 것)만 보기">구매</button>
+    </div>
+    <div class="grp" id="f-look">
+      <button class="btn on" data-v="" title="그림체 모두 보기">전체</button>
+      <button class="btn" data-v="반실사" title="반실사(애니풍) 게임만 보기">반실사</button>
+      <button class="btn" data-v="실사" title="실사풍 게임만 보기">실사</button>
+    </div>
+  </div>
+</header>
+<main id="list"></main>
+<div id="empty" hidden>조건에 맞는 영상이 없어요.</div>
+<div id="err" hidden></div>
+<script>
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const okId=s=>/^[A-Za-z0-9_-]{11}$/.test(s||'');
+let ALL=[],F={own:'',look:''};
+function draw(){
+  const L=ALL.filter(x=>(!F.own||x.own===F.own)&&(!F.look||x.look===F.look));
+  document.getElementById('cnt').textContent=L.length+' / '+ALL.length+'개';
+  document.getElementById('empty').hidden=L.length>0;
+  document.getElementById('list').innerHTML=L.map(x=>`<article class="card" data-yt="${esc(x.yt)}" data-start="${+x.start||0}">
+    <div class="v"><button class="play" title="${esc(x.game)} 영상 재생"><img loading="lazy" alt="" src="https://i.ytimg.com/vi/${esc(x.yt)}/hqdefault.jpg"><i class="tri"></i></button></div>
+    <div class="t"><div class="line"><b>${esc(x.game)}</b><span>${esc(x.char)} · ${esc(x.weapon)}${x.start?' · '+(+x.start)+'초부터':''}</span></div>
+    <div class="tags"><i class="tag ${x.own==='보유'?'own':'buy'}" title="${esc(x.acct?'계정: '+x.acct:'계정에 없음')}">${esc(x.own)}</i><i class="tag">${esc(x.look)}</i></div></div></article>`).join('');
+}
+document.getElementById('list').addEventListener('click',e=>{
+  const b=e.target.closest('button.play'); if(!b) return;
+  const c=b.closest('.card'), id=c.dataset.yt; if(!okId(id)) return;
+  const f=document.createElement('iframe');
+  f.loading='lazy'; f.title=b.title; f.allow='autoplay; encrypted-media; picture-in-picture; fullscreen'; f.allowFullscreen=true;
+  f.src='https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&playsinline=1&rel=0&modestbranding=1'+(+c.dataset.start?'&start='+(+c.dataset.start):'');
+  b.replaceWith(f);
+});
+for(const k of ['own','look']) document.getElementById('f-'+k).addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  F[k]=b.dataset.v; b.parentNode.querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); draw();
+});
+fetch('moveset.json?'+Date.now()).then(r=>r.json()).then(d=>{ALL=(d.items||[]).filter(x=>okId(x.yt));draw()})
+ .catch(e=>{const el=document.getElementById('err');el.hidden=false;el.textContent='목록을 못 불러왔어요: '+e.message});
+</script>
+</body></html>
