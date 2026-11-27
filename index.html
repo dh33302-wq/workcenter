@@ -644,6 +644,11 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .lc{position:relative}.lc.ed{padding-bottom:16px}.lnh{display:none!important}.lcmore{margin:4px 0}.lc.cl{box-shadow:inset 4px 0 0 var(--lcc);padding-left:10px}.lc.rsz{outline:2px solid var(--gold)}
 .lcrw,.lcrh{position:absolute;z-index:2;touch-action:none;user-select:none}.lcrw{top:0;bottom:0;right:0;width:24px;cursor:ew-resize}.lcrw::after{content:'';position:absolute;top:50%;right:4px;width:5px;height:44px;margin-top:-22px;border-radius:3px;background:#6b5a35}.lcrh{left:0;right:24px;bottom:0;height:18px;cursor:ns-resize}.lcrh::after{content:'';position:absolute;left:50%;bottom:4px;width:44px;height:5px;margin-left:-22px;border-radius:3px;background:#6b5a35}.lcrw:hover::after,.lcrh:hover::after,.lc.rsz .lcrw::after,.lc.rsz .lcrh::after{background:var(--gold)}
 .lcm{flex-basis:100%;justify-content:flex-end}
+/* 게이트 다음 행동·몇 시간째·PM 순찰 (control gate_fields_show 11/28) */
+.hdnext{flex-basis:100%;display:block;font-size:12px;line-height:1.45;overflow-wrap:anywhere;margin-top:2px;padding-left:4px;border-left:2px solid rgba(127,127,127,.3)}
+.hdage{display:inline-block;margin-right:6px;font-variant-numeric:tabular-nums}.hdage.h6{color:#e88}.hdage.h24{color:#fff;background:#c33;border-radius:4px;padding:0 5px}
+.hdlate{color:#e88;font-weight:600}.hdfr .hdnext{color:inherit}
+#pm-patrol .pmr{padding:2px 0;font-size:14px}#pm-patrol .pmr:first-of-type{font-weight:700}
 </style>
 </head>
 <body>
@@ -698,7 +703,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=50;
+const BUILD=51;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2326,17 +2331,27 @@ function hdWork(w){if(!w||!w.task)return `<div class="kv hdw" data-hdw="0">지�
   return `<div class="kv hdw" data-hdw="1">${hdW1(w)}${n?` <small class="kv">· 그 밖 ${n}</small>`:''}</div>`}
 function hdWorkList(w){if(!w||!w.task)return '';const L=[w].concat(w.more||[]);
   return `<div class="kv hdql">지금 일 ${L.length}</div>${L.map((a,i)=>`<div class="kv hdq hdwl" data-hdwk="${esc(a.kind||'card')}">${hdW1(a)}${a.now?`<br><small class="kv">${esc(a.now)}</small>`:''}${a.at?` <small class="kv">· ${hdT(a.at)}</small>`:''}</div>`).join('')}`}
-function hdGate(g){return `<div class="hdg hd-${g.st}" data-hdg="${esc(g.id)}"><span class="hdi">${HD_IC[g.st]||'⏳'}</span><b class="num">${esc(g.id)}</b><span class="hdn">${esc(g.name)}</span>
-  <span class="kv hdm">${g.value!=null&&g.value!==''?`값 <b>${esc(g.value)}</b>`:'아직 안 잼'}${g.limit?` · 기준 ${esc(g.limit)}`:''}${g.owner?` · ${esc(g.owner)}`:''}${g.at?` · ${hdT(g.at)}`:''}</span></div>`}
+// 운영설계_v2(control gate_fields_show 11/28): ❌·⏳ 줄 아래 담당·다음 행동·다음 시도 시각·막힌 이유 + 잰 지 6시간/24시간 넘으면 빨간 '몇 시간째'
+const hdAge=(g,now)=>{const t=lvT(g.at);if(!t)return `<b class="hdage h24" data-hdage="never">한 번도 안 잼</b>`;const h=Math.floor((now-t)/3600);
+  return h>=6?`<b class="hdage ${h>=24?'h24':'h6'}" data-hdage="${h}">${h>=48?Math.floor(h/24)+'일째':h+'시간째'}</b>`:''};
+const hdNt=(s,now)=>{const t=lvT(s);if(!t)return esc(s);const late=now-t>0;return `<span class="${late?'hdlate':''}" data-hdlate="${late?1:0}">${hdT(s)}${late?` · ${Math.max(1,Math.floor((now-t)/3600))}시간 지남`:''}</span>`};
+function hdNext(g,now){if(g.st==='ok')return '';
+  const L=[g.owner?`👤 ${esc(g.owner)}`:'',g.na?`▶ ${esc(g.na)}`:'<span class="hdlate">▶ 다음 행동 없음</span>',g.nt?`⏰ ${hdNt(g.nt,now)}`:'<span class="hdlate">⏰ 다음 시도 시각 없음</span>',g.why?`🧱 ${esc(g.why)}`:''].filter(Boolean);
+  return `<span class="kv hdnext" data-hdnext="${esc(g.id)}">${hdAge(g,now)}${L.join('<br>')}</span>`}
+function hdGate(g,now){now=now||Date.now()/1000;return `<div class="hdg hd-${g.st}" data-hdg="${esc(g.id)}"><span class="hdi">${HD_IC[g.st]||'⏳'}</span><b class="num">${esc(g.id)}</b><span class="hdn">${esc(g.name)}</span>
+  <span class="kv hdm">${g.value!=null&&g.value!==''?`값 <b>${esc(g.value)}</b>`:'아직 안 잼'}${g.limit?` · 기준 ${esc(g.limit)}`:''}${g.owner?` · ${esc(g.owner)}`:''}${g.at?` · ${hdT(g.at)}`:''}</span>${hdNext(g,now)}</div>`}
+// 🏠 오늘: PM 순찰 3줄(hb_dev.patrol = pm→control 편지 제목 '게이트 n/N · … · …')
+function hdPatrol(now){const P=(S3.st.hb_dev||{}).patrol||{};if(!(P.lines||[]).length)return `<div class="kv" id="pm-patrol" data-pml="0">🧭 PM 순찰 기록이 아직 없어요 · 순찰 08:40·12:40·16:40·20:40</div>`;
+  return `<div id="pm-patrol" data-pml="${P.lines.length}"><div class="kv">🧭 PM 순찰 · ${hdT(P.at)} ${lvF(lvT(P.at),now)}</div>${P.lines.map(l=>`<div class="pmr">${esc(l)}</div>`).join('')}</div>`}
 function hdProd(p){const pc=p.N?Math.round(p.ok/p.N*100):0,cls=p.fail?'bad':p.N&&p.ok===p.N?'ok':'mid';
   const nx=(p.next||[]).length?`<div class="kv hdql">다음 할 것</div>${p.next.map((n,i)=>`<div class="kv hdq">${i+1}. ${esc(n)}</div>`).join('')}`:'';
   const ex=[p.ver?`버전 ${esc(p.ver)}`:'',p.bench?`벤치 ${esc(p.bench)}`:'',p.code_at?`코드 바뀐 때 ${hdT(p.code_at)}`:''].filter(Boolean).join(' · ');
   return `<details class="hdp hp-${cls}" id="hd-p-${esc(p.k)}" data-gk="hd:${esc(p.k)}"><summary><div class="hdr"><span class="hdl">${p.light||'🟡'}</span><b class="hdpn">${esc(p.name)}</b><span class="tkpb hdb"><i style="width:${p.ok?Math.max(2,pc):0}%"></i></span><b class="num hdnn">${+p.ok}/${+p.N}</b></div>${hdWork(p.work)}</summary>
-    <div class="hdgl">${(p.gates||[]).map(hdGate).join('')||'<div class="empty">통과 기준이 아직 없어요</div>'}</div>${hdWorkList(p.work)}${nx}${ex?`<div class="kv hdx">${ex}</div>`:''}</details>`}
+    <div class="hdgl">${(p.gates||[]).map(g=>hdGate(g)).join('')||'<div class="empty">통과 기준이 아직 없어요</div>'}</div>${hdWorkList(p.work)}${nx}${ex?`<div class="kv hdx">${ex}</div>`:''}</details>`}
 function hbDevBlock(now){const H=S3.st.hb_dev;if(!H||!(H.products||[]).length)return '';
   const P=H.products,F=[].concat(...P.map(p=>(p.gates||[]).filter(g=>g.st==='fail').map(g=>Object.assign({pn:p.name},g))));
   const at=lvT(H.src==='feed'&&H.feed_updated?H.feed_updated:H.gates_updated);
-  const top=F.length?`<div class="hdf" id="hd-fail">${F.map(g=>`<div class="hdfr" data-hdf="${esc(g.id)}">❌ <b>${esc(g.pn)} ${esc(g.id)}</b> ${esc(g.name)}${g.owner?` · ${esc(g.owner)}`:''}</div>`).join('')}</div>`:'';
+  const top=F.length?`<div class="hdf" id="hd-fail">${F.map(g=>`<div class="hdfr" data-hdf="${esc(g.id)}">❌ <b>${esc(g.pn)} ${esc(g.id)}</b> ${esc(g.name)}${g.owner?` · ${esc(g.owner)}`:''}${hdNext(g,now)}</div>`).join('')}</div>`:'';
   const q=(H.next||[]).length?`<details class="hdnx" data-gk="hd:next"><summary class="kv">다음 할 것 대기 ${H.next.length}</summary>${H.next.map((n,i)=>`<div class="kv hdq">${i+1}. ${esc(n)}</div>`).join('')}</details>`:'';
   return `<div class="tc hdc" id="hd-card"><div class="tch"><span>🦡 <b>HB 개발 현황판</b> · 전체 <b class="num" id="hd-total">${+H.ok}/${+H.N}</b> 통과${H.fail?` · <b class="hdfc">❌ ${+H.fail}</b>`:''}</span>${lvF(at,now,!at)}</div>
     ${top}<div class="hdps" id="hd-ps">${P.map(hdProd).join('')}</div>${q}
@@ -2634,7 +2649,7 @@ function trophyN(){const tr=lsx('trophy',{}),tot=TROPHIES.reduce((a,t)=>a+t[2].l
 function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=quitInfo(),dd=Math.ceil((new Date(JOB_DEADLINE+'T00:00:00')-Date.now())/864e5),[tg,tt]=trophyN();
   const L=$('#r-lobby');if(L.firstElementChild)L.replaceChildren();   // 지금 카드(#fx)는 한 곳에만
   const C=[{id:'clk',name:'☀️ 출근 · 🌙 퇴근',html:clkCard()},{id:'now',name:'지금 블록',html:Focus.box()+(x.err?`<div class="kv nnx-e">${x.err==='perm'?'🔐 구글이 캘린더 읽기를 아직 허용하지 않아 시간 계획만 보여요':'⚠️ 캘린더를 못 읽어 저장본을 보여요'}</div>`:'')},
-    {id:'runnow',name:'🟢 지금 돌고 있는 것',html:lvRunNow(now)},{id:'todo',name:'🙋 결재·할 일',view:1,html:lvTodoCard()},{id:'blk',name:'🔴 막힌 일',view:1,html:lvBlockedCard(now)},
+    {id:'runnow',name:'🟢 지금 돌고 있는 것',html:lvRunNow(now)},{id:'todo',name:'🙋 결재·할 일',view:1,html:lvTodoCard()},{id:'blk',name:'🔴 막힌 일',view:1,html:lvBlockedCard(now)},{id:'pmp',name:'🧭 PM 순찰',html:typeof hdPatrol==='function'?hdPatrol(now):''},
     {id:'teams',name:'팀 신호등',html:lvTeamsLine(now)},
     {id:'links',name:'오늘 시간표',html:oct(`<details class="gt ttd" data-gk="ttday"><summary>📅 <b>오늘 시간표</b> <span class="kv">🎬 동현 작업 ${Cal.workN(pday())}개 · 눌러서 펼치기</span></summary>${Cal.workHtml(pday())}</details>`,'lvc')},
     {id:'end',name:'하루 마무리',html:`${Push.hint()}<div class="lvend"><a class="btn" href="#out" title="오늘 기록·채점을 봐요(출근·퇴근은 맨 위 큰 버튼)">🌙 기록·채점${q.again?' · 퇴근했어요':''}</a><span class="kv">입사 목표까지 ${dd}일 · 🏆 ${tg}/${tt}</span></div>`}];
