@@ -660,6 +660,17 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .lc.v-table details.bv2,.lc.v-table details.hqrow{display:block}.lc.v-table .bv2>summary,.lc.v-table .hqrow>summary{display:flex;flex-wrap:nowrap;gap:0 8px;align-items:baseline;overflow:hidden;white-space:nowrap;padding-top:2px;padding-bottom:2px}
 .lc.v-table .bv2>summary>*,.lc.v-table .hqrow>summary>*{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lc.v-table .bv2>summary .bt{flex:1 1 auto}
 .lc.v-table .prog,.lc.v-table .tkpb{display:none}
+/* 그래프 보기(11/28): 줄마다 막대(--gv) + 오른쪽 숫자 · 숫자 없는 줄 흐리게 */
+.lc.v-graph .bv2,.lc.v-graph .hqrow{display:flex;flex-wrap:nowrap;gap:0 8px;align-items:baseline;padding:5px 8px;margin:0 0 4px;border-radius:5px;font-size:13px;white-space:nowrap;overflow:hidden;background:linear-gradient(90deg,var(--lcc,rgba(212,169,74,.42)) var(--gv,0%),rgba(127,127,127,.09) var(--gv,0%))}
+.lc.v-graph .bv2>*,.lc.v-graph .hqrow>*{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lc.v-graph .bv2 br,.lc.v-graph .hqrow br,.lc.v-graph .prog,.lc.v-graph .tkpb{display:none}
+.lc.v-graph details.bv2,.lc.v-graph details.hqrow{display:block}
+.lc.v-graph .bv2>summary,.lc.v-graph .hqrow>summary{display:flex;flex-wrap:nowrap;gap:0 8px;align-items:baseline;overflow:hidden;white-space:nowrap}
+.lc.v-graph .bv2>summary>*,.lc.v-graph .hqrow>summary>*{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lgvn,.lcgv{display:none}
+.lc.v-graph .lcgv{display:block}
+.lc.v-graph .lgvn{display:inline;flex:0 0 auto!important;margin-left:auto;font-weight:700;font-variant-numeric:tabular-nums}
+.lc.v-graph .lgx{opacity:.5;background:none}
 .lcflt{margin:2px 0 6px;color:var(--gold)}
 </style>
 </head>
@@ -715,7 +726,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=55;
+const BUILD=56;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2109,12 +2120,18 @@ function boardCard(){const now=Date.now()/1000;
 function jobsCard(){return boardCard()}
 
 // ---- ✏ 편집 모드: 카드 배치 (PD 설계 v1 7절, 동현 11/27 05:30 "노션처럼 직접") ----
-// 2차(BUILD 50): 모서리 끌기 · ⋯ 개수·정렬·이름·색 / 1차(BUILD 28): 순서(끌기·↑↓) · 너비(12칸 격자) · 높이 · 보기(목록·한 줄·숫자만) · 접기 · 숨기기 · ＋ 카드(숨긴 것 다시) · 되돌리기 10판 · 기본값
+// 2차(BUILD 50~56): 그래프 보기(56) · 모서리 끌기 · ⋯ 개수·정렬·이름·색 / 1차(BUILD 28): 순서(끌기·↑↓) · 너비(12칸 격자) · 높이 · 보기(목록·한 줄·숫자만) · 접기 · 숨기기 · ＋ 카드(숨긴 것 다시) · 되돌리기 10판 · 기본값
 // 배치 = 기기 모양별 3벌(cover·fold·pc) × 방. 기기 안(v3_layout)에 바로 저장 + PC 지킴이 layout.json 과 맞춤(새것이 이김). 앱을 새로 올려도 유지, 새 카드는 맨 아래 🆕.
 const LAY_K='v3_layout',LAY_U='v3_layout_undo',LAY_W={cover:[12,6],fold:[12,8,6,4,3],pc:[12,8,6,4,3]},LAY_WN={3:'1/4',4:'1/3',6:'1/2',8:'2/3',12:'전체'};
-const LAY_H=[['a','내용만큼'],['m','보통'],['l','크게'],['s','작게']],LAY_V=[['list','목록'],['line','한 줄'],['num','숫자만'],['table','표'],['time','타임라인']];
+const LAY_H=[['a','내용만큼'],['m','보통'],['l','크게'],['s','작게']],LAY_V=[['list','목록'],['line','한 줄'],['num','숫자만'],['table','표'],['time','타임라인'],['graph','그래프']];
 // 카드마다 고를 수 있는 보기: 표 = 줄(.bv2·.hqrow)이 있는 카드 · 타임라인 = 줄에 시각(HH:MM·n분/시간/일 전·M/D)이 있는 카드 (설계 7-2, 11/28)
-const layVs=h=>{const rows=/class="[^"]*\b(bv2|hqrow)\b/.test(h),tm=rows&&/\b\d{1,2}:\d\d\b|\d+\s*(분|시간|일)\s*전|\b\d{1,2}\/\d{1,2}\b/.test(h);return ['list','line','num',...(rows?['table']:[]),...(tm?['time']:[])]};
+const layVs=h=>{const rows=/class="[^"]*\b(bv2|hqrow)\b/.test(h),tm=rows&&/\b\d{1,2}:\d\d\b|\d+\s*(분|시간|일)\s*전|\b\d{1,2}\/\d{1,2}\b/.test(h);return ['list','line','num',...(rows?['table']:[]),...(tm?['time']:[]),...(rows&&layGvN(h)>=2?['graph']:[])]};
+// 그래프(11/28, 설계 7-2): 줄 글에서 처음 나오는 'n%' 또는 'n/N'(날짜 'M/D 시각'은 뺌)을 막대로. 숫자 있는 줄 2개 이상인 카드만 고를 수 있음
+function layGv(t){t=String(t||'');let m=t.match(/(\d{1,3}(?:\.\d+)?)\s*%/);const P=m&&+m[1]<=100?{p:+m[1],t:m[1]+'%',i:m.index}:null;const re=/(\d[\d,]*)\s*\/\s*(\d[\d,]*)(?![\d(일])/g;let F=null;
+  while(m=re.exec(t)){const a=+m[1].replace(/,/g,''),b=+m[2].replace(/,/g,''),after=t.slice(m.index+m[0].length);if(b>0&&a<=b&&!(a<=12&&b<=31&&/^\s*(\d{1,2}:\d\d|\()/.test(after))){F={p:Math.round(a/b*1000)/10,t:m[1]+'/'+m[2],i:m.index};break}}
+  return P&&F?(P.i<F.i?P:F):(P||F)}
+function layGvN(h){const re=/<(?:details|div)\b[^>]*class="[^"]*\b(?:bv2|hqrow)\b[^"]*"[^>]*>/g,ix=[];let m;while(m=re.exec(h))ix.push(m.index);let n=0;
+  for(let k=0;k<ix.length&&n<2;k++){const ch=h.slice(ix[k],ix[k+1]||h.length).replace(/<[^>]*>/g,' ').replace(/&nbsp;/g,' ');if(layGv(ch))n++}return n}
 const layDev=()=>innerWidth<600?'cover':innerWidth<1100?'fold':'pc';
 const layAll=()=>lsGet(LAY_K,{});
 const layEd=()=>{try{return !!EDIT.on}catch(e){return false}};   // edit.js 가 뒤에 실리므로 처음 그릴 때는 아직 없음
@@ -2127,7 +2144,7 @@ function layFOpts(h){const T=new Map(),S=new Set();const re=/<(?:details|div)\b[
 // 2차(11/28): 모서리 끌기(너비·높이) · ⋯ 더보기(개수 3·5·10·전부 · 정렬 새것/오래된 것 · 이름 바꾸기 · 강조색)
 const LAY_N=[0,3,5,10],LAY_C=[['','없음'],['#d4a94a','금색'],['#d9534f','빨강'],['#4caf6a','초록'],['#4a8fd4','파랑'],['#9a6ad4','보라']];
 // 카드 안 줄(.bv2·.hqrow)을 정렬·개수대로 — 그리기 전에 글(html)에서 바꾼다(다시 그려도 그대로)
-function layRows(html,n,o,nm,f){f=f||{};if(!n&&o!=='old'&&!nm&&!f.tm&&!f.st)return html;const t=document.createElement('template');t.innerHTML=html;const F=t.content;
+function layRows(html,n,o,nm,f,gv){f=f||{};if(!n&&o!=='old'&&!nm&&!f.tm&&!f.st&&!gv)return html;const t=document.createElement('template');t.innerHTML=html;const F=t.content;
   if(nm){const h=F.querySelector('h2');const tx=h&&[...h.childNodes].find(x=>x.nodeType===3&&x.data.trim());if(tx)tx.data=nm+' ';else{const e=document.createElement('h2');e.className='sec lcn';e.textContent=nm;F.prepend(e)}}
   let R=[...F.querySelectorAll('.bv2,.hqrow')].filter(r=>!r.parentNode.closest('.bv2,.hqrow'));
   if(f.tm||f.st){const ok=r=>(!f.tm||r.dataset.tm===f.tm)&&(!f.st||r.classList.contains('s-'+f.st)),out=R.filter(r=>!ok(r));out.forEach(r=>r.classList.add('lnh'));R=R.filter(ok);
@@ -2138,6 +2155,8 @@ function layRows(html,n,o,nm,f){f=f||{};if(!n&&o!=='old'&&!nm&&!f.tm&&!f.st)retu
     for(const rs of P.values()){const ph=rs.map(r=>{const m=document.createComment('');r.replaceWith(m);return m}),rv=rs.slice().reverse();ph.forEach((m,k)=>m.replaceWith(rv[k]))}
     R=[...F.querySelectorAll('.bv2,.hqrow')].filter(r=>!r.parentNode.closest('.bv2,.hqrow')&&!r.classList.contains('lnh'))}
   if(n&&R.length>n){R.slice(n).forEach(r=>r.classList.add('lnh'));const m=document.createElement('div');m.className='kv lcmore';m.textContent=`그 밖 ${R.length-n}개 · ✏ › ⋯ › 개수에서 더 보기`;F.append(m)}
+  if(gv){let k=0;R.forEach(r=>{const s=r.matches('details')?r.querySelector(':scope>summary')||r:r,g=layGv(s.textContent)||(s!==r&&layGv(r.textContent));if(g){k++;r.dataset.gv=g.p;r.style.setProperty('--gv',Math.max(0,Math.min(100,g.p))+'%');const sp=document.createElement('span');sp.className='lgvn';sp.textContent=g.t;s.append(sp)}else r.classList.add('lgx')});
+    const b=document.createElement('div');b.className='kv lcgv';b.textContent=`📊 그래프: 숫자 있는 줄 ${k}개${R.length-k?' · 숫자 없는 줄 '+(R.length-k)+'개는 흐리게':''} · 막대 = 줄에서 처음 나오는 % 또는 n/N`;const h2=F.querySelector('h2');if(h2&&h2.parentNode)h2.after(b);else F.prepend(b)}
   const d=document.createElement('div');d.append(F);return d.innerHTML}
 function layGet(room){return Object.assign(layBlank(),JSON.parse(JSON.stringify(((layAll()[layDev()]||{})[room])||{})))}
 function laySave(A){A.t=Date.now();lsSet(LAY_K,A);clearTimeout(laySave.T);laySave.T=setTimeout(()=>{Q.add('layout_save',{layout:layAll()});Sync3.flush()},1500)}
@@ -2152,7 +2171,7 @@ function layGrid(room,cards){cards=cards.filter(c=>c.html);const L=layGet(room),
   const vis=order.filter(i=>!L.hide[i]),hid=order.filter(i=>L.hide[i]),hn=k=>(LAY_H.find(x=>x[0]===k)||LAY_H[0])[1],vn=k=>(LAY_V.find(x=>x[0]===k)||LAY_V[0])[1];
   const cell=i=>{const c=by[i],w=LAY_W[dev].includes(+L.w[i])?+L.w[i]:12,h=L.h[i]||'a',vs=c.view?layVs(c.html):['list'],v=vs.includes(L.v[i])?L.v[i]:'list',n=c.view?+L.n[i]||0:0,o=c.view&&L.o[i]==='old'?'old':'new',nm=String(L.nm[i]||'').slice(0,30),cc=(LAY_C.find(x=>x[0]&&x[0]===L.c[i])||LAY_C[0]),mo=ed&&layGrid.M===room+'/'+i;
     const fo=c.view?layFOpts(c.html):{tm:[],st:[]},f0=L.f[i]||{},f={tm:fo.tm.some(x=>x[0]===f0.tm)?f0.tm:'',st:fo.st.includes(f0.st)?f0.st:''},ftn=f.tm?(fo.tm.find(x=>x[0]===f.tm)||[])[1]:'';
-    let body=c.html;try{body=layRows(c.html,n,o,nm,f)}catch(x){}
+    let body=c.html;try{body=layRows(c.html,n,o,nm,f,v==='graph')}catch(x){}
     return `<div class="lc h-${h} v-${v}${ed?' ed':''}${cc[0]?' cl':''}" data-vs="${vs.join(',')}" data-ft="${esc(fo.tm.map(x=>x[0]).join(','))}" data-fs="${fo.st.join(',')}" data-card="${i}" data-w="${w}" style="grid-column:span ${w}${cc[0]?';--lcc:'+cc[0]:''}">${ed?`<div class="lct"><span class="lch" data-lh="1" role="button" aria-label="${esc(c.name)} 끌어서 옮기기">⠿</span><b>${esc(nm||c.name)}${fresh.includes(i)?' 🆕':''}</b><span class="lcbs"><button data-la="up" aria-label="위로">↑</button><button data-la="dn" aria-label="아래로">↓</button><button data-la="w">↔ ${LAY_WN[w]}</button><button data-la="h">↕ ${hn(h)}</button>${c.view?`<button data-la="v">👁 ${vn(v)}</button>`:''}<button data-la="fold">${h==='s'?'펴기':'접기'}</button><button data-la="hide">숨기기</button><button data-la="more" aria-expanded="${mo}" aria-label="${esc(c.name)} 더보기">⋯</button></span>${mo?`<span class="lcbs lcm">${c.view?`<button data-la="n">개수 ${n?n+'개':'전부'}</button><button data-la="o">정렬 ${o==='old'?'오래된 것':'새것'} 먼저</button>${fo.tm.length>1?`<button data-la="ft" title="이 팀 줄만 보기(누를 때마다 다음 팀)">팀 ${f.tm?esc(ftn||f.tm):'전부'}</button>`:''}${fo.st.length>1?`<button data-la="fs" title="이 상태 줄만 보기(누를 때마다 다음 상태)">상태 ${f.st?LAY_ST[f.st]:'전부'}</button>`:''}`:''}<button data-la="nm">이름 바꾸기</button><button data-la="c">색 ${cc[1]}</button></span>`:''}</div>`:''}<div class="lcb">${body}</div>${ed?`<span class="lcrw" data-lrs="w" role="separator" aria-label="오른쪽 모서리 끌어 너비"></span><span class="lcrh" data-lrs="h" role="separator" aria-label="아래 모서리 끌어 높이"></span>`:''}</div>`};
   return `<div class="lvgrid${ed?' ed':''}" data-room="${room}" data-hid="${esc(hid.join(','))}">${vis.map(cell).join('')}${ed?`<div class="lcadd"><b>＋ 카드</b>${hid.length?hid.map(i=>`<button class="btn" data-ladd="${esc(i)}">＋ ${esc(by[i].name)}</button>`).join(''):'<span class="kv">숨긴 카드가 없어요 — 이 탭 카드는 모두 나와 있어요</span>'}</div>`:''}</div>`}
 function layFromDom(g){const L=layGet(g.dataset.room);L.order=[...[...g.querySelectorAll(':scope>.lc')].map(e=>e.dataset.card),...(g.dataset.hid?g.dataset.hid.split(','):[])];return L}
