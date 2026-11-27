@@ -605,6 +605,27 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 #snd{display:inline-flex;align-items:center;color:var(--ivory)}
 #lvbar{color:#e8e2d2;font-weight:700}#lvbar b{color:#fff}#lvbar .f-live{color:#7ef0a8}
 @media(max-width:380px){#ergo{display:inline}#ergo .hl{display:none}.clkb{font-size:calc(21px*var(--s))}}@media(max-width:380px){#top .brand{display:none}}
+
+/* 📖 캐릭터 북(11/27 charbook_tab) */
+.cbbar{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin:0 0 12px}.cbbar [aria-disabled]{opacity:.45;pointer-events:none}
+.cbgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+.cbcard{position:relative;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.04);overflow:hidden}.cbcard.on{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+.cbopen{display:block;color:inherit;text-decoration:none;padding:0 0 10px}.cbimg{aspect-ratio:3/4;background:#14161a;display:flex;align-items:center;justify-content:center}.cbimg img{width:100%;height:100%;object-fit:contain}.cbimg i{font-size:46px;font-style:normal;opacity:.5}
+.cbtx{padding:8px 10px 0;display:flex;flex-direction:column;gap:2px;padding-right:58px}.cbtx b{font-size:16px;color:var(--ivory)}.cbcnt{display:flex;flex-wrap:wrap;gap:6px;font-size:13px;margin-top:4px}
+.cbopen .cbring{position:absolute;right:8px;bottom:10px}
+.cbring{--p:0;--sz:44px;width:var(--sz);height:var(--sz);border-radius:50%;flex:none;display:inline-flex;align-items:center;justify-content:center;background:conic-gradient(var(--gold) calc(var(--p)*1%),rgba(255,255,255,.12) 0)}.cbring b{width:calc(var(--sz) - 10px);height:calc(var(--sz) - 10px);border-radius:50%;background:#1b1d22;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--ivory)}
+.cbpick{position:absolute;top:8px;right:8px;min-height:44px;min-width:44px;padding:4px 10px;border-radius:22px;border:1px solid rgba(255,255,255,.25);background:rgba(20,22,26,.85);color:var(--ivory);font-size:13px}.cbcard.on .cbpick{background:var(--gold);color:#111}
+.cbhead{display:flex;gap:14px;align-items:center}.cbhead h1{margin:2px 0}
+.cbviews{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0}.cbviews.sm{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}.cbviews figure{margin:0;background:#14161a;border-radius:10px;overflow:hidden;text-align:center}.cbviews img{width:100%;aspect-ratio:3/4;object-fit:contain;display:block}.cbviews i{display:flex;aspect-ratio:3/4;align-items:center;justify-content:center;font-style:normal;opacity:.35;font-size:28px}.cbviews figcaption{font-size:12px;padding:4px;color:#bdb6a6}
+@media(max-width:420px){.cbviews{grid-template-columns:repeat(2,1fr)}}
+.cbkv{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:14px;color:#bdb6a6}.cbkv b{color:var(--ivory)}
+.cbcat summary{font-size:15px}.cbrow{display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:8px 6px;border-left:3px solid var(--cc);border-bottom:1px solid rgba(255,255,255,.06);min-height:44px}
+.cbsub{min-width:58px;font-size:13px;color:var(--cc);font-weight:700}.cbnm{flex:1;min-width:120px;word-break:break-all;color:var(--ivory)}.cbf,.cbsp{font-size:13px;color:#bdb6a6;white-space:nowrap}
+.cbpt{font-style:normal;font-size:11px;margin-left:4px;padding:1px 5px;border-radius:6px;background:rgba(255,255,255,.1);color:#ddd}
+.cbplay{min-width:44px;min-height:44px}
+.cbest{font-style:normal;font-size:11px;padding:1px 5px;border-radius:6px;background:rgba(210,162,122,.25);color:#f0c9a4}
+.cbtw{overflow-x:auto;margin-top:8px}.cbt{border-collapse:collapse;font-size:13px;min-width:100%}.cbt th,.cbt td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;white-space:nowrap;vertical-align:top}.cbt thead th{color:var(--gold);position:sticky;top:0;background:#1b1d22}.cbcmp td{white-space:normal;min-width:110px}.cbgap th{color:var(--gold);padding-top:14px}
+.cbent{display:flex;gap:10px;align-items:center;color:inherit;text-decoration:none;min-height:56px}.cbmini{width:40px;height:52px;border-radius:8px;background:#14161a;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex:none}.cbmini img{width:100%;height:100%;object-fit:cover}
 </style>
 </head>
 <body>
@@ -636,6 +657,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
   <section id="r-lib" class="room"></section>
   <section id="r-coach" class="room"></section>
   <section id="r-plan" class="room"></section>
+  <section id="r-book" class="room"></section>
 </main>
 <nav id="nav"></nav>
 <div id="ask" class="sheet" hidden>
@@ -658,7 +680,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=47;
+const BUILD=48;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -1776,7 +1798,7 @@ function healthCard(){const H=S3.st.team_health;if(!H||!(H.teams||[]).length&&!(
 const TABS4=['today','board','studio','lib'];   // (옛) BUILD 32 까지의 아래 탭 — 지금 메뉴는 NAV5
 // 메뉴 5개(설계_HQv4_v1 1절 · 동현 11/27 06:55 ⑨ '옛 화면 메뉴 9개 없앰'). 옛 방은 지우지 않고 주소로만 열림(새 탭 안 버튼이 데려감) — 메뉴는 그 방의 부모 탭에 불이 켜짐
 const NAV5=[['today','오늘','hex','#today'],['work','작업공간','keys','#work'],['board','진행판','bars','#board'],['study','공부·자료','book','#study'],['fun','트로피·3D','cube','#fun']];
-const NAV_UP={lobby:'today',plan:'today',out:'today',director:'today',title:'today',studio:'work',two:'work',ops:'board',hb:'board',lib:'study',coach:'study',log:'study',review:'study',world:'fun'};
+const NAV_UP={lobby:'today',plan:'today',out:'today',director:'today',title:'today',studio:'work',two:'work',ops:'board',hb:'board',lib:'study',coach:'study',log:'study',review:'study',book:'study',world:'fun'};
 const navCur=()=>S3.room==='v4'?({ws:'work',study:'study',trophy:'fun'})[S3.v4T]||'work':NAV_UP[S3.room]||S3.room;
 const CARD_ROOMS=['ops','hb','coach','log','plan','out','world'];
 const OLD_ROOMS=['lobby','director','ops','hb','coach','log','plan','out','world'];   // '옛 화면'(삭제 금지 — 새 화면으로 다 옮길 때까지)
@@ -2273,6 +2295,79 @@ function hbDevBlock(now){const H=S3.st.hb_dev;if(!H||!(H.products||[]).length)re
     ${top}<div class="hdps" id="hd-ps">${P.map(hdProd).join('')}</div>${q}
     <div class="kv tcm">${H.src==='feed'?'TA팀 현황판 자료':'통과 기준 파일에서 바로(TA팀 현황판 자료 기다리는 중)'} · 버전 ${esc(H.ver||'기준선 대기')}${H.bench?` · <span id="hd-bench">벤치 ${esc(H.bench)}</span>`:''} · 줄을 누르면 통과 기준</div></div>`}
 
+// ---- 📖 캐릭터 북(#book · #book/<칸> · #book/cmp) — control charbook_tab(11/27 23:27). 📚 공부·자료 안 방 ----
+// 자료: 지킴이 state 'charbook'(목록) + 'cbk_a~h'(한 장 페이지, 누를 때 받아 옴). 형식 hub/wc_app/캐릭터북_형식_v1.md
+// 한눈에(카드 격자) → 누르면 펼침(한 장 페이지) → 비교(2~3명 나란히). 빈 칸은 '기다리는 중'(지어내지 않음)
+const CB_CAT={대기:['🧍','#7AA4D2'],이동:['🏃','#68B096'],공격:['⚔️','#D27A7A'],피격:['💥','#D2A27A'],데드:['💀','#9A8FB0'],기타:['•','#8A8F98']};
+const CB_MOVE=['걷기','조깅','런','스프린트'];
+const cbList=()=>((S3.st.charbook||{}).items)||[];
+const cbSel=()=>lsx('cb_sel',[]).filter(s=>cbList().some(x=>x.s===s));
+const cbRing=(p,sz)=>`<span class="cbring" style="--p:${Math.max(0,Math.min(100,+p||0))};--sz:${sz||44}px" title="완성도 ${+p||0}%"><b>${+p||0}</b></span>`;
+const cbWait='<span class="kv">기다리는 중</span>';
+const cbN=(v,u)=>v===null||v===undefined||v===''?'—':esc(String(v))+(u||'');
+async function cbGet(s){const r=cbList().find(x=>x.s===s);if(!r)throw new Error('목록에 없어요');let x=(S3.cbk||{})[s];
+  if(!x||x.h!==r.h){const q=await api.get([s]);x=q.state&&q.state[s];if(!x)throw new Error('아직 안 왔어요');S3.cbk=Object.assign(S3.cbk||{},{[s]:x})}return x}
+function cbCard(x,sel){const c=x.cnt||{};
+  return `<div class="cbcard${sel?' on':''}"><a class="cbopen" href="#book/${esc(x.s)}" title="${esc(x.name)} 한 장 페이지를 열어요"><div class="cbimg">${x.front?`<img src="${esc(x.front)}" alt="" loading="lazy">`:'<i>🧍</i>'}</div>
+    <div class="cbtx"><small class="kv">${esc(x.game)}</small><b>${esc(x.name)}</b>${x.sample?'<em class="draft">빈 틀</em>':''}
+    <div class="cbcnt">${Object.keys(CB_CAT).filter(k=>c[k]).map(k=>`<span title="${k}">${CB_CAT[k][0]}${c[k]}</span>`).join('')||'<span class="kv">모션 0</span>'}</div></div>${cbRing(x.pct)}</a>
+    <button class="cbpick" data-cbsel="${esc(x.s)}" title="비교할 캐릭터로 고르거나 빼요(최대 3)">${sel?'✓ 비교':'＋ 비교'}</button></div>`}
+function cbGrid(){const L=cbList(),sel=cbSel(),src=(S3.st.charbook||{}).src;
+  return `<h1>📖 캐릭터 북</h1><p class="lead">추출한 캐릭터마다 컨셉 시트 · 애니 리스트 · 콤보 프레임 <a class="btn sm" href="#study">← 공부·자료</a></p>${hz()}
+   ${src==='sample'?oct('<div class="rule"><span>📭</span><span><b>아직 에셋팀 자료가 없어요</b><br><span class="kv">와일즈 헌터 빈 틀만 보여요 · 대검 모션이 끝나면 채워져요</span></span></div>','cbnote'):''}
+   <div class="cbbar"><span class="kv">비교 ${sel.length}/3</span><a class="btn${sel.length>=2?' pri2':''}" href="#book/cmp" ${sel.length>=2?'':'aria-disabled="true"'} title="고른 캐릭터를 나란히 비교해요(2~3명)">⚖️ 나란히 보기</a></div>
+   ${L.length?`<div class="cbgrid">${L.map(x=>cbCard(x,sel.includes(x.s))).join('')}</div>`:oct('<div class="empty">캐릭터 북 자료를 기다리는 중이에요</div>')}`}
+function cbAnimRow(a){const [ic,col]=CB_CAT[a.cat]||CB_CAT.기타,v=a.v||{},P=a.parts||{},has=v.drive||v.url||v.eagle;
+  if(a.name==='없음')return `<div class="cbrow" style="--cc:${col}"><span class="cbsub">${esc(a.sub)||'&nbsp;'}</span><span class="cbnm kv">이 게임엔 없음</span></div>`;
+  return `<div class="cbrow" style="--cc:${col}"><span class="cbsub">${esc(a.sub)||'&nbsp;'}</span><span class="cbnm">${a.name?esc(a.name):cbWait}${['st','lp','ed'].filter(k=>P[k]).map(k=>`<em class="cbpt" title="${esc(P[k])}">${k}</em>`).join('')}</span>
+    <span class="cbf">${a.frames!=null?a.frames+'f':'—'}${a.loop?' 🔁':''}</span>${a.speed_cms!=null||a.step_f!=null?`<span class="cbsp">${cbN(a.speed_cms,' cm/s')} · 걸음 ${cbN(a.step_f,'f')}</span>`:''}
+    ${has?`<button class="ib cbplay" data-cbv="${esc(JSON.stringify(v))}" data-cbt="${esc(a.name)}" title="영상을 재생해요">▶</button>`:''}</div>`}
+function cbAnims(A){if(!A.length)return `<div class="empty">애니 리스트를 기다리는 중이에요</div>`;
+  return Object.keys(CB_CAT).filter(k=>A.some(a=>a.cat===k)).map(k=>{const L=A.filter(a=>a.cat===k),n=L.filter(a=>a.name&&a.name!=='없음').length;
+    return `<details class="gt cbcat" data-gk="cb_${k}" ${k==='공격'?'':'open'}><summary>${CB_CAT[k][0]} <b>${k}</b> <span class="num">${n}</span></summary>${L.map(cbAnimRow).join('')}</details>`}).join('')}
+const CB_CK=[['frames','길이'],['wind_f','예비'],['swing_f','스윙'],['hit_f_est','타격'],['vmax_cmf','최고속도'],['stop_f','멈춤'],['link_f_est','이음'],['recover_f','복귀'],['root_cm','루트 cm']];
+function cbCombos(K,m){if(!K.length)return `<div class="empty">콤보 · 프레임 표를 기다리는 중이에요</div>`;
+  return `<div class="kv">@${m.fps||30}fps · 잰 본 ${esc(m.bone)||'—'} · 이동 기준 ${esc(m.move_basis)||'—'} · <em class="cbest">추정</em> = 엔진 판정 아님(애니 리드 확인)</div><div class="cbtw"><table class="cbt"><thead><tr><th>콤보</th><th>#</th><th>모션</th>${CB_CK.map(([k,n])=>`<th>${n}${/_est$/.test(k)?' <em class="cbest">추정</em>':''}</th>`).join('')}</tr></thead><tbody>
+    ${K.map(c=>`<tr><td>${esc(c.combo)}${c.branch?` <small class="kv">${esc(c.branch)}</small>`:''}</td><td>${cbN(c.order)}</td><td title="${esc(c.note)}">${esc(c.name)}</td>${CB_CK.map(([k])=>`<td>${cbN(c[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+function cbPage(x){const C=x.concept||{},S=x.setting||{},m=x.meta||{},r=cbList().find(y=>y.s===S3.cbS)||{},img=(v)=>`<figure>${v.img?`<img src="${esc(v.img)}" alt="" loading="lazy">`:'<i>🖼️</i>'}<figcaption>${esc(v.k)}</figcaption></figure>`;
+  const V=C.views&&C.views.length?C.views:['정면','측면','뒷면','3/4'].map(k=>({k,img:''}));
+  return `<p class="lead"><a class="btn sm" href="#book">← 캐릭터 북</a></p><div class="cbhead">${cbRing(r.pct,56)}<div><small class="kv">${esc(x.game)}</small><h1>${esc(x.name)}${x.sample?' <em class="draft">빈 틀</em>':''}</h1><span class="kv">${x.updated?'갱신 '+esc(x.updated):'아직 자료 없음'} · 모션 ${r.n_anim||0} · 콤보 ${r.n_combo||0}타</span></div></div>${hz()}
+   ${oct(`<details class="gt" data-gk="cb_s1" open><summary><h2 class="sec" style="display:inline">① 컨셉 시트</h2></summary><div class="cbviews">${V.map(img).join('')}</div>
+     ${C.weapon_views&&C.weapon_views.length?`<div class="cbviews sm">${C.weapon_views.map(img).join('')}</div>`:''}${C.idle_img?`<div class="cbviews sm">${img({k:'대기 자세',img:C.idle_img})}</div>`:''}
+     <div class="cbkv"><span>키 <b>${cbN(C.height_cm,' cm')}</b></span><span>무기 <b>${esc(C.weapon_name)||'—'}</b> ${cbN(C.weapon_cm,' cm')}</span></div></details>`)}
+   ${oct(`<details class="gt" data-gk="cb_s2" open><summary><h2 class="sec" style="display:inline">② 설정</h2></summary><div class="cbkv"><span>역할 <b>${esc(S.role)||'—'}</b></span><span>전투 <b>${esc(S.style)||'—'}</b></span><span>무기 <b>${esc(S.weapon)||'—'}</b></span></div>
+     ${S.summary?`<p>${esc(S.summary)}</p>`:''}${(S.sources||[]).length?`<div class="kv">출처 ${(S.sources||[]).map((u,i)=>`<a href="${esc(u)}" target="_blank" rel="noopener">${i+1}</a>`).join(' · ')}</div>`:''}</details>`)}
+   ${oct(`<h2 class="sec">③ 애니 리스트 <span class="num">${r.n_anim||0}</span></h2>${cbAnims(x.anims||[])}`)}
+   ${oct(`<details class="gt" data-gk="cb_s4" open><summary><h2 class="sec" style="display:inline">④ 콤보 · 프레임 표</h2></summary>${cbCombos(x.combos||[],m)}</details>`)}`}
+function cbCmp(P){const nm=P.map(x=>`<th>${esc(x.name)}<br><small class="kv">${esc(x.game)}</small></th>`).join(''),row=(t,f)=>`<tr><th>${t}</th>${P.map(x=>`<td>${f(x)}</td>`).join('')}</tr>`;
+  const mv=k=>x=>{const a=(x.anims||[]).find(a=>a.cat==='이동'&&a.sub===k);return !a?'—':a.name==='없음'?'<span class="kv">없음</span>':`${cbN(a.speed_cms,' cm/s')}<br><small class="kv">걸음 ${cbN(a.step_f,'f')} · ${cbN(a.frames,'f')}</small>`};
+  const atk=(x,i)=>((x.combos||[]).length?x.combos:(x.anims||[]).filter(a=>a.cat==='공격'))[i];
+  const nA=Math.max(0,...P.map(x=>((x.combos||[]).length?x.combos:(x.anims||[]).filter(a=>a.cat==='공격')).length));
+  return `<p class="lead"><a class="btn sm" href="#book">← 캐릭터 북</a></p><h1>⚖️ 나란히 보기</h1><p class="lead">같은 모션끼리 줄을 맞춰요 · f 는 30fps</p>${hz()}
+   ${oct(`<div class="cbtw"><table class="cbt cbcmp"><thead><tr><th></th>${nm}</tr></thead><tbody>
+     ${row('키',x=>cbN((x.concept||{}).height_cm,' cm'))}${row('무기',x=>`${esc((x.concept||{}).weapon_name)||'—'} ${cbN((x.concept||{}).weapon_cm,' cm')}`)}
+     <tr class="cbgap"><th colspan="${P.length+1}">🏃 이동 4단</th></tr>${CB_MOVE.map(k=>row(k,mv(k))).join('')}
+     <tr class="cbgap"><th colspan="${P.length+1}">⚔️ 공격 (순서대로)</th></tr>${Array.from({length:Math.min(nA,30)},(_,i)=>row(`${i+1}타`,x=>{const a=atk(x,i);return a?`${esc(a.name)||'—'}<br><small class="kv">${cbN(a.frames,'f')}${a.hit_f_est!=null?` · 타격 ${a.hit_f_est}f <em class="cbest">추정</em>`:''}${a.wind_f!=null?` · 예비 ${a.wind_f}f`:''}</small>`:'—'})).join('')||`<tr><td colspan="${P.length+1}" class="kv">공격 자료를 기다리는 중</td></tr>`}
+   </tbody></table></div>`)}`}
+async function bookRoom(){const el=$('#r-book'),t=S3.cbS||'';
+  if(!t){keepOpen(el,()=>el.innerHTML=cbGrid());return}
+  const ss=t==='cmp'?cbSel():[t];if(t==='cmp'&&ss.length<2){el.innerHTML=cbGrid()+'<div class="kv" style="margin-top:10px">비교할 캐릭터를 2명 이상 골라 주세요</div>';return}
+  const k=ss.join(',')+'|'+ss.map(s=>(cbList().find(x=>x.s===s)||{}).h).join(',');if(el._cb===k)return;
+  if(!ss.every(s=>(S3.cbk||{})[s]))el.innerHTML='<p class="why" style="padding:30px">불러오는 중…</p>';
+  try{const P=await Promise.all(ss.map(cbGet));if(S3.room!=='book'||S3.cbS!==t)return;el._cb=k;keepOpen(el,()=>el.innerHTML=t==='cmp'?cbCmp(P):cbPage(P[0]))}
+  catch(e){el._cb='';el.innerHTML=`<p class="lead"><a class="btn sm" href="#book">← 캐릭터 북</a></p><p class="why" style="padding:30px">못 불러왔어요 (${esc(e.message)}) — 잠시 뒤 다시 열어 주세요</p>`}}
+function cbPlay(v,t){const el=$('#rptv'),b=$('#rptv-b');$('#rptv-t').textContent='▶ '+(t||'영상');
+  const yt=(v.url||'').match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/),src=v.drive?`https://drive.google.com/file/d/${encodeURIComponent(v.drive)}/preview`:yt?`https://www.youtube.com/embed/${yt[1]}`:'';
+  $('#rptv-l').innerHTML=v.eagle?`<a class="btn" href="${esc(v.eagle)}" title="PC 이글에서 열어요(폰에서는 안 열려요)">이글</a>`:'';
+  if(!src){if(v.url)window.open(v.url,'_blank','noopener');else{b.innerHTML='<p class="why" style="padding:30px">이 영상은 PC 이글에서만 열려요 — 위 [이글] 버튼</p>';el.hidden=false}if(v.url)return;return}
+  const f=document.createElement('iframe');f.src=src;f.title=t||'영상';f.allow='autoplay; fullscreen';f.setAttribute('allowfullscreen','');b.replaceChildren(f);el.hidden=false}
+document.addEventListener('click',e=>{const p=e.target.closest('[data-cbsel]');
+  if(p){e.preventDefault();const s=p.dataset.cbsel;let L=cbSel();L=L.includes(s)?L.filter(x=>x!==s):L.concat(s).slice(-3);lsSet('v3_cb_sel',L);vib(8);if(S3.room==='book'){$('#r-book')._cb='';bookRoom()}return}
+  const v=e.target.closest('[data-cbv]');if(v){e.preventDefault();try{cbPlay(JSON.parse(v.dataset.cbv),v.dataset.cbt)}catch(_){}}});
+// 📚 공부·자료 안 입구 카드(한눈에: 캐릭터 수·모션 합계·평균 완성도)
+function bookEntry(){const L=cbList(),n=L.filter(x=>!x.sample).length,m=L.reduce((a,x)=>a+(+x.n_anim||0),0),avg=L.length?Math.round(L.reduce((a,x)=>a+(+x.pct||0),0)/L.length):0;
+  return oct(`<h2 class="sec">📖 캐릭터 북 <span class="num">${n}</span></h2><a class="cbent" href="#book" title="캐릭터 카드 격자를 열어요">${L.slice(0,4).map(x=>`<span class="cbmini">${x.front?`<img src="${esc(x.front)}" alt="">`:'🧍'}</span>`).join('')}<span><b>${n?`캐릭터 ${n}명 · 모션 ${m}개 · 평균 ${avg}%`:'와일즈 헌터 빈 틀 · 자료 기다리는 중'}</b><br><small class="kv">컨셉 시트 · 애니 리스트 · 콤보 프레임 · 나란히 비교</small></span></a>`)}
+
 // ---- HB HQ 실시간 두 탭 (PD 11/27 04:47 p1_hq_live): 🏠 오늘 · 📊 진행판 ----
 // 숫자(일·팀·막힘·어시스턴트·Claude)는 status.json(S3.st.status, 모양 hq_status_v1 — TA팀 hub\tools\status_feed.py)에서만 읽는다.
 // 원본 바꿔 끼우기(C2): Live 의 raw·at·pcAt 만 고친다. 화면(오늘·진행판)은 그대로.
@@ -2453,7 +2548,7 @@ function v4Room(){const t=V4T.some(x=>x[0]===S3.v4T)?S3.v4T:'ws',[tg,tt]=trophyN
   const un=Ask.unseen(S3.st).n,fb=((S3.st.tasks||{}).feedback)||[],tw=(((S3.st.two||{}).works)||[]).length,ms=lsx('stage',0);
   const body=t==='ws'?[wrCard(),motionCard(),tw?twEntry():'',oct(`<h2 class="sec">매일</h2><div class="nav2"><a class="btn" href="#log/mail" title="아이디어 회의 기록을 열어요">💡 아이디어</a><a class="btn" href="#study" title="오늘 공부 카드로 가요">📖 공부</a><button class="btn" data-askto2="anim_teacher" title="애니 리드에게 질문을 보내요">🎓 애니 리드에 묻기</button></div>`),
       `<div class="kv msl" title="포폴 마일스톤">🏁 마일스톤 ${STAGES.map((x,i)=>`<span class="${i===ms?'cur':i<ms?'past':''}">${i<ms?'✅ ':i===ms?'▶ ':''}${esc(x[0])}</span>`).join(' → ')} <span>· ${esc(STAGES[ms]?STAGES[ms][1]:'')}</span></div>`].filter(Boolean).join(gap)
-   :t==='study'?[codexCard(),oct(`<h2 class="sec">🎓 애니 리드에 묻기 <span class="num">${un||''}</span></h2><div class="nav2"><button class="btn pri2" data-askto2="anim_teacher" title="애니 리드에게 질문을 보내요">질문하기</button><a class="btn" href="#coach" title="애니 리드 피드백과 묻기 기록을 열어요">최근 피드백 ${fb.length}개 · 묻기 기록</a></div>`),
+   :t==='study'?[bookEntry(),codexCard(),oct(`<h2 class="sec">🎓 애니 리드에 묻기 <span class="num">${un||''}</span></h2><div class="nav2"><button class="btn pri2" data-askto2="anim_teacher" title="애니 리드에게 질문을 보내요">질문하기</button><a class="btn" href="#coach" title="애니 리드 피드백과 묻기 기록을 열어요">최근 피드백 ${fb.length}개 · 묻기 기록</a></div>`),
       oct(`<h2 class="sec">📚 HB Library</h2><div class="nav2"><a class="btn pri2" href="#lib" title="레퍼런스 클립 검색·영상 자료실을 열어요">자료 열기</a><span class="kv">레퍼런스 클립 검색 · 영상</span></div>`),
       oct(`<h2 class="sec">⚔️ 검술 무브셋 영상</h2><div class="nav2"><a class="btn pri2" href="moveset/" title="게임별 검술 무브셋 유튜브 영상 14개를 바로 재생해요(보유·구매, 반실사·실사로 거르기)">영상 보기</a><span class="kv">게임 14개 · 누르면 재생</span></div>`),handoffCard(),codexList(),
       oct(`<h2 class="sec">📓 기록</h2><div class="nav2"><a class="btn" href="#log/space" title="작업 공간 기록을 열어요">🧰 작업 공간</a><a class="btn" href="#log" title="일지·주간 작업일지·변경 이력을 열어요">일지 · 주간 · 변경 이력</a></div>`)].filter(Boolean).join(gap)
@@ -2468,10 +2563,10 @@ const NM_OLD=/관제센터|부대표|코칭팀|코칭실|개발팀|자료팀|취
 function nmSweep(){for(const r of document.querySelectorAll('.room.on,#nav,#lvbar')){const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(NM_OLD.test(n.nodeValue)&&n.parentNode&&!n.parentNode.closest('textarea,input,script,style'))n.nodeValue=nm3(n.nodeValue)}}}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['status','talk','extract','hb_dev','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['status','charbook','talk','extract','hb_dev','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
-const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','PD실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','애니 리드실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
-const COLOR={v4:'#CEA85E',today:'#CEA85E',board:'#CEA85E',lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
+const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','PD실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','애니 리드실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold'],['book','캐릭터 북','book','--blue']];
+const COLOR={v4:'#CEA85E',today:'#CEA85E',board:'#CEA85E',lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E',book:'#7AA4D2'};
 const DEMO=/[?&]demo=1/.test(location.search);
 let worldLoad=null;   // route() 보다 먼저(3D 탭을 바로 열 때)
 // 옛 이름 → 용어집 v2 이름(보여 줄 때만 바꿈, 데이터는 그대로)
@@ -2839,7 +2934,7 @@ function render(){
   document.querySelectorAll('.room').forEach(r=>r.classList.toggle('on',r.id==='r-'+S3.room));
   document.documentElement.style.setProperty('--rc',COLOR[S3.room]||'#CEA85E');
   if(S3.room!=='world'&&window.World&&World.on)World.stop();if(S3.room!=='lib')libPause();document.body.classList.toggle('libon',S3.room==='lib');
-  ({today:today2,board:board2,v4:v4Room,lobby,director,studio,ops:()=>{ops();jobJump()},out,title,world,review,log:recRoom,hb:hbBoard,two:twoRoom,lib:libRoom,coach,plan})[S3.room]?.();
+  ({today:today2,board:board2,v4:v4Room,lobby,director,studio,ops:()=>{ops();jobJump()},out,title,world,review,log:recRoom,hb:hbBoard,two:twoRoom,lib:libRoom,coach,plan,book:bookRoom})[S3.room]?.();
   nav();lvBar();nmSweep();
 }
 function route(){
@@ -2854,6 +2949,7 @@ function route(){
   h=({preview:'v4/ws',work:'v4/ws',study:'v4/study',fun:'v4/trophy'})[h]||h;   // 메뉴 5개 중 셋(⑭ 미리보기 단계 없앰 — #preview 는 작업공간으로)
   if(/^v4(\/|$)/.test(h)){S3.v4T=h.slice(3)||S3.v4T||'ws';h='v4'}
   if(/^board\//.test(h)){S3.bdJump=h.slice(6).replace(/[^a-z]/g,'');h='board'}
+  if(/^book(\/|$)/.test(h)){S3.cbS=decodeURIComponent(h.slice(5)).replace(/[^\w]/g,'');h='book'}
   if(/^two(\/|$)/.test(h)){S3.twT=h.slice(4)||S3.twT||'works';h='two'}
   if(h!=='title'&&h!=='review'&&h!=='two'&&h!=='v4'&&!ROOMS.some(r=>r[0]===h))h='today';
   S3.room=h;render();window.scrollTo(0,0);
