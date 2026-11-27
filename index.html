@@ -626,7 +626,20 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .cbest{font-style:normal;font-size:11px;padding:1px 5px;border-radius:6px;background:rgba(210,162,122,.25);color:#f0c9a4}
 .cbtw{overflow-x:auto;margin-top:8px}.cbt{border-collapse:collapse;font-size:13px;min-width:100%}.cbt th,.cbt td{padding:6px 8px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left;white-space:nowrap;vertical-align:top}.cbt thead th{color:var(--gold);position:sticky;top:0;background:#1b1d22}.cbcmp td{white-space:normal;min-width:110px}.cbgap th{color:var(--gold);padding-top:14px}
 .cbent{display:flex;gap:10px;align-items:center;color:inherit;text-decoration:none;min-height:56px}.cbmini{width:40px;height:52px;border-radius:8px;background:#14161a;display:inline-flex;align-items:center;justify-content:center;overflow:hidden;flex:none}.cbmini img{width:100%;height:100%;object-fit:cover}
-</style>
+
+/* 🃏 도감 모션 영상(charbook_video): 줄마다 그림 띠 · 누르면 줄 아래 반복 재생 · 비교 동시 재생 */
+.cbtap{cursor:pointer}.cbtap:active,.cbrow.on{background:rgba(255,255,255,.06)}
+.cbsh{height:32px;width:auto;max-width:min(240px,45vw);border-radius:4px;display:block;background:#14161a;flex:none}
+.cbpi{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--gold);font-size:15px;margin-left:auto}
+.cbvp{position:relative;padding:8px 6px 10px;border-left:3px solid var(--gold);background:#111317}.cbvp video{width:100%;max-height:52vh;display:block;background:#000;border-radius:8px;object-fit:contain}
+.cbvpv{width:100%;aspect-ratio:16/9;max-height:52vh;background-repeat:no-repeat;background-position:0 0;border-radius:8px;background-color:#000}
+.cbvc{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}.cbvc .btn{min-height:44px;min-width:44px}.cbvmsg{padding:6px 2px}.cbvmsg.err{color:#ff8a80}
+.cbcache{margin-top:8px}
+.cbsyncb{min-width:44px;min-height:44px;vertical-align:middle}
+.cbsync{margin:0 0 12px;padding:10px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:#111317}.cbsh2{display:flex;flex-wrap:wrap;gap:6px;align-items:center}.cbsh2 .ib{margin-left:auto;min-width:44px;min-height:44px}
+.cbsg{display:grid;grid-template-columns:repeat(var(--n),minmax(0,1fr));gap:8px;margin-top:8px}.cbsc{margin:0;min-width:0}.cbsc figcaption{font-size:12px;padding:4px 2px;word-break:break-all}
+.cbsv{position:relative;background:#000;border-radius:8px;overflow:hidden;min-height:80px}.cbsv video{width:100%;display:block;aspect-ratio:16/9;object-fit:contain}.cbsv.none{display:flex;align-items:center;justify-content:center;aspect-ratio:16/9}
+.exdx{display:block;color:inherit;text-decoration:none}</style>
 </head>
 <body>
 <div id="fog"></div>
@@ -680,7 +693,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=48;
+const BUILD=49;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2225,7 +2238,7 @@ function exBlock(now){const x=Ex.get();if(!x)return '';const c=x.cur||{},Q0=x.qu
   const nowL=c.src==='extract'?(ci||cc?esc(cc&&!ci.includes(cc)?(ci?cc+' / '+ci:cc):ci):'세는 중')
     :c.src==='fullrun'?`<span class="f-old">⚠ 에셋팀 추출 상태 파일을 기다려요</span> · ${esc(c.item||'')}`:'<span class="f-old">⚠ 상태 파일 없음</span>';
   const eta=c.eta_min!=null&&+c.eta_min>0?`약 ${esc(jrH(Math.round(+c.eta_min)))} 남음`:'남은 시간 모름';
-  const bars=c.src==='extract'?`${exBar('캐릭터',c.char_n,c.char_N,'ex-b-ch')}${exBar('클립',c.clips_done,c.clips_total,'ex-b-cl')}${exBar('도감',c.dex_done,c.dex_total,'ex-b-dx')}`:'';
+  const bars=c.src==='extract'?`${exBar('캐릭터',c.char_n,c.char_N,'ex-b-ch')}${exBar('클립',c.clips_done,c.clips_total,'ex-b-cl')}<a class="exdx" href="#book" title="도감(캐릭터 북)을 열어요">${exBar('도감 사진',c.dex_done,c.dex_total,'ex-b-dx')}</a>`:'';
   const cnt={own:(Q0.games||[]).filter(g=>g.owned).length,buy:(Q0.games||[]).filter(g=>!g.owned).length};
   const tools=ed?`<div class="exadd" id="ex-add"><input id="ex-add-n" maxlength="80" placeholder="게임 이름" aria-label="추가할 게임 이름"><label class="kv"><input type="checkbox" id="ex-add-o"> 보유</label><button class="btn" data-exadd="1" title="맨 아래에 넣어요(끌어서 옮길 수 있어요)">＋ 추가</button></div>
     <div class="exact"><button class="btn pri" data-exsave="1" title="PC가 원본 순서 파일을 백업한 뒤 고쳐요">💾 저장</button><button class="btn" data-excancel="1" title="고친 것을 버려요">취소</button>${ed.dirty?'<span class="kv">고친 것 있음 · 저장 전</span>':''}</div>`
@@ -2295,78 +2308,173 @@ function hbDevBlock(now){const H=S3.st.hb_dev;if(!H||!(H.products||[]).length)re
     ${top}<div class="hdps" id="hd-ps">${P.map(hdProd).join('')}</div>${q}
     <div class="kv tcm">${H.src==='feed'?'TA팀 현황판 자료':'통과 기준 파일에서 바로(TA팀 현황판 자료 기다리는 중)'} · 버전 ${esc(H.ver||'기준선 대기')}${H.bench?` · <span id="hd-bench">벤치 ${esc(H.bench)}</span>`:''} · 줄을 누르면 통과 기준</div></div>`}
 
-// ---- 📖 캐릭터 북(#book · #book/<칸> · #book/cmp) — control charbook_tab(11/27 23:27). 📚 공부·자료 안 방 ----
+// ---- 🃏 도감(#book · #book/<칸> · #book/cmp) — control charbook_tab(11/27 23:27) → charbook_merge(23:29) 로 기존 '도감'에 합침. 📚 공부·자료 안 방 ----
 // 자료: 지킴이 state 'charbook'(목록) + 'cbk_a~h'(한 장 페이지, 누를 때 받아 옴). 형식 hub/wc_app/캐릭터북_형식_v1.md
-// 한눈에(카드 격자) → 누르면 펼침(한 장 페이지) → 비교(2~3명 나란히). 빈 칸은 '기다리는 중'(지어내지 않음)
+// 도감 첫 화면 = 캐릭터 카드 격자(+ 캐릭터를 못 찾은 일일 분석 기록) → 카드 = 캐릭터 북 한 장 + 그 캐릭터로 한 일일 분석 기록 → 비교(2~3명 나란히).
+// 모션 영상(charbook_video 23:56): 페이지에는 영상 없음 — 줄마다 그림 띠(지킴이가 만든 썸네일 시트)만, 줄을 누를 때만 그 영상 1개를 받아 반복 재생 + 앞뒤 1개 미리 받기.
+//   폰 캐시 = Cache Storage 'hq-cbv' 최근 영상 CBV_N개·CBV_MB 상한(오래 안 본 것부터 지움). 비교 = 같은 모션 나란히 동시 재생(0f 에서 같이 시작, 가장 긴 것이 끝나면 같이 처음으로).
 const CB_CAT={대기:['🧍','#7AA4D2'],이동:['🏃','#68B096'],공격:['⚔️','#D27A7A'],피격:['💥','#D2A27A'],데드:['💀','#9A8FB0'],기타:['•','#8A8F98']};
 const CB_MOVE=['걷기','조깅','런','스프린트'];
+const CBV_N=12,CBV_MB=60;   // 폰 영상 캐시 상한: 최근 12개 · 60MB
 const cbList=()=>((S3.st.charbook||{}).items)||[];
 const cbSel=()=>lsx('cb_sel',[]).filter(s=>cbList().some(x=>x.s===s));
 const cbRing=(p,sz)=>`<span class="cbring" style="--p:${Math.max(0,Math.min(100,+p||0))};--sz:${sz||44}px" title="완성도 ${+p||0}%"><b>${+p||0}</b></span>`;
 const cbWait='<span class="kv">기다리는 중</span>';
 const cbN=(v,u)=>v===null||v===undefined||v===''?'—':esc(String(v))+(u||'');
+const CBM=window.CBM={open_ms:null,play_ms:[],cache_mb:0,cache_n:0};   // 실측(시험·보고용)
 async function cbGet(s){const r=cbList().find(x=>x.s===s);if(!r)throw new Error('목록에 없어요');let x=(S3.cbk||{})[s];
   if(!x||x.h!==r.h){const q=await api.get([s]);x=q.state&&q.state[s];if(!x)throw new Error('아직 안 왔어요');S3.cbk=Object.assign(S3.cbk||{},{[s]:x})}return x}
-function cbCard(x,sel){const c=x.cnt||{};
-  return `<div class="cbcard${sel?' on':''}"><a class="cbopen" href="#book/${esc(x.s)}" title="${esc(x.name)} 한 장 페이지를 열어요"><div class="cbimg">${x.front?`<img src="${esc(x.front)}" alt="" loading="lazy">`:'<i>🧍</i>'}</div>
+// 일일 분석 기록(도감 분석 퀘스트, 기기 v3_cx) ↔ 캐릭터 짝: 기록의 chars(오늘의 캐릭터 이름들) 안에 캐릭터 이름이 들어 있으면 그 캐릭터 페이지에
+const cbNorm=s=>String(s||'').toLowerCase().replace(/[\s()（）_\-·.]/g,'');
+function cbRecs(){const a=lsx('cx',{});return Object.keys(a).filter(k=>a[k]&&a[k].done).sort().reverse().map(k=>Object.assign({k},a[k]))}
+function cbRecMatch(r,x){const nm=cbNorm(x.name),id=cbNorm(x.id);if(!nm&&!id)return false;
+  return (r.chars||[]).some(c=>{const n=cbNorm(c);return n&&(n===nm||n===id||(nm.length>1&&(n.includes(nm)||nm.includes(n))))})}
+function cbRecCard(e){const [d,dy]=e.k.split('|');
+  return `<div class="cxcard"><b>Day ${esc(dy)} · ${esc(String(d).slice(5))}</b> — ${esc(e.verdict||'')}${e.topic?` <small class="kv">${esc(e.topic)}</small>`:''}<br><small>${esc(e.why||'')}</small>${(e.take||[]).filter(Boolean).map(t=>`<div class="cxe tp">가져올 것: ${esc(t)}</div>`).join('')}${(e.chars||[]).length?`<div class="kv">캐릭터 ${e.chars.map(esc).join(' · ')}</div>`:''}</div>`}
+function cbCard(x,sel,nr){const c=x.cnt||{};
+  return `<div class="cbcard${sel?' on':''}"><a class="cbopen" href="#book/${esc(x.s)}" title="${esc(x.name)} 캐릭터 북 한 장을 열어요"><div class="cbimg">${x.front?`<img src="${esc(x.front)}" alt="" loading="lazy">`:'<i>🧍</i>'}</div>
     <div class="cbtx"><small class="kv">${esc(x.game)}</small><b>${esc(x.name)}</b>${x.sample?'<em class="draft">빈 틀</em>':''}
-    <div class="cbcnt">${Object.keys(CB_CAT).filter(k=>c[k]).map(k=>`<span title="${k}">${CB_CAT[k][0]}${c[k]}</span>`).join('')||'<span class="kv">모션 0</span>'}</div></div>${cbRing(x.pct)}</a>
+    <div class="cbcnt">${Object.keys(CB_CAT).filter(k=>c[k]).map(k=>`<span title="${k}">${CB_CAT[k][0]}${c[k]}</span>`).join('')||'<span class="kv">모션 0</span>'}${nr?`<span title="일일 분석 기록">📝${nr}</span>`:''}</div></div>${cbRing(x.pct)}</a>
     <button class="cbpick" data-cbsel="${esc(x.s)}" title="비교할 캐릭터로 고르거나 빼요(최대 3)">${sel?'✓ 비교':'＋ 비교'}</button></div>`}
-function cbGrid(){const L=cbList(),sel=cbSel(),src=(S3.st.charbook||{}).src;
-  return `<h1>📖 캐릭터 북</h1><p class="lead">추출한 캐릭터마다 컨셉 시트 · 애니 리스트 · 콤보 프레임 <a class="btn sm" href="#study">← 공부·자료</a></p>${hz()}
+function cbGrid(){const L=cbList(),sel=cbSel(),src=(S3.st.charbook||{}).src,R=cbRecs(),un=R.filter(r=>!L.some(x=>!x.sample&&cbRecMatch(r,x)));
+  return `<h1>🃏 도감</h1><p class="lead">캐릭터를 누르면 캐릭터 북 한 장(컨셉 시트 · 애니 리스트 · 콤보 프레임)과 그 캐릭터로 한 일일 분석 기록 <a class="btn sm" href="#study">← 공부·자료</a></p>${hz()}
    ${src==='sample'?oct('<div class="rule"><span>📭</span><span><b>아직 에셋팀 자료가 없어요</b><br><span class="kv">와일즈 헌터 빈 틀만 보여요 · 대검 모션이 끝나면 채워져요</span></span></div>','cbnote'):''}
    <div class="cbbar"><span class="kv">비교 ${sel.length}/3</span><a class="btn${sel.length>=2?' pri2':''}" href="#book/cmp" ${sel.length>=2?'':'aria-disabled="true"'} title="고른 캐릭터를 나란히 비교해요(2~3명)">⚖️ 나란히 보기</a></div>
-   ${L.length?`<div class="cbgrid">${L.map(x=>cbCard(x,sel.includes(x.s))).join('')}</div>`:oct('<div class="empty">캐릭터 북 자료를 기다리는 중이에요</div>')}`}
-function cbAnimRow(a){const [ic,col]=CB_CAT[a.cat]||CB_CAT.기타,v=a.v||{},P=a.parts||{},has=v.drive||v.url||v.eagle;
+   ${L.length?`<div class="cbgrid">${L.map(x=>cbCard(x,sel.includes(x.s),x.sample?0:R.filter(r=>cbRecMatch(r,x)).length)).join('')}</div>`:oct('<div class="empty">도감 캐릭터 자료를 기다리는 중이에요</div>')}
+   ${un.length?oct(`<details class="gt" data-gk="cb_rec" open><summary><h2 class="sec" style="display:inline">📝 일일 분석 기록 <span class="num">${un.length}</span></h2> <span class="kv">캐릭터 북이 아직 없는 캐릭터</span></summary>${un.map(cbRecCard).join('')}</details>`,'cbrecs'):''}`}
+function cbSheet(v){return v.sh?`<img class="cbsh" src="${esc(v.sh)}" alt="" decoding="async">`:''}
+function cbAnimRow(a,i){const [ic,col]=CB_CAT[a.cat]||CB_CAT.기타,v=a.v||{},P=a.parts||{},has=v.drive||v.url||v.eagle;
   if(a.name==='없음')return `<div class="cbrow" style="--cc:${col}"><span class="cbsub">${esc(a.sub)||'&nbsp;'}</span><span class="cbnm kv">이 게임엔 없음</span></div>`;
-  return `<div class="cbrow" style="--cc:${col}"><span class="cbsub">${esc(a.sub)||'&nbsp;'}</span><span class="cbnm">${a.name?esc(a.name):cbWait}${['st','lp','ed'].filter(k=>P[k]).map(k=>`<em class="cbpt" title="${esc(P[k])}">${k}</em>`).join('')}</span>
+  const tap=v.drive?` data-cbi="${i}" role="button" tabindex="0" title="눌러서 이 모션 영상을 반복 재생해요"`:'';
+  return `<div class="cbrow${v.drive?' cbtap':''}" style="--cc:${col}"${tap}><span class="cbsub">${esc(a.sub)||'&nbsp;'}</span><span class="cbnm">${a.name?esc(a.name):cbWait}${['st','lp','ed'].filter(k=>P[k]).map(k=>`<em class="cbpt" title="${esc(P[k])}">${k}</em>`).join('')}</span>
     <span class="cbf">${a.frames!=null?a.frames+'f':'—'}${a.loop?' 🔁':''}</span>${a.speed_cms!=null||a.step_f!=null?`<span class="cbsp">${cbN(a.speed_cms,' cm/s')} · 걸음 ${cbN(a.step_f,'f')}</span>`:''}
-    ${has?`<button class="ib cbplay" data-cbv="${esc(JSON.stringify(v))}" data-cbt="${esc(a.name)}" title="영상을 재생해요">▶</button>`:''}</div>`}
+    ${cbSheet(v)}${v.drive?'<span class="cbpi" aria-hidden="true">▶</span>':has?`<button class="ib cbplay" data-cbv="${esc(JSON.stringify(v))}" data-cbt="${esc(a.name)}" title="영상을 열어요">▶</button>`:''}</div>`}
 function cbAnims(A){if(!A.length)return `<div class="empty">애니 리스트를 기다리는 중이에요</div>`;
-  return Object.keys(CB_CAT).filter(k=>A.some(a=>a.cat===k)).map(k=>{const L=A.filter(a=>a.cat===k),n=L.filter(a=>a.name&&a.name!=='없음').length;
-    return `<details class="gt cbcat" data-gk="cb_${k}" ${k==='공격'?'':'open'}><summary>${CB_CAT[k][0]} <b>${k}</b> <span class="num">${n}</span></summary>${L.map(cbAnimRow).join('')}</details>`}).join('')}
+  return Object.keys(CB_CAT).filter(k=>A.some(a=>a.cat===k)).map(k=>{const n=A.filter(a=>a.cat===k&&a.name&&a.name!=='없음').length;
+    return `<details class="gt cbcat" data-gk="cb_${k}" ${k==='공격'?'':'open'}><summary>${CB_CAT[k][0]} <b>${k}</b> <span class="num">${n}</span></summary>${A.map((a,i)=>a.cat===k?cbAnimRow(a,i):'').join('')}</details>`}).join('')}
 const CB_CK=[['frames','길이'],['wind_f','예비'],['swing_f','스윙'],['hit_f_est','타격'],['vmax_cmf','최고속도'],['stop_f','멈춤'],['link_f_est','이음'],['recover_f','복귀'],['root_cm','루트 cm']];
 function cbCombos(K,m){if(!K.length)return `<div class="empty">콤보 · 프레임 표를 기다리는 중이에요</div>`;
   return `<div class="kv">@${m.fps||30}fps · 잰 본 ${esc(m.bone)||'—'} · 이동 기준 ${esc(m.move_basis)||'—'} · <em class="cbest">추정</em> = 엔진 판정 아님(애니 리드 확인)</div><div class="cbtw"><table class="cbt"><thead><tr><th>콤보</th><th>#</th><th>모션</th>${CB_CK.map(([k,n])=>`<th>${n}${/_est$/.test(k)?' <em class="cbest">추정</em>':''}</th>`).join('')}</tr></thead><tbody>
     ${K.map(c=>`<tr><td>${esc(c.combo)}${c.branch?` <small class="kv">${esc(c.branch)}</small>`:''}</td><td>${cbN(c.order)}</td><td title="${esc(c.note)}">${esc(c.name)}</td>${CB_CK.map(([k])=>`<td>${cbN(c[k])}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`}
+function cbCacheLine(){return `<div class="kv cbcache" id="cb-cache">📦 폰에 둔 영상 <b class="num">${CBM.cache_n}</b>/${CBV_N}개 · <b class="num">${CBM.cache_mb}</b>/${CBV_MB}MB <span class="kv">(오래 안 본 것부터 지워요)</span></div>`}
 function cbPage(x){const C=x.concept||{},S=x.setting||{},m=x.meta||{},r=cbList().find(y=>y.s===S3.cbS)||{},img=(v)=>`<figure>${v.img?`<img src="${esc(v.img)}" alt="" loading="lazy">`:'<i>🖼️</i>'}<figcaption>${esc(v.k)}</figcaption></figure>`;
   const V=C.views&&C.views.length?C.views:['정면','측면','뒷면','3/4'].map(k=>({k,img:''}));
-  return `<p class="lead"><a class="btn sm" href="#book">← 캐릭터 북</a></p><div class="cbhead">${cbRing(r.pct,56)}<div><small class="kv">${esc(x.game)}</small><h1>${esc(x.name)}${x.sample?' <em class="draft">빈 틀</em>':''}</h1><span class="kv">${x.updated?'갱신 '+esc(x.updated):'아직 자료 없음'} · 모션 ${r.n_anim||0} · 콤보 ${r.n_combo||0}타</span></div></div>${hz()}
+  const R=x.sample?[]:cbRecs().filter(e=>cbRecMatch(e,x)),nv=(x.anims||[]).filter(a=>(a.v||{}).drive).length;
+  return `<p class="lead"><a class="btn sm" href="#book">← 도감</a></p><div class="cbhead">${cbRing(r.pct,56)}<div><small class="kv">${esc(x.game)}</small><h1>${esc(x.name)}${x.sample?' <em class="draft">빈 틀</em>':''}</h1><span class="kv">${x.updated?'갱신 '+esc(x.updated):'아직 자료 없음'} · 모션 ${r.n_anim||0} · 콤보 ${r.n_combo||0}타 · 분석 ${R.length}</span></div></div>${hz()}
    ${oct(`<details class="gt" data-gk="cb_s1" open><summary><h2 class="sec" style="display:inline">① 컨셉 시트</h2></summary><div class="cbviews">${V.map(img).join('')}</div>
      ${C.weapon_views&&C.weapon_views.length?`<div class="cbviews sm">${C.weapon_views.map(img).join('')}</div>`:''}${C.idle_img?`<div class="cbviews sm">${img({k:'대기 자세',img:C.idle_img})}</div>`:''}
      <div class="cbkv"><span>키 <b>${cbN(C.height_cm,' cm')}</b></span><span>무기 <b>${esc(C.weapon_name)||'—'}</b> ${cbN(C.weapon_cm,' cm')}</span></div></details>`)}
    ${oct(`<details class="gt" data-gk="cb_s2" open><summary><h2 class="sec" style="display:inline">② 설정</h2></summary><div class="cbkv"><span>역할 <b>${esc(S.role)||'—'}</b></span><span>전투 <b>${esc(S.style)||'—'}</b></span><span>무기 <b>${esc(S.weapon)||'—'}</b></span></div>
      ${S.summary?`<p>${esc(S.summary)}</p>`:''}${(S.sources||[]).length?`<div class="kv">출처 ${(S.sources||[]).map((u,i)=>`<a href="${esc(u)}" target="_blank" rel="noopener">${i+1}</a>`).join(' · ')}</div>`:''}</details>`)}
-   ${oct(`<h2 class="sec">③ 애니 리스트 <span class="num">${r.n_anim||0}</span></h2>${cbAnims(x.anims||[])}`)}
-   ${oct(`<details class="gt" data-gk="cb_s4" open><summary><h2 class="sec" style="display:inline">④ 콤보 · 프레임 표</h2></summary>${cbCombos(x.combos||[],m)}</details>`)}`}
-function cbCmp(P){const nm=P.map(x=>`<th>${esc(x.name)}<br><small class="kv">${esc(x.game)}</small></th>`).join(''),row=(t,f)=>`<tr><th>${t}</th>${P.map(x=>`<td>${f(x)}</td>`).join('')}</tr>`;
-  const mv=k=>x=>{const a=(x.anims||[]).find(a=>a.cat==='이동'&&a.sub===k);return !a?'—':a.name==='없음'?'<span class="kv">없음</span>':`${cbN(a.speed_cms,' cm/s')}<br><small class="kv">걸음 ${cbN(a.step_f,'f')} · ${cbN(a.frames,'f')}</small>`};
-  const atk=(x,i)=>((x.combos||[]).length?x.combos:(x.anims||[]).filter(a=>a.cat==='공격'))[i];
+   ${oct(`<h2 class="sec">③ 애니 리스트 <span class="num">${r.n_anim||0}</span></h2>${nv?`<div class="kv">▶ 줄을 누르면 그 영상만 받아 반복 재생 · 영상 ${nv}개</div>`:''}${cbAnims(x.anims||[])}${nv?cbCacheLine():''}`)}
+   ${oct(`<details class="gt" data-gk="cb_s4" open><summary><h2 class="sec" style="display:inline">④ 콤보 · 프레임 표</h2></summary>${cbCombos(x.combos||[],m)}</details>`)}
+   ${oct(`<details class="gt" data-gk="cb_s5" open><summary><h2 class="sec" style="display:inline">📝 일일 분석 기록 <span class="num">${R.length}</span></h2></summary>${R.length?R.map(cbRecCard).join(''):`<div class="kv">${x.sample?'빈 틀이라 짝지을 기록이 없어요':'이 캐릭터로 한 일일 분석이 아직 없어요 — 일일 퀘스트를 끝내면 여기에 붙어요'}</div>`}</details>`,'cbrecs')}`}
+// 비교: 같은 줄(이동 단·n타)의 각 캐릭터 모션
+function cbCmpCells(P){const mvA=k=>x=>(x.anims||[]).find(a=>a.cat==='이동'&&a.sub===k);
+  const atkA=i=>x=>{const L=(x.combos||[]).length?x.combos:(x.anims||[]).filter(a=>a.cat==='공격'),c=L[i];if(!c)return null;return c.v?c:Object.assign({},c,{v:((x.anims||[]).find(a=>a.name===c.name)||{}).v})};
   const nA=Math.max(0,...P.map(x=>((x.combos||[]).length?x.combos:(x.anims||[]).filter(a=>a.cat==='공격')).length));
-  return `<p class="lead"><a class="btn sm" href="#book">← 캐릭터 북</a></p><h1>⚖️ 나란히 보기</h1><p class="lead">같은 모션끼리 줄을 맞춰요 · f 는 30fps</p>${hz()}
+  return {mv:CB_MOVE.map(k=>[k,P.map(mvA(k))]),atk:Array.from({length:Math.min(nA,30)},(_,i)=>[`${i+1}타`,P.map(atkA(i))])}}
+function cbCmp(P){const nm=P.map(x=>`<th>${esc(x.name)}<br><small class="kv">${esc(x.game)}</small></th>`).join('');
+  const CC=cbCmpCells(P);S3.cbCmpRows=CC;
+  const pb=(g,j,A)=>A.some(a=>a&&a.name!=='없음'&&(a.v||{}).drive)?` <button class="ib cbsyncb" data-cbsync="${g}:${j}" title="이 줄 모션을 나란히 동시에 재생해요(0f 맞춤)">▶</button>`:'';
+  const row=(g,j,t,A,f)=>`<tr><th>${t}${pb(g,j,A)}</th>${A.map(f).join('')}</tr>`;
+  const mvF=a=>`<td>${!a?'—':a.name==='없음'?'<span class="kv">없음</span>':`${cbN(a.speed_cms,' cm/s')}<br><small class="kv">걸음 ${cbN(a.step_f,'f')} · ${cbN(a.frames,'f')}</small>`}</td>`;
+  const atF=a=>`<td>${a?`${esc(a.name)||'—'}<br><small class="kv">${cbN(a.frames,'f')}${a.hit_f_est!=null?` · 타격 ${a.hit_f_est}f <em class="cbest">추정</em>`:''}${a.wind_f!=null?` · 예비 ${a.wind_f}f`:''}</small>`:'—'}</td>`;
+  const one=(t,f)=>`<tr><th>${t}</th>${P.map(x=>`<td>${f(x)}</td>`).join('')}</tr>`;
+  return `<p class="lead"><a class="btn sm" href="#book">← 도감</a></p><h1>⚖️ 나란히 보기</h1><p class="lead">같은 모션끼리 줄을 맞춰요 · f 는 30fps · ▶ = 같은 모션 동시 재생</p>${hz()}
+   <div id="cbsync" class="cbsync" hidden></div>
    ${oct(`<div class="cbtw"><table class="cbt cbcmp"><thead><tr><th></th>${nm}</tr></thead><tbody>
-     ${row('키',x=>cbN((x.concept||{}).height_cm,' cm'))}${row('무기',x=>`${esc((x.concept||{}).weapon_name)||'—'} ${cbN((x.concept||{}).weapon_cm,' cm')}`)}
-     <tr class="cbgap"><th colspan="${P.length+1}">🏃 이동 4단</th></tr>${CB_MOVE.map(k=>row(k,mv(k))).join('')}
-     <tr class="cbgap"><th colspan="${P.length+1}">⚔️ 공격 (순서대로)</th></tr>${Array.from({length:Math.min(nA,30)},(_,i)=>row(`${i+1}타`,x=>{const a=atk(x,i);return a?`${esc(a.name)||'—'}<br><small class="kv">${cbN(a.frames,'f')}${a.hit_f_est!=null?` · 타격 ${a.hit_f_est}f <em class="cbest">추정</em>`:''}${a.wind_f!=null?` · 예비 ${a.wind_f}f`:''}</small>`:'—'})).join('')||`<tr><td colspan="${P.length+1}" class="kv">공격 자료를 기다리는 중</td></tr>`}
+     ${one('키',x=>cbN((x.concept||{}).height_cm,' cm'))}${one('무기',x=>`${esc((x.concept||{}).weapon_name)||'—'} ${cbN((x.concept||{}).weapon_cm,' cm')}`)}
+     <tr class="cbgap"><th colspan="${P.length+1}">🏃 이동 4단</th></tr>${CC.mv.map(([t,A],j)=>row('mv',j,t,A,mvF)).join('')}
+     <tr class="cbgap"><th colspan="${P.length+1}">⚔️ 공격 (순서대로)</th></tr>${CC.atk.map(([t,A],j)=>row('atk',j,t,A,atF)).join('')||`<tr><td colspan="${P.length+1}" class="kv">공격 자료를 기다리는 중</td></tr>`}
    </tbody></table></div>`)}`}
-async function bookRoom(){const el=$('#r-book'),t=S3.cbS||'';
-  if(!t){keepOpen(el,()=>el.innerHTML=cbGrid());return}
+async function bookRoom(){const el=$('#r-book'),t=S3.cbS||'',t0=performance.now();
+  if(!t){keepOpen(el,()=>el.innerHTML=cbGrid());CBM.open_ms=Math.round(performance.now()-t0);return}
   const ss=t==='cmp'?cbSel():[t];if(t==='cmp'&&ss.length<2){el.innerHTML=cbGrid()+'<div class="kv" style="margin-top:10px">비교할 캐릭터를 2명 이상 골라 주세요</div>';return}
   const k=ss.join(',')+'|'+ss.map(s=>(cbList().find(x=>x.s===s)||{}).h).join(',');if(el._cb===k)return;
   if(!ss.every(s=>(S3.cbk||{})[s]))el.innerHTML='<p class="why" style="padding:30px">불러오는 중…</p>';
-  try{const P=await Promise.all(ss.map(cbGet));if(S3.room!=='book'||S3.cbS!==t)return;el._cb=k;keepOpen(el,()=>el.innerHTML=t==='cmp'?cbCmp(P):cbPage(P[0]))}
-  catch(e){el._cb='';el.innerHTML=`<p class="lead"><a class="btn sm" href="#book">← 캐릭터 북</a></p><p class="why" style="padding:30px">못 불러왔어요 (${esc(e.message)}) — 잠시 뒤 다시 열어 주세요</p>`}}
+  try{const P=await Promise.all(ss.map(cbGet));if(S3.room!=='book'||S3.cbS!==t)return;el._cb=k;S3.cbP=P;cbVidStop();keepOpen(el,()=>el.innerHTML=t==='cmp'?cbCmp(P):cbPage(P[0]));CBM.open_ms=Math.round(performance.now()-t0);el.dataset.openMs=CBM.open_ms;cbCacheStat()}
+  catch(e){el._cb='';el.innerHTML=`<p class="lead"><a class="btn sm" href="#book">← 도감</a></p><p class="why" style="padding:30px">못 불러왔어요 (${esc(e.message)}) — 잠시 뒤 다시 열어 주세요</p>`}}
+// ---- 영상 받기 + 폰 캐시(LRU) ----
+const CBV={url:new Map(),busy:new Map()};
+const cbvIdx=()=>CBV.ix||(CBV.ix=lsx('cbv_idx',{})),cbvIdxSet=o=>{CBV.ix=o;lsSet('v3_cbv_idx',o)};   // 한 곳(메모리)에서만 고치고 저장 — 동시에 받을 때 덮어쓰기 방지
+async function cbvNet(id){const d=typeof BRIDGE_URL==='undefined'||!BRIDGE_URL||BRIDGE_URL.startsWith('/*');
+  const r=d?await fetch('dev/cbv/'+encodeURIComponent(id),{cache:'no-store'}):await api.gfetch('https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(id)+'?alt=media');
+  if(!r.ok)throw new Error('드라이브 '+r.status);return r.blob()}
+async function cbvTrim(keep){const ix=cbvIdx(),ks=Object.keys(ix).sort((a,b)=>ix[a].t-ix[b].t);let tot=ks.reduce((s,k)=>s+(ix[k].b||0),0),n=ks.length,c=null;
+  try{c=await caches.open('hq-cbv')}catch(_){}
+  const del=[];for(const k of ks){if(n<=CBV_N&&tot<=CBV_MB*1048576)break;if(k===keep)continue;tot-=ix[k].b||0;n--;delete ix[k];del.push(k);const u=CBV.url.get(k);if(u){URL.revokeObjectURL(u);CBV.url.delete(k)}}
+  cbvIdxSet(ix);if(c){for(const k of del)await c.delete('/v/'+k).catch(()=>{});for(const q of await c.keys().catch(()=>[])){const id=decodeURIComponent(new URL(q.url).pathname.replace(/^\/v\//,''));if(!ix[id]&&!CBV.busy.has(id))await c.delete(q).catch(()=>{})}}}
+async function cbCacheStat(){const ix=cbvIdx(),ks=Object.keys(ix);CBM.cache_n=ks.length;CBM.cache_mb=Math.round(ks.reduce((s,k)=>s+(ix[k].b||0),0)/1048576*10)/10;
+  const el=$('#cb-cache');if(el)el.outerHTML=cbCacheLine()}
+function cbvGet(id){if(CBV.url.has(id)){const ix=cbvIdx();if(ix[id]){ix[id].t=Date.now();cbvIdxSet(ix)}return Promise.resolve(CBV.url.get(id))}
+  if(CBV.busy.has(id))return CBV.busy.get(id);
+  const p=(async()=>{let c=null,blob=null;try{c=await caches.open('hq-cbv')}catch(_){}
+    if(c){const r=await c.match('/v/'+id).catch(()=>null);if(r)blob=await r.blob()}
+    const ix=cbvIdx();
+    if(!blob){blob=await cbvNet(id);if(c){try{await c.put('/v/'+id,new Response(blob,{headers:{'Content-Type':blob.type||'video/mp4'}}))}catch(_){}}}
+    ix[id]={t:Date.now(),b:blob.size};cbvIdxSet(ix);await cbvTrim(id);
+    const u=URL.createObjectURL(blob);CBV.url.set(id,u);
+    while(CBV.url.size>6){const k=CBV.url.keys().next().value;URL.revokeObjectURL(CBV.url.get(k));CBV.url.delete(k)}   // 메모리엔 6개만
+    cbCacheStat();return u})().finally(()=>CBV.busy.delete(id));
+  CBV.busy.set(id,p);return p}
+// ---- 줄 누르면 그 줄 아래에서 반복 재생(GIF처럼, 소리 없음) ----
+function cbVidStop(){document.querySelectorAll('#r-book .cbvp').forEach(e=>{const v=e.querySelector('video');if(v){v.pause();v.removeAttribute('src');v.load()}e.remove()});document.querySelectorAll('#r-book .cbrow.on').forEach(e=>e.classList.remove('on'))}
+function cbRowPlay(row){const P=S3.cbP||[],x=P[0];if(!x)return;const i=+row.dataset.cbi,A=x.anims||[],a=A[i];if(!a||!(a.v||{}).drive)return;
+  const was=row.classList.contains('on');cbVidStop();if(was)return;
+  row.classList.add('on');const box=document.createElement('div');box.className='cbvp';
+  box.innerHTML=`${a.v.sh?`<div class="cbvpv" style="background-image:url(${a.v.sh});background-size:${(+a.v.shn||6)*100}% 100%"></div>`:''}<div class="kv cbvmsg">받는 중…</div><div class="cbvc"><button class="btn sm" data-cbstep="-1" title="1프레임 뒤로">◀ 1f</button><button class="btn sm" data-cbpp="1" title="멈춤/재생">⏸</button><button class="btn sm" data-cbstep="1" title="1프레임 앞으로">1f ▶</button><span class="kv num cbfr"></span>${a.v.eagle?`<a class="btn sm" href="${esc(a.v.eagle)}" title="PC 이글에서 열어요">이글</a>`:''}</div>`;
+  row.after(box);const t0=performance.now();let pf=0;
+  const sh=box.querySelector('.cbvpv');if(sh){const n=+a.v.shn||6;let f=0;pf=setInterval(()=>{if(!sh.isConnected)return clearInterval(pf);sh.style.backgroundPosition=(n>1?f/(n-1)*100:0)+'% 0';f=(f+1)%n},160)}
+  cbvGet(a.v.drive).then(u=>{if(!box.isConnected)return;const v=document.createElement('video');v.loop=true;v.muted=true;v.autoplay=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');v.disablePictureInPicture=true;
+    v.addEventListener('playing',()=>{const ms=Math.round(performance.now()-t0);CBM.play_ms.push(ms);box.dataset.playMs=ms;clearInterval(pf);if(sh)sh.remove();const m=box.querySelector('.cbvmsg');if(m)m.remove()},{once:true});
+    const fps=+((x.meta||{}).fps)||30,fr=box.querySelector('.cbfr'),paint=()=>{if(!v.isConnected)return;fr.textContent=Math.round(v.currentTime*fps)+'f / '+Math.round((v.duration||0)*fps)+'f';requestAnimationFrame(paint)};requestAnimationFrame(paint);
+    v.src=u;box.prepend(v);const p=v.play();if(p&&p.catch)p.catch(()=>{});
+    // 앞뒤 1개 미리 받기(같은 목록에서 영상 있는 바로 앞·뒤 줄)
+    setTimeout(()=>{if(!box.isConnected)return;const D=A.map((b,j)=>[b,j]).filter(([b])=>(b.v||{}).drive&&b.name!=='없음'),k=D.findIndex(([,j])=>j===i);[D[k-1],D[k+1]].forEach(z=>{if(z)cbvGet(z[0].v.drive).catch(()=>{})})},300)})
+   .catch(e=>{const m=box.querySelector('.cbvmsg');if(m){m.textContent='⚠ 영상을 못 받았어요 ('+e.message+') — 구글 로그인·연결을 확인해 주세요';m.classList.add('err')}clearInterval(pf)})}
+// ---- 비교: 같은 줄 나란히 동시 재생(프레임 맞춤) ----
+function cbSyncPlay(key){const [g,j]=key.split(':'),CC=S3.cbCmpRows,P=S3.cbP||[];if(!CC)return;const ent=(CC[g]||[])[+j];if(!ent)return;const [t,A]=ent,el=$('#cbsync');
+  el.querySelectorAll('video').forEach(v=>{v.pause();v.removeAttribute('src');v.load()});
+  el.hidden=false;el.innerHTML=`<div class="cbsh2"><b>▶ ${esc(t)}</b> <span class="kv">0f 에서 같이 시작 · 가장 긴 모션이 끝나면 같이 처음으로</span><button class="ib" data-cbsyncx="1" title="닫기">✕</button></div>
+   <div class="cbsg" style="--n:${P.length}">${P.map((x,i)=>{const a=A[i],ok=a&&a.name!=='없음'&&(a.v||{}).drive;return `<figure class="cbsc">${ok?`<div class="cbsv" data-i="${i}">${a.v.sh?`<div class="cbvpv" style="background-image:url(${a.v.sh});background-size:${(+a.v.shn||6)*100}% 100%"></div>`:''}<span class="kv cbvmsg">받는 중…</span></div>`:'<div class="cbsv none kv">영상 없음</div>'}<figcaption>${esc(x.name)}<br><small class="kv">${a?esc(a.name||''):''}</small> <small class="num cbfr"></small></figcaption></figure>`}).join('')}</div>
+   <div class="cbvc"><button class="btn sm" data-cbsstep="-1" title="모두 1프레임 뒤로">◀ 1f</button><button class="btn sm" data-cbspp="1" title="모두 멈춤/재생">⏸</button><button class="btn sm" data-cbsstep="1" title="모두 1프레임 앞으로">1f ▶</button><button class="btn sm" data-cbs0="1" title="모두 0f 로">⏮ 0f</button></div>`;
+  el.scrollIntoView({block:'nearest'});const t0=performance.now();
+  const jobs=P.map((x,i)=>{const a=A[i];if(!(a&&a.name!=='없음'&&(a.v||{}).drive))return null;
+    return cbvGet(a.v.drive).then(u=>new Promise((ok,no)=>{const box=el.querySelector(`.cbsv[data-i="${i}"]`);if(!box)return no(new Error('닫힘'));const v=document.createElement('video');v.muted=true;v.playsInline=true;v.setAttribute('playsinline','');v.setAttribute('muted','');v.preload='auto';v.dataset.fps=+((x.meta||{}).fps)||30;
+      v.addEventListener('loadeddata',()=>ok(v),{once:true});v.addEventListener('error',()=>no(new Error('재생 못 함')),{once:true});v.src=u;box.prepend(v)}))}).filter(Boolean);
+  Promise.allSettled(jobs).then(rs=>{const V=rs.filter(r=>r.status==='fulfilled').map(r=>r.value);if(!el.isConnected||!V.length)return;
+    el.querySelectorAll('.cbvpv,.cbvmsg').forEach(e=>e.remove());rs.forEach(r=>{if(r.status==='rejected'){}});
+    S3.cbSync=V;V.forEach(v=>{v.currentTime=0});const longest=V.reduce((a,b)=>(b.duration||0)>(a.duration||0)?b:a,V[0]);
+    longest.addEventListener('ended',()=>{V.forEach(v=>{v.currentTime=0});cbSyncGo(V)});
+    V.forEach(v=>v.addEventListener('ended',()=>{if(v!==longest)v.pause()}));
+    cbSyncGo(V);el.dataset.playMs=Math.round(performance.now()-t0);CBM.play_ms.push(+el.dataset.playMs);
+    const paint=()=>{if(!el.isConnected||S3.cbSync!==V)return;V.forEach(v=>{const f=v.closest('figure').querySelector('.cbfr');if(f)f.textContent=Math.round(v.currentTime*v.dataset.fps)+'f'});requestAnimationFrame(paint)};requestAnimationFrame(paint)})}
+function cbSyncGo(V){V.forEach(v=>{const p=v.play();if(p&&p.catch)p.catch(()=>{})})}
+function cbStep(V,d){V.forEach(v=>{v.pause();const fps=+v.dataset.fps||30;v.currentTime=Math.max(0,Math.min(v.duration||0,v.currentTime+d/fps))})}
 function cbPlay(v,t){const el=$('#rptv'),b=$('#rptv-b');$('#rptv-t').textContent='▶ '+(t||'영상');
-  const yt=(v.url||'').match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/),src=v.drive?`https://drive.google.com/file/d/${encodeURIComponent(v.drive)}/preview`:yt?`https://www.youtube.com/embed/${yt[1]}`:'';
+  const yt=(v.url||'').match(/(?:youtu\.be\/|v=|embed\/)([\w-]{11})/),src=yt?`https://www.youtube.com/embed/${yt[1]}`:'';
   $('#rptv-l').innerHTML=v.eagle?`<a class="btn" href="${esc(v.eagle)}" title="PC 이글에서 열어요(폰에서는 안 열려요)">이글</a>`:'';
-  if(!src){if(v.url)window.open(v.url,'_blank','noopener');else{b.innerHTML='<p class="why" style="padding:30px">이 영상은 PC 이글에서만 열려요 — 위 [이글] 버튼</p>';el.hidden=false}if(v.url)return;return}
+  if(!src){if(v.url){window.open(v.url,'_blank','noopener');return}b.innerHTML='<p class="why" style="padding:30px">이 영상은 PC 이글에서만 열려요 — 위 [이글] 버튼</p>';el.hidden=false;return}
   const f=document.createElement('iframe');f.src=src;f.title=t||'영상';f.allow='autoplay; fullscreen';f.setAttribute('allowfullscreen','');b.replaceChildren(f);el.hidden=false}
 document.addEventListener('click',e=>{const p=e.target.closest('[data-cbsel]');
   if(p){e.preventDefault();const s=p.dataset.cbsel;let L=cbSel();L=L.includes(s)?L.filter(x=>x!==s):L.concat(s).slice(-3);lsSet('v3_cb_sel',L);vib(8);if(S3.room==='book'){$('#r-book')._cb='';bookRoom()}return}
-  const v=e.target.closest('[data-cbv]');if(v){e.preventDefault();try{cbPlay(JSON.parse(v.dataset.cbv),v.dataset.cbt)}catch(_){}}});
-// 📚 공부·자료 안 입구 카드(한눈에: 캐릭터 수·모션 합계·평균 완성도)
-function bookEntry(){const L=cbList(),n=L.filter(x=>!x.sample).length,m=L.reduce((a,x)=>a+(+x.n_anim||0),0),avg=L.length?Math.round(L.reduce((a,x)=>a+(+x.pct||0),0)/L.length):0;
-  return oct(`<h2 class="sec">📖 캐릭터 북 <span class="num">${n}</span></h2><a class="cbent" href="#book" title="캐릭터 카드 격자를 열어요">${L.slice(0,4).map(x=>`<span class="cbmini">${x.front?`<img src="${esc(x.front)}" alt="">`:'🧍'}</span>`).join('')}<span><b>${n?`캐릭터 ${n}명 · 모션 ${m}개 · 평균 ${avg}%`:'와일즈 헌터 빈 틀 · 자료 기다리는 중'}</b><br><small class="kv">컨셉 시트 · 애니 리스트 · 콤보 프레임 · 나란히 비교</small></span></a>`)}
+  const v=e.target.closest('[data-cbv]');if(v){e.preventDefault();try{cbPlay(JSON.parse(v.dataset.cbv),v.dataset.cbt)}catch(_){}return}
+  let b;
+  if(b=e.target.closest('.cbvp [data-cbpp]')){const vv=b.closest('.cbvp').querySelector('video');if(vv){if(vv.paused)vv.play().catch(()=>{});else vv.pause();b.textContent=vv.paused?'▶':'⏸'}return}
+  if(b=e.target.closest('.cbvp [data-cbstep]')){const vv=b.closest('.cbvp').querySelector('video');if(vv)cbStep([vv],+b.dataset.cbstep);const pp=b.parentNode.querySelector('[data-cbpp]');if(pp)pp.textContent='▶';return}
+  if(e.target.closest('.cbvp'))return;
+  if(b=e.target.closest('[data-cbsync]')){e.preventDefault();vib(8);cbSyncPlay(b.dataset.cbsync);return}
+  if(e.target.closest('[data-cbsyncx]')){const el=$('#cbsync');el.querySelectorAll('video').forEach(x=>{x.pause();x.removeAttribute('src');x.load()});el.hidden=true;el.innerHTML='';S3.cbSync=null;return}
+  const V=S3.cbSync||[];
+  if(b=e.target.closest('[data-cbspp]')){const on=V.some(x=>!x.paused);if(on)V.forEach(x=>x.pause());else cbSyncGo(V);b.textContent=on?'▶':'⏸';return}
+  if(b=e.target.closest('[data-cbsstep]')){cbStep(V,+b.dataset.cbsstep);const pp=$('[data-cbspp]');if(pp)pp.textContent='▶';return}
+  if(e.target.closest('[data-cbs0]')){V.forEach(x=>{x.currentTime=0});cbSyncGo(V);return}
+  const r=e.target.closest('#r-book .cbrow[data-cbi]');if(r&&!e.target.closest('a,button')){vib(8);cbRowPlay(r)}});
+document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('#r-book .cbrow[data-cbi]')){e.preventDefault();cbRowPlay(e.target)}});
+// 📚 공부·자료 안 입구 카드 = 🃏 도감(한눈에: 캐릭터 수·모션 합계·분석 기록 수)
+function bookEntry(){const L=cbList(),n=L.filter(x=>!x.sample).length,m=L.reduce((a,x)=>a+(+x.n_anim||0),0),nr=cbRecs().length;
+  return oct(`<h2 class="sec">🃏 도감 <span class="num">${n}</span></h2><a class="cbent" href="#book" title="도감(캐릭터 카드 격자)을 열어요">${L.slice(0,4).map(x=>`<span class="cbmini">${x.front?`<img src="${esc(x.front)}" alt="">`:'🧍'}</span>`).join('')}<span><b>${n?`캐릭터 ${n}명 · 모션 ${m}개`:'와일즈 헌터 빈 틀 · 자료 기다리는 중'} · 분석 기록 ${nr}</b><br><small class="kv">캐릭터 북(컨셉 · 애니 리스트 · 콤보) + 일일 분석 기록 · 나란히 비교</small></span></a>`)}
 
 // ---- HB HQ 실시간 두 탭 (PD 11/27 04:47 p1_hq_live): 🏠 오늘 · 📊 진행판 ----
 // 숫자(일·팀·막힘·어시스턴트·Claude)는 status.json(S3.st.status, 모양 hq_status_v1 — TA팀 hub\tools\status_feed.py)에서만 읽는다.
@@ -2550,7 +2658,7 @@ function v4Room(){const t=V4T.some(x=>x[0]===S3.v4T)?S3.v4T:'ws',[tg,tt]=trophyN
       `<div class="kv msl" title="포폴 마일스톤">🏁 마일스톤 ${STAGES.map((x,i)=>`<span class="${i===ms?'cur':i<ms?'past':''}">${i<ms?'✅ ':i===ms?'▶ ':''}${esc(x[0])}</span>`).join(' → ')} <span>· ${esc(STAGES[ms]?STAGES[ms][1]:'')}</span></div>`].filter(Boolean).join(gap)
    :t==='study'?[bookEntry(),codexCard(),oct(`<h2 class="sec">🎓 애니 리드에 묻기 <span class="num">${un||''}</span></h2><div class="nav2"><button class="btn pri2" data-askto2="anim_teacher" title="애니 리드에게 질문을 보내요">질문하기</button><a class="btn" href="#coach" title="애니 리드 피드백과 묻기 기록을 열어요">최근 피드백 ${fb.length}개 · 묻기 기록</a></div>`),
       oct(`<h2 class="sec">📚 HB Library</h2><div class="nav2"><a class="btn pri2" href="#lib" title="레퍼런스 클립 검색·영상 자료실을 열어요">자료 열기</a><span class="kv">레퍼런스 클립 검색 · 영상</span></div>`),
-      oct(`<h2 class="sec">⚔️ 검술 무브셋 영상</h2><div class="nav2"><a class="btn pri2" href="moveset/" title="게임별 검술 무브셋 유튜브 영상 14개를 바로 재생해요(보유·구매, 반실사·실사로 거르기)">영상 보기</a><span class="kv">게임 14개 · 누르면 재생</span></div>`),handoffCard(),codexList(),
+      oct(`<h2 class="sec">⚔️ 검술 무브셋 영상</h2><div class="nav2"><a class="btn pri2" href="moveset/" title="게임별 검술 무브셋 유튜브 영상 14개를 바로 재생해요(보유·구매, 반실사·실사로 거르기)">영상 보기</a><span class="kv">게임 14개 · 누르면 재생</span></div>`),handoffCard(),
       oct(`<h2 class="sec">📓 기록</h2><div class="nav2"><a class="btn" href="#log/space" title="작업 공간 기록을 열어요">🧰 작업 공간</a><a class="btn" href="#log" title="일지·주간 작업일지·변경 이력을 열어요">일지 · 주간 · 변경 이력</a></div>`)].filter(Boolean).join(gap)
    :[oct(`<h2 class="sec">🏆 트로피 <span class="num">${tg}/${tt}</span> <em class="draft">초안 · 동현 확인 전</em></h2>${tg?'':'<div class="kv">아직 0개예요 — 첫 화면에는 숫자 한 줄만 나와요</div>'}<details class="gt" data-gk="v4tr" ${tg?'open':''}><summary>트로피 판 ${tt}개 <span class="kv">눌러서 달성 표시(이 기기에만)</span></summary>${TROPHIES.map(([id,nm,L])=>`<div class="tgrp"><b>${nm}</b>${L.map((x,i)=>{const k=id+i;return `<button class="trow ${tr[k]?'got':''}" data-t="${k}" title="눌러서 달성 표시를 켜고 꺼요"><i></i>${esc(x)}</button>`}).join('')}</div>`).join('')}</details>`),
       oct(`<h2 class="sec">🧊 3D 걸어서 보기</h2><div class="nav2"><a class="btn" href="#world" title="3D 공간을 걸어서 봐요">3D 열기</a></div>`)].join(gap);
@@ -2565,7 +2673,7 @@ function nmSweep(){for(const r of document.querySelectorAll('.room.on,#nav,#lvba
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
 const V3_STATES=['status','charbook','talk','extract','hb_dev','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
-const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','PD실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','애니 리드실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold'],['book','캐릭터 북','book','--blue']];
+const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','PD실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','애니 리드실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold'],['book','도감','book','--blue']];
 const COLOR={v4:'#CEA85E',today:'#CEA85E',board:'#CEA85E',lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E',book:'#7AA4D2'};
 const DEMO=/[?&]demo=1/.test(location.search);
 let worldLoad=null;   // route() 보다 먼저(3D 탭을 바로 열 때)
@@ -2660,7 +2768,7 @@ document.addEventListener('click',e=>{
 function cxData(){const c=S3.st.codex_today;return c&&c.table&&c.chars?c:null}
 function cxStore(){return lsx('cx',{})}
 function cxRec(c){const a=cxStore();return a[c.date+'|'+c.day]||{}}
-function cxSet(c,patch){const a=cxStore(),k=c.date+'|'+c.day;a[k]=Object.assign(a[k]||{},patch);lsSet('v3_cx',a)}
+function cxSet(c,patch){const a=cxStore(),k=c.date+'|'+c.day;a[k]=Object.assign(a[k]||{},{chars:(c.chars||[]).map(x=>x.name),topic:c.topic||''},patch);lsSet('v3_cx',a)}   // chars = 🃏 도감 캐릭터 페이지에 붙일 짝(charbook_merge)
 function cxTable(t){return `<div class="cxt"><table><thead><tr>${t.cols.map(x=>`<th>${esc(x)}</th>`).join('')}</tr></thead><tbody>${t.rows.map(r=>`<tr>${r.map((x,i)=>i?`<td class="num">${esc(x)}</td>`:`<th>${esc(x)}</th>`).join('')}</tr>`).join('')}</tbody></table><div class="kv">단위 ${esc(t.unit||'')}</div></div>`}
 function codexCard(){
   const c=cxData();
