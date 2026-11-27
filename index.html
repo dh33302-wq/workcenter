@@ -524,6 +524,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .exg{flex:1 1 10em;min-width:0;overflow-wrap:break-word}
 .exs{font-size:12px;padding:1px 6px;border-radius:9px;background:rgba(127,127,127,.16);white-space:nowrap}
 .ex-run{border-left-color:#68B096}.ex-run .exs{background:#68B09633;color:#68B096}
+.exdr{display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;margin-top:4px}.exdb{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}.exdb .tkpb{width:56px;display:inline-block}.exdb.low{color:#C46054}.exdp{color:#C46054;cursor:help}.exrule{margin-top:4px;font-size:12px}
 .extl{flex:0 1 auto;min-width:0;max-width:16em;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:help}.extl small{font-size:11px}
 .ex-inst{border-left-color:#D2A27A}.ex-inst .exs{background:#D2A27A33}
 .ex-buy{border-left-color:#CEA85E}.ex-buy .exs{background:#CEA85E33}
@@ -628,7 +629,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=44;
+const BUILD=45;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2105,15 +2106,18 @@ function exBar(lab,a,b,id){const ok=a!=null&&b!=null&&+b>0,p=ok?Math.max(0,Math.
   return `<div class="exb" id="${id}"><span class="exbl">${lab}</span><span class="tkpb"><i style="width:${ok?Math.max(2,p):0}%"></i></span><b class="num">${ok?`${+a}/${+b}`:'<span class="kv">세는 중</span>'}</b></div>`}
 // 덧붙임(control 10:35~10:36): 표 = 행 플레이어블·적·NPC·합계 × 열 캐릭터·모션·페이셜·컷씬·도감(막대+n/N, null '세는 중'), 탭 전체/1바퀴/2바퀴 · 얼굴 방식 · 1바퀴/2바퀴 줄
 const EX_ROWS=[['playable','플레이어블'],['enemy','적'],['npc','NPC'],['unknown','분류 안 됨'],['total','합계']],EX_COLS=[['chars','캐릭터'],['motions','모션'],['facial','페이셜'],['cutscenes','컷씬'],['dex','도감']];
+// 덧붙임(control 13:52 board_rule): 1바퀴 칸 = 캐릭터·대검 모션·맨손 이동·도감 사진(페이셜·컷씬은 2바퀴/전체에만)
+const EX_C1=[['chars','캐릭터'],['motions','대검 모션'],['bare_loco','맨손 이동'],['dex','도감 사진']];
+const exCols=(k,C)=>k==='counts_r1'?EX_C1:EX_COLS.concat(Object.values(C||{}).some(r=>r&&r.bare_loco)?[['bare_loco','맨손 이동']]:[]);
 const EX_FACE={bone:'본',bones:'본',morph:'모프',blendshape:'모프',none:'없음','':''};
 const exNN=p=>Array.isArray(p)&&p[0]!=null&&p[1]!=null&&+p[1]>0;
 const exPair=p=>Array.isArray(p)&&p[0]!=null?(p[1]!=null?`${+p[0]}/${+p[1]}`:`${+p[0]}/?`):'세는 중';
 function exCell(p){const ok=exNN(p),pc=ok?Math.max(0,Math.min(100,Math.round(+p[0]/+p[1]*100))):0;
   return `<td${ok?'':' class="kv"'}>${ok?`<span class="tkpb exmb"><i style="width:${Math.max(2,pc)}%"></i></span>`:''}<span class="num">${exPair(p)}</span></td>`}
 function exTable(c){const T=[['counts','전체'],['counts_r1','1바퀴'],['counts_r2','2바퀴']].filter(([k])=>c[k]);if(!T.length)return `<div class="kv" id="ex-tbl-none">표: 세는 중(에셋팀이 숫자를 아직 안 보냄)</div>`;
-  const k=T.some(t=>t[0]===S3.exTab)?S3.exTab:T[0][0],C=c[k]||{},rows=EX_ROWS.filter(([r])=>C[r]);
+  const k=T.some(t=>t[0]===S3.exTab)?S3.exTab:T[0][0],C=c[k]||{},rows=EX_ROWS.filter(([r])=>C[r]);const CL=exCols(k,C);
   return `<div class="extabs" id="ex-tabs">${T.length>1?T.map(([kk,l])=>`<button class="btn${kk===k?' on':''}" data-extab="${kk}" title="${l} 숫자로 표를 바꿔요">${l}</button>`).join(''):`<span class="kv">${T[0][1]}</span>`}</div>
-    <div class="extw"><table class="ext" id="ex-tbl"><thead><tr><th></th>${EX_COLS.map(([,l])=>`<th>${l}</th>`).join('')}</tr></thead><tbody>${rows.map(([r,l])=>`<tr class="${r==='total'?'extot':''}"><th>${l}</th>${EX_COLS.map(([cc])=>exCell((C[r]||{})[cc])).join('')}</tr>`).join('')||`<tr><td colspan="6" class="kv">세는 중</td></tr>`}</tbody></table></div>`}
+    <div class="extw"><table class="ext" id="ex-tbl"><thead><tr><th></th>${CL.map(([,l])=>`<th>${l}</th>`).join('')}</tr></thead><tbody>${rows.map(([r,l])=>`<tr class="${r==='total'?'extot':''}"><th>${l}</th>${CL.map(([cc])=>exCell((C[r]||{})[cc])).join('')}</tr>`).join('')||`<tr><td colspan="7" class="kv">세는 중</td></tr>`}</tbody></table></div>${k==='counts_r1'&&c.rule_r1?`<div class="kv exrule" id="ex-rule">1바퀴 = ${esc(c.rule_r1.replace(/^1차\([^)]*\)\s*=\s*/,''))}</div>`:''}`}
 function exBf(c){const b=c.backfill;if(!b)return {line:'',body:''};const r1=b.r1;
   const l1=`<div class="kv exr1" id="ex-r1">1바퀴 대검 남자 모션 <b class="num">${exPair(r1&&r1.motions)}</b> · 인간 남자 도감 <b class="num">${exPair(r1&&r1.dex)}</b></div>`;
   const G=b.games||[],fill=!!b.now,l2=`<div class="kv exr2${fill?' fill':''}" id="ex-r2">2바퀴 남은 것 <b class="num">${b.left!=null?+b.left+'개':'세는 중'}</b>${fill?` · 🔵 채우는 중: ${esc(b.now)}`:''}${G.length?` · 게임 ${G.length}`:''}</div>`;
@@ -2128,6 +2132,20 @@ function exRow(g,i,ed,n){const k=Ex.stK(g.state);
 function exSentLine(){const id=S3.exSent;if(!id)return '';const q=Q.list().find(r=>r.id===id);
   if(!q)return '';if(q.st==='ok')return `<div class="kv ex-ok" id="ex-sent">✅ PC가 고쳤어요${q.msg?' · '+esc(q.msg):''}</div>`;
   if(q.st==='fail')return `<div class="kv f-old" id="ex-sent">⚠ 못 고쳤어요${q.msg?' · '+esc(q.msg):''}</div>`;return `<div class="kv" id="ex-sent">⏳ PC로 보내는 중…</div>`}
+// 덧붙임(control 13:44 board_drive_archive): 💾 저장 공간·드라이브 보관 한 줄(카드 맨 아래, 늘 보임) + 펼치면 게임별 보관 상태. 자료 = 에셋팀 drive_archive.json(지킴이가 읽기만)
+function exDBar(l,free,tot,id){const ok=free!=null&&tot!=null&&+tot>0,u=ok?Math.max(0,Math.min(100,Math.round((1-+free/+tot)*100))):0,low=free!=null&&+free<(l==='C'?60:40);
+  return `<span class="exdb${low?' low':''}" id="${id}" title="${l} 드라이브 ${ok?`${+tot}GB 중 ${u}% 사용`:''} · 여유 ${free!=null?+free+'GB':'모름'}">${l} <span class="tkpb"><i style="width:${ok?Math.max(2,u):0}%"></i></span> <b class="num">${free!=null?Math.round(+free):'?'}</b>GB</span>`}
+function exDrive(x){const d=x.drive;if(!d)return {line:'',body:''};const P=d.problems||[],I=d.installed||[],U=d.uploaded||[];
+  const by={};I.forEach(g=>{(by[g.drive||'?']=by[g.drive||'?']||[]).push(g.game)});
+  const inst=Object.keys(by).sort().map(k=>`${esc(k)}: ${by[k].map(esc).join('·')}`).join(' / ')||'없음';
+  const lu=String(d.last_up||'').slice(5,16);
+  const line=`<div class="kv exdr" id="ex-drive">💾 ${exDBar('C',d.c_free,d.c_tot,'ex-dc')}${exDBar('D',d.d_free,d.d_tot,'ex-dd')}<span>깔린 게임 ${I.length} (${inst})</span><span>☁ 드라이브 보관 <b class="num">${d.up_gb!=null?Math.round(+d.up_gb):'?'}GB</b>${lu?` · 마지막 ${esc(lu)}`:''}</span>${P.length?`<span class="exdp" id="ex-dp" title="${esc(P.join(' / '))}">🔴 문제 ${P.length}</span>`:'<span>🟢 문제 없음</span>'}</div>`;
+  const body=`<details class="exbf" id="ex-drv" data-gk="ex:drv"><summary class="kv">💾 게임별 보관 상태 · 보관 ${U.length} · 깔림 ${I.length}</summary>
+    ${P.length?`<div class="exdpl">${P.map(p=>`<div class="kv">🔴 ${esc(p)}</div>`).join('')}</div>`:''}
+    ${I.map(g=>`<div class="kv exdrr">🖥 <b>${esc(g.game)}</b> — ${esc(g.drive)} 드라이브${g.gb!=null?` · ${+g.gb}GB`:''} · ${esc(g.state||'')}</div>`).join('')}
+    ${U.map(g=>`<div class="kv exdrr">☁ <b>${esc(g.game)}</b> — 드라이브 보관${g.gb!=null?` · ${+g.gb}GB`:''}</div>`).join('')}
+    <div class="kv">올린 조각 ${d.up_n!=null?+d.up_n:'?'} · 도착 확인 ${d.ok_n!=null?+d.ok_n:'?'}${d.local_gb!=null?` · PC에 남은 결과물 ${+d.local_gb}GB`:''}${d.g_free!=null?` · 구글 드라이브 여유 ${Math.round(+d.g_free)}GB`:''} · 자료 ${esc(String(d.updated||'').slice(5,16).replace('T',' '))}</div></details>`;
+  return {line,body}}
 function exBlock(now){const x=Ex.get();if(!x)return '';const c=x.cur||{},Q0=x.queue,ed=S3.exEd,G=ed?ed.games:Q0.games||[];
   const run=(Q0.games||[]).find(g=>Ex.stK(g.state)==='run'),game=c.game||(run&&run.game)||'',at=lvT(c.updated);
   const gi=c.game_n!=null&&c.game_total!=null?` <small class="kv">${+c.game_n}/${+c.game_total}번째 게임</small>`:'';
@@ -2140,11 +2158,11 @@ function exBlock(now){const x=Ex.get();if(!x)return '';const c=x.cur||{},Q0=x.qu
   const tools=ed?`<div class="exadd" id="ex-add"><input id="ex-add-n" maxlength="80" placeholder="게임 이름" aria-label="추가할 게임 이름"><label class="kv"><input type="checkbox" id="ex-add-o"> 보유</label><button class="btn" data-exadd="1" title="맨 아래에 넣어요(끌어서 옮길 수 있어요)">＋ 추가</button></div>
     <div class="exact"><button class="btn pri" data-exsave="1" title="PC가 원본 순서 파일을 백업한 뒤 고쳐요">💾 저장</button><button class="btn" data-excancel="1" title="고친 것을 버려요">취소</button>${ed.dirty?'<span class="kv">고친 것 있음 · 저장 전</span>':''}</div>`
     :`<div class="exact"><button class="btn" data-exedit="1" title="끌기·↑↓로 순서를 바꾸고 게임을 넣거나 빼요">✏ 순서 바꾸기</button>${exSentLine()}</div>`;
-  const fm=c.face_mode!=null&&c.face_mode!==''?(EX_FACE[String(c.face_mode).toLowerCase()]??c.face_mode):'',BF=exBf(c);
+  const DR=exDrive(x),fm=c.face_mode!=null&&c.face_mode!==''?(EX_FACE[String(c.face_mode).toLowerCase()]??c.face_mode):'',BF=exBf(c);
   return `<details class="tc exc" id="ex-card" data-gk="ex:q"${ed?' open':''}><summary><div class="tch"><span>📦 <b>추출 중 · ${game?esc(game):'<span class="kv">게임 세는 중</span>'}</b>${gi}${fm?` <small class="exfm" id="ex-face" title="이 게임의 얼굴 애니 방식">얼굴 ${esc(fm)}</small>`:''}</span>${lvF(at,now,!at&&c.src!=='none')}</div>
-    ${bars}<div class="kv exnow" id="ex-now">지금: ${nowL}</div>${BF.line}<div class="kv tcm">${eta} · 대기 ${(Q0.games||[]).length}개(🔵 ${cnt.own} · 🟡 ${cnt.buy}) · 눌러서 순서</div></summary>
+    ${bars}<div class="kv exnow" id="ex-now">지금: ${nowL}</div>${BF.line}<div class="kv tcm">${eta} · 대기 ${(Q0.games||[]).length}개(🔵 ${cnt.own} · 🟡 ${cnt.buy}) · 눌러서 순서</div>${DR.line}</summary>
     ${c.src==='extract'?exTable(c):''}${BF.body}<div class="kv exql">대기 게임 순서${(()=>{const c={ok:0,mid:0,no:0,q:0};(Q0.games||[]).forEach(g=>{const k=exTk(g.tool);if(k)c[k]++});const s=[['ok','🟢'],['mid','🟡'],['q','❓'],['no','🔴']].filter(([k])=>c[k]).map(([k,i])=>i+' '+c[k]).join(' · ');return s?' · 추출 도구 '+s:''})()}</div><div class="exq" id="ex-q">${G.map((g,i)=>exRow(g,i,!!ed,G.length)).join('')||'<div class="empty">대기 게임이 없어요</div>'}</div>
-    <div class="kv">순서 고친 때 ${esc(String(Q0.updated||'').slice(5,16).replace('T',' '))} · ${esc(Q0.by||'')}</div>${tools}</details>`}
+    <div class="kv">순서 고친 때 ${esc(String(Q0.updated||'').slice(5,16).replace('T',' '))} · ${esc(Q0.by||'')}</div>${tools}${DR.body}</details>`}
 function exRe(){render()}
 function exEdit(on){const x=Ex.get();if(!x)return;S3.exEd=on?{base:x.queue.updated,games:(x.queue.games||[]).map(g=>({game:g.game,owned:g.owned,state:g.state,note:g.note,tool:g.tool})),dirty:false}:null;exRe()}
 function exMove(i,j){const E=S3.exEd;if(!E||j<0||j>=E.games.length||i===j)return;const [g]=E.games.splice(i,1);E.games.splice(j,0,g);E.dirty=true;exRe()}
