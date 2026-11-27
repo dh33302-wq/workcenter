@@ -651,6 +651,15 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 #pm-patrol .pmr{padding:2px 0;font-size:14px}#pm-patrol .pmr:first-of-type{font-weight:700}
 /* 편집 모드 메뉴 탭 순서·숨기기·이름 (11/28) */
 #ep-navl{display:grid;gap:6px;margin:6px 0}.ep-nav{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.ep-nav .ep-nm{flex:1 1 8em;min-width:0;min-height:44px;font-size:15px;padding:4px 8px;border-radius:8px;border:1px solid rgba(127,127,127,.4);background:transparent;color:inherit}.ep-nav .btn{min-width:44px;min-height:44px}.ep-nav.hid .ep-nm{opacity:.5;text-decoration:line-through}
+/* 보기: 표·타임라인 (편집 모드 2차 11/28) — 카드 안 줄(.bv2·.hqrow)을 한 줄 칸으로 / 시간 선 위 점으로 */
+.lc.v-table .bv2,.lc.v-table .hqrow{display:flex;flex-wrap:nowrap;gap:0 10px;align-items:baseline;padding:5px 6px;margin:0;border-radius:0;border-bottom:1px solid rgba(127,127,127,.22);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lc.v-table .bv2>*,.lc.v-table .hqrow>*{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lc.v-table .bv2 br,.lc.v-table .hqrow br{display:none}
+.lc.v-table .bv2:nth-of-type(even),.lc.v-table .hqrow:nth-of-type(even){background:rgba(127,127,127,.07)}
+.lc.v-time .bv2,.lc.v-time .hqrow{position:relative;margin:0 0 0 8px;padding:4px 6px 8px 16px;border-left:2px solid rgba(212,169,74,.55);border-radius:0}
+.lc.v-time .bv2::before,.lc.v-time .hqrow::before{content:"";position:absolute;left:-6px;top:9px;width:10px;height:10px;border-radius:50%;background:#d4a94a}
+.lc.v-table details.bv2,.lc.v-table details.hqrow{display:block}.lc.v-table .bv2>summary,.lc.v-table .hqrow>summary{display:flex;flex-wrap:nowrap;gap:0 8px;align-items:baseline;overflow:hidden;white-space:nowrap;padding-top:2px;padding-bottom:2px}
+.lc.v-table .bv2>summary>*,.lc.v-table .hqrow>summary>*{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lc.v-table .bv2>summary .bt{flex:1 1 auto}
+.lc.v-table .prog,.lc.v-table .tkpb{display:none}
 </style>
 </head>
 <body>
@@ -705,7 +714,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=53;
+const BUILD=54;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2102,7 +2111,9 @@ function jobsCard(){return boardCard()}
 // 2차(BUILD 50): 모서리 끌기 · ⋯ 개수·정렬·이름·색 / 1차(BUILD 28): 순서(끌기·↑↓) · 너비(12칸 격자) · 높이 · 보기(목록·한 줄·숫자만) · 접기 · 숨기기 · ＋ 카드(숨긴 것 다시) · 되돌리기 10판 · 기본값
 // 배치 = 기기 모양별 3벌(cover·fold·pc) × 방. 기기 안(v3_layout)에 바로 저장 + PC 지킴이 layout.json 과 맞춤(새것이 이김). 앱을 새로 올려도 유지, 새 카드는 맨 아래 🆕.
 const LAY_K='v3_layout',LAY_U='v3_layout_undo',LAY_W={cover:[12,6],fold:[12,8,6,4,3],pc:[12,8,6,4,3]},LAY_WN={3:'1/4',4:'1/3',6:'1/2',8:'2/3',12:'전체'};
-const LAY_H=[['a','내용만큼'],['m','보통'],['l','크게'],['s','작게']],LAY_V=[['list','목록'],['line','한 줄'],['num','숫자만']];
+const LAY_H=[['a','내용만큼'],['m','보통'],['l','크게'],['s','작게']],LAY_V=[['list','목록'],['line','한 줄'],['num','숫자만'],['table','표'],['time','타임라인']];
+// 카드마다 고를 수 있는 보기: 표 = 줄(.bv2·.hqrow)이 있는 카드 · 타임라인 = 줄에 시각(HH:MM·n분/시간/일 전·M/D)이 있는 카드 (설계 7-2, 11/28)
+const layVs=h=>{const rows=/class="[^"]*\b(bv2|hqrow)\b/.test(h),tm=rows&&/\b\d{1,2}:\d\d\b|\d+\s*(분|시간|일)\s*전|\b\d{1,2}\/\d{1,2}\b/.test(h);return ['list','line','num',...(rows?['table']:[]),...(tm?['time']:[])]};
 const layDev=()=>innerWidth<600?'cover':innerWidth<1100?'fold':'pc';
 const layAll=()=>lsGet(LAY_K,{});
 const layEd=()=>{try{return !!EDIT.on}catch(e){return false}};   // edit.js 가 뒤에 실리므로 처음 그릴 때는 아직 없음
@@ -2129,9 +2140,9 @@ function layOrder(L,ids){if(!L.order.length)return {order:ids,fresh:[]};const kn
 // cards: [{id,name,html,view?}] — html 이 빈 카드는 뺀다
 function layGrid(room,cards){cards=cards.filter(c=>c.html);const L=layGet(room),dev=layDev(),ed=layEd(),by=Object.fromEntries(cards.map(c=>[c.id,c])),{order,fresh}=layOrder(L,cards.map(c=>c.id));
   const vis=order.filter(i=>!L.hide[i]),hid=order.filter(i=>L.hide[i]),hn=k=>(LAY_H.find(x=>x[0]===k)||LAY_H[0])[1],vn=k=>(LAY_V.find(x=>x[0]===k)||LAY_V[0])[1];
-  const cell=i=>{const c=by[i],w=LAY_W[dev].includes(+L.w[i])?+L.w[i]:12,h=L.h[i]||'a',v=c.view?L.v[i]||'list':'list',n=c.view?+L.n[i]||0:0,o=c.view&&L.o[i]==='old'?'old':'new',nm=String(L.nm[i]||'').slice(0,30),cc=(LAY_C.find(x=>x[0]&&x[0]===L.c[i])||LAY_C[0]),mo=ed&&layGrid.M===room+'/'+i;
+  const cell=i=>{const c=by[i],w=LAY_W[dev].includes(+L.w[i])?+L.w[i]:12,h=L.h[i]||'a',vs=c.view?layVs(c.html):['list'],v=vs.includes(L.v[i])?L.v[i]:'list',n=c.view?+L.n[i]||0:0,o=c.view&&L.o[i]==='old'?'old':'new',nm=String(L.nm[i]||'').slice(0,30),cc=(LAY_C.find(x=>x[0]&&x[0]===L.c[i])||LAY_C[0]),mo=ed&&layGrid.M===room+'/'+i;
     let body=c.html;try{body=layRows(c.html,n,o,nm)}catch(x){}
-    return `<div class="lc h-${h} v-${v}${ed?' ed':''}${cc[0]?' cl':''}" data-card="${i}" data-w="${w}" style="grid-column:span ${w}${cc[0]?';--lcc:'+cc[0]:''}">${ed?`<div class="lct"><span class="lch" data-lh="1" role="button" aria-label="${esc(c.name)} 끌어서 옮기기">⠿</span><b>${esc(nm||c.name)}${fresh.includes(i)?' 🆕':''}</b><span class="lcbs"><button data-la="up" aria-label="위로">↑</button><button data-la="dn" aria-label="아래로">↓</button><button data-la="w">↔ ${LAY_WN[w]}</button><button data-la="h">↕ ${hn(h)}</button>${c.view?`<button data-la="v">👁 ${vn(v)}</button>`:''}<button data-la="fold">${h==='s'?'펴기':'접기'}</button><button data-la="hide">숨기기</button><button data-la="more" aria-expanded="${mo}" aria-label="${esc(c.name)} 더보기">⋯</button></span>${mo?`<span class="lcbs lcm">${c.view?`<button data-la="n">개수 ${n?n+'개':'전부'}</button><button data-la="o">정렬 ${o==='old'?'오래된 것':'새것'} 먼저</button>`:''}<button data-la="nm">이름 바꾸기</button><button data-la="c">색 ${cc[1]}</button></span>`:''}</div>`:''}<div class="lcb">${body}</div>${ed?`<span class="lcrw" data-lrs="w" role="separator" aria-label="오른쪽 모서리 끌어 너비"></span><span class="lcrh" data-lrs="h" role="separator" aria-label="아래 모서리 끌어 높이"></span>`:''}</div>`};
+    return `<div class="lc h-${h} v-${v}${ed?' ed':''}${cc[0]?' cl':''}" data-vs="${vs.join(',')}" data-card="${i}" data-w="${w}" style="grid-column:span ${w}${cc[0]?';--lcc:'+cc[0]:''}">${ed?`<div class="lct"><span class="lch" data-lh="1" role="button" aria-label="${esc(c.name)} 끌어서 옮기기">⠿</span><b>${esc(nm||c.name)}${fresh.includes(i)?' 🆕':''}</b><span class="lcbs"><button data-la="up" aria-label="위로">↑</button><button data-la="dn" aria-label="아래로">↓</button><button data-la="w">↔ ${LAY_WN[w]}</button><button data-la="h">↕ ${hn(h)}</button>${c.view?`<button data-la="v">👁 ${vn(v)}</button>`:''}<button data-la="fold">${h==='s'?'펴기':'접기'}</button><button data-la="hide">숨기기</button><button data-la="more" aria-expanded="${mo}" aria-label="${esc(c.name)} 더보기">⋯</button></span>${mo?`<span class="lcbs lcm">${c.view?`<button data-la="n">개수 ${n?n+'개':'전부'}</button><button data-la="o">정렬 ${o==='old'?'오래된 것':'새것'} 먼저</button>`:''}<button data-la="nm">이름 바꾸기</button><button data-la="c">색 ${cc[1]}</button></span>`:''}</div>`:''}<div class="lcb">${body}</div>${ed?`<span class="lcrw" data-lrs="w" role="separator" aria-label="오른쪽 모서리 끌어 너비"></span><span class="lcrh" data-lrs="h" role="separator" aria-label="아래 모서리 끌어 높이"></span>`:''}</div>`};
   return `<div class="lvgrid${ed?' ed':''}" data-room="${room}" data-hid="${esc(hid.join(','))}">${vis.map(cell).join('')}${ed?`<div class="lcadd"><b>＋ 카드</b>${hid.length?hid.map(i=>`<button class="btn" data-ladd="${esc(i)}">＋ ${esc(by[i].name)}</button>`).join(''):'<span class="kv">숨긴 카드가 없어요 — 이 탭 카드는 모두 나와 있어요</span>'}</div>`:''}</div>`}
 function layFromDom(g){const L=layGet(g.dataset.room);L.order=[...[...g.querySelectorAll(':scope>.lc')].map(e=>e.dataset.card),...(g.dataset.hid?g.dataset.hid.split(','):[])];return L}
 document.addEventListener('click',e=>{let b;
@@ -2144,7 +2155,7 @@ document.addEventListener('click',e=>{let b;
     if(a==='up'||a==='dn'){const j=k+(a==='up'?-1:1);if(j<0||j>=vis.length)return;[vis[k],vis[j]]=[vis[j],vis[k]];L.order=[...vis,...L.order.filter(x=>L.hide[x])]}
     else if(a==='w')L.w[i]=cyc(LAY_W[dev],LAY_W[dev].includes(+L.w[i])?+L.w[i]:12);
     else if(a==='h')L.h[i]=cyc(LAY_H.map(x=>x[0]),L.h[i]||'a');
-    else if(a==='v')L.v[i]=cyc(LAY_V.map(x=>x[0]),L.v[i]||'list');
+    else if(a==='v'){const vs=(c.dataset.vs||'list,line,num').split(',');L.v[i]=cyc(vs,vs.includes(L.v[i])?L.v[i]:'list')}
     else if(a==='fold')L.h[i]=L.h[i]==='s'?'a':'s';
     else if(a==='hide')L.hide[i]=1;
     else if(a==='more'){const k2=g.dataset.room+'/'+i;layGrid.M=layGrid.M===k2?'':k2;render();const n2=document.querySelector(`.room.on .lc[data-card="${CSS.escape(i)}"] [data-la="more"]`);if(n2)n2.focus({preventScroll:true});return}
