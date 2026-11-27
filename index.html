@@ -503,7 +503,46 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 .tkw.k-ai{background:#30260c;border-color:#b8871a}
 .tkwh{font-size:calc(12px*var(--s));opacity:.85;margin-bottom:3px}.tkwt{margin-bottom:2px}
 .tkt{white-space:pre-wrap}.tkfull summary{cursor:pointer;list-style:none;display:block}.tkfull summary::-webkit-details-marker{display:none}.tkmore{display:inline-flex;align-items:center;min-height:32px;color:#9fb6e8;font-size:calc(13px*var(--s))}.tkfull[open] summary .tkt{display:none}.tkfull[open] .tkmore::after{content:' 접기'}.tkfull[open] .tkmore{font-size:0}.tkfull[open] .tkmore::after{font-size:calc(13px*var(--s))}
-</style>
+
+/* 📦 에셋팀 추출 카드(11/27 live_extract_card) */
+.tcx{display:flex;flex-direction:column;gap:6px;min-width:0;grid-column:1/-1}
+.exc{border-left:3px solid var(--ok,#68B096)}
+.exb{display:grid;grid-template-columns:4.2em minmax(0,1fr) auto;gap:6px;align-items:center;margin:3px 0;font-size:13px;min-width:0}
+.exb .tkpb{display:block;height:8px;border-radius:4px;background:rgba(127,127,127,.18);overflow:hidden}
+.exb .tkpb i{display:block;height:100%;background:var(--ok,#68B096)}
+.exbl{color:var(--mut,#999)}
+.exnow{margin:4px 0 2px;overflow-wrap:anywhere}
+.exq{display:flex;flex-direction:column;gap:3px;margin:8px 0 4px}
+.exq.drag{user-select:none}
+.exr{display:flex;flex-wrap:wrap;align-items:center;gap:4px 6px;padding:6px 8px;border-radius:8px;background:rgba(127,127,127,.07);border-left:3px solid #8888;min-width:0;min-height:40px}
+.exr.drg{outline:2px dashed var(--ok,#68B096);background:rgba(104,176,150,.14)}
+.exn{width:1.6em;text-align:right;color:var(--mut,#999)}
+.exg{flex:1 1 10em;min-width:0;overflow-wrap:break-word}
+.exs{font-size:12px;padding:1px 6px;border-radius:9px;background:rgba(127,127,127,.16);white-space:nowrap}
+.ex-run{border-left-color:#68B096}.ex-run .exs{background:#68B09633;color:#68B096}
+.ex-inst{border-left-color:#D2A27A}.ex-inst .exs{background:#D2A27A33}
+.ex-buy{border-left-color:#CEA85E}.ex-buy .exs{background:#CEA85E33}
+.ex-bad{border-left-color:#d66}.ex-bad .exs{background:#d6633}
+.ex-done{border-left-color:#7AA4D2;opacity:.7}
+.exh{cursor:grab;touch-action:none;font-size:18px;padding:4px 6px;min-width:32px;min-height:32px;text-align:center}
+.exbtn{display:flex;gap:3px;margin-left:auto}.exbtn .btn{min-width:34px;padding:4px 6px}
+.exadd{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.exadd input[type=text],.exadd #ex-add-n{flex:1;min-width:0;padding:7px;border-radius:8px;border:1px solid #8886;background:transparent;color:inherit}
+.exact{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px}
+.ex-ok{color:#68B096}
+@media (max-width:420px){.exs{max-width:7em;overflow:hidden;text-overflow:ellipsis}.exbtn .btn{min-width:30px}}
+
+/* 📦 표·1바퀴/2바퀴(10:36 덧붙임) */
+.exfm{font-size:11px;padding:1px 6px;border-radius:9px;background:rgba(122,164,210,.18);color:#7AA4D2;white-space:nowrap}
+.exr1{margin-top:3px}.exr2{color:#8a8a8a}.exr2.fill{color:#7AA4D2}
+.extabs{display:flex;gap:4px;margin:8px 0 4px;flex-wrap:wrap}.extabs .btn.on{outline:2px solid var(--gold,#CEA85E)}
+.extw{overflow-x:auto;max-width:100%}
+.ext{border-collapse:collapse;width:100%;font-size:12px;min-width:300px}
+.ext th,.ext td{padding:3px 4px;text-align:right;white-space:nowrap;vertical-align:bottom}
+.ext thead th{color:#8a8a8a;font-weight:500}.ext tbody th{text-align:left;color:#bbb;font-weight:500}
+.ext .extot th,.ext .extot td{border-top:1px solid #8885;font-weight:700}
+.exmb{display:block;height:4px;border-radius:2px;background:rgba(127,127,127,.18);overflow:hidden;margin-bottom:2px}.exmb i{display:block;height:100%;background:var(--ok,#68B096)}
+.exbf{margin:6px 0}.exbfr{padding-left:6px}.exql{margin-top:8px}</style>
 </head>
 <body>
 <div id="fog"></div>
@@ -556,7 +595,7 @@ button.hqrow:hover,.trow:hover,.qrow:hover{background:#1f1d17}button.hqrow:activ
 <div id="rptv" class="sheet" hidden><div class="sh-h"><button id="rptv-x" class="ib" aria-label="닫기">✕</button><b id="rptv-t"></b><span id="rptv-l"></span></div><div id="rptv-b"></div></div>
 <div id="toast" hidden></div>
 <script>'use strict';
-const BUILD=39;
+const BUILD=40;
 // 브리지(Apps Script 웹앱, "나만" 접근) 주소. 비어 있으면 개발 모드: 같은 출처의 dev/ 경로를 쓴다(가짜 중계).
 const BRIDGE_URL="https://script.google.com/macros/s/AKfycbyQXnNu8z7AMo523nYccMWzUhGgwb9yem-sOOXm6wZBbRuq5S8NuW2oFgoB8KAej4kF_w/exec";
 // v1 5개 + v2 5개(SPEC_v2 3절) + jobs(6절: 여러 작업 진행도) + ext_games(BUILD 4: 게임별 뽑기 카드). 퀴즈 클립(clip_N)은 볼 때만 따로 받음
@@ -2023,6 +2062,74 @@ const talkTeamBtn=key=>{const n=TK_KEY[key];if(!n||!Talk.get())return '';const c
 document.addEventListener('click',e=>{const a=e.target.closest('[data-talk]');if(a){e.preventDefault();talkOpen(a.dataset.talk);return}
   const f=e.target.closest('[data-talkf]');if(f){e.preventDefault();talkFilter(f.dataset.talkf)}});
 
+// ---- 📊 진행판 · 📦 에셋팀 추출 실시간 카드(대표 11/27 10:27, control live_extract_card) ----
+// 자료 = 지킴이 hq_extract.py → state extract {cur: hub\jobs\ref_factory_extract.json(에셋팀이 1분마다), queue: hub\ref_factory\extract_queue.json}
+// 한눈에: 지금 게임 + 막대 3개(캐릭터·클립·도감) + '지금: …' 한 줄 + 남은 시간 → 누르면 대기 게임 순서(🔵 보유 / 🟡 구매 대기, 상태 색)
+// ✏ 순서 바꾸기: 끌기(⠿)·↑↓·✕ 빼기·＋ 추가 → [저장] = 요청 extract_queue → PC 지킴이가 백업 뒤 원본을 고치고 에셋팀에 알림. 숫자를 모르면 '세는 중'.
+const Ex={get(){const x=S3.st.extract;return x&&x.queue&&!x.queue.missing?x:null},
+  stK(s){s=String(s||'');return /추출 중|진행/.test(s)?'run':/끝|완료/.test(s)?'done':/보류|막힘/.test(s)?'bad':/구매/.test(s)?'buy':/설치/.test(s)?'inst':'wait'}};
+function exBar(lab,a,b,id){const ok=a!=null&&b!=null&&+b>0,p=ok?Math.max(0,Math.min(100,Math.round(+a/+b*100))):0;
+  return `<div class="exb" id="${id}"><span class="exbl">${lab}</span><span class="tkpb"><i style="width:${ok?Math.max(2,p):0}%"></i></span><b class="num">${ok?`${+a}/${+b}`:'<span class="kv">세는 중</span>'}</b></div>`}
+// 덧붙임(control 10:35~10:36): 표 = 행 플레이어블·적·NPC·합계 × 열 캐릭터·모션·페이셜·컷씬·도감(막대+n/N, null '세는 중'), 탭 전체/1바퀴/2바퀴 · 얼굴 방식 · 1바퀴/2바퀴 줄
+const EX_ROWS=[['playable','플레이어블'],['enemy','적'],['npc','NPC'],['unknown','분류 안 됨'],['total','합계']],EX_COLS=[['chars','캐릭터'],['motions','모션'],['facial','페이셜'],['cutscenes','컷씬'],['dex','도감']];
+const EX_FACE={bone:'본',bones:'본',morph:'모프',blendshape:'모프',none:'없음','':''};
+const exNN=p=>Array.isArray(p)&&p[0]!=null&&p[1]!=null&&+p[1]>0;
+const exPair=p=>Array.isArray(p)&&p[0]!=null?(p[1]!=null?`${+p[0]}/${+p[1]}`:`${+p[0]}/?`):'세는 중';
+function exCell(p){const ok=exNN(p),pc=ok?Math.max(0,Math.min(100,Math.round(+p[0]/+p[1]*100))):0;
+  return `<td${ok?'':' class="kv"'}>${ok?`<span class="tkpb exmb"><i style="width:${Math.max(2,pc)}%"></i></span>`:''}<span class="num">${exPair(p)}</span></td>`}
+function exTable(c){const T=[['counts','전체'],['counts_r1','1바퀴'],['counts_r2','2바퀴']].filter(([k])=>c[k]);if(!T.length)return `<div class="kv" id="ex-tbl-none">표: 세는 중(에셋팀이 숫자를 아직 안 보냄)</div>`;
+  const k=T.some(t=>t[0]===S3.exTab)?S3.exTab:T[0][0],C=c[k]||{},rows=EX_ROWS.filter(([r])=>C[r]);
+  return `<div class="extabs" id="ex-tabs">${T.length>1?T.map(([kk,l])=>`<button class="btn${kk===k?' on':''}" data-extab="${kk}" title="${l} 숫자로 표를 바꿔요">${l}</button>`).join(''):`<span class="kv">${T[0][1]}</span>`}</div>
+    <div class="extw"><table class="ext" id="ex-tbl"><thead><tr><th></th>${EX_COLS.map(([,l])=>`<th>${l}</th>`).join('')}</tr></thead><tbody>${rows.map(([r,l])=>`<tr class="${r==='total'?'extot':''}"><th>${l}</th>${EX_COLS.map(([cc])=>exCell((C[r]||{})[cc])).join('')}</tr>`).join('')||`<tr><td colspan="6" class="kv">세는 중</td></tr>`}</tbody></table></div>`}
+function exBf(c){const b=c.backfill;if(!b)return {line:'',body:''};const r1=b.r1;
+  const l1=`<div class="kv exr1" id="ex-r1">1바퀴 대검 남자 모션 <b class="num">${exPair(r1&&r1.motions)}</b> · 인간 남자 도감 <b class="num">${exPair(r1&&r1.dex)}</b></div>`;
+  const G=b.games||[],fill=!!b.now,l2=`<div class="kv exr2${fill?' fill':''}" id="ex-r2">2바퀴 남은 것 <b class="num">${b.left!=null?+b.left+'개':'세는 중'}</b>${fill?` · 🔵 채우는 중: ${esc(b.now)}`:''}${G.length?` · 게임 ${G.length}`:''}</div>`;
+  const body=G.length?`<details class="exbf" data-gk="ex:bf"><summary class="kv">2바퀴 게임별 남은 것 ${G.length}</summary>${G.map(g=>`<div class="kv exbfr">· <b>${esc(g.game)}</b> — ${g.motions!=null?`모션 ${+g.motions}`:''}${g.motions!=null&&g.dex!=null?' · ':''}${g.dex!=null?`도감 ${+g.dex}`:''}${g.motions==null&&g.dex==null&&g.left!=null?`${+g.left}개`:''}${g.etc?` · 기타 ${+g.etc}`:''}${g.reinstall?' · ⚠ 재설치 필요':''}</div>`).join('')}</details>`:'';
+  return {line:l1+l2,body}}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-extab]');if(!t)return;e.preventDefault();S3.exTab=t.dataset.extab;render()});
+function exRow(g,i,ed,n){const k=Ex.stK(g.state);
+  return `<div class="exr ex-${k}${ed?' ed':''}" data-exi="${i}">${ed?`<span class="exh" data-exdrag="${i}" title="끌어서 순서를 바꿔요">⠿</span>`:''}<span class="num exn">${i+1}</span><span class="exo" title="${g.owned?'보유':'구매 대기'}">${g.owned?'🔵':'🟡'}</span><span class="exg"><b>${esc(g.game)}</b>${g.note?`<small class="kv"> · ${esc(g.note)}</small>`:''}</span><span class="exs">${esc(g.state||'대기')}</span>${ed?`<span class="exbtn"><button class="btn" data-exmv="${i}:-1" ${i?'':'disabled'} title="위로">↑</button><button class="btn" data-exmv="${i}:1" ${i<n-1?'':'disabled'} title="아래로">↓</button><button class="btn" data-exdel="${i}" title="순서에서 빼요(기록은 남아요)">✕</button></span>`:''}</div>`}
+function exSentLine(){const id=S3.exSent;if(!id)return '';const q=Q.list().find(r=>r.id===id);
+  if(!q)return '';if(q.st==='ok')return `<div class="kv ex-ok" id="ex-sent">✅ PC가 고쳤어요${q.msg?' · '+esc(q.msg):''}</div>`;
+  if(q.st==='fail')return `<div class="kv f-old" id="ex-sent">⚠ 못 고쳤어요${q.msg?' · '+esc(q.msg):''}</div>`;return `<div class="kv" id="ex-sent">⏳ PC로 보내는 중…</div>`}
+function exBlock(now){const x=Ex.get();if(!x)return '';const c=x.cur||{},Q0=x.queue,ed=S3.exEd,G=ed?ed.games:Q0.games||[];
+  const run=(Q0.games||[]).find(g=>Ex.stK(g.state)==='run'),game=c.game||(run&&run.game)||'',at=lvT(c.updated);
+  const gi=c.game_n!=null&&c.game_total!=null?` <small class="kv">${+c.game_n}/${+c.game_total}번째 게임</small>`:'';
+  const ci=String(c.item||''),cc=String(c.char||'');
+  const nowL=c.src==='extract'?(ci||cc?esc(cc&&!ci.includes(cc)?(ci?cc+' / '+ci:cc):ci):'세는 중')
+    :c.src==='fullrun'?`<span class="f-old">⚠ 에셋팀 추출 상태 파일을 기다려요</span> · ${esc(c.item||'')}`:'<span class="f-old">⚠ 상태 파일 없음</span>';
+  const eta=c.eta_min!=null&&+c.eta_min>0?`약 ${esc(jrH(Math.round(+c.eta_min)))} 남음`:'남은 시간 모름';
+  const bars=c.src==='extract'?`${exBar('캐릭터',c.char_n,c.char_N,'ex-b-ch')}${exBar('클립',c.clips_done,c.clips_total,'ex-b-cl')}${exBar('도감',c.dex_done,c.dex_total,'ex-b-dx')}`:'';
+  const cnt={own:(Q0.games||[]).filter(g=>g.owned).length,buy:(Q0.games||[]).filter(g=>!g.owned).length};
+  const tools=ed?`<div class="exadd" id="ex-add"><input id="ex-add-n" maxlength="80" placeholder="게임 이름" aria-label="추가할 게임 이름"><label class="kv"><input type="checkbox" id="ex-add-o"> 보유</label><button class="btn" data-exadd="1" title="맨 아래에 넣어요(끌어서 옮길 수 있어요)">＋ 추가</button></div>
+    <div class="exact"><button class="btn pri" data-exsave="1" title="PC가 원본 순서 파일을 백업한 뒤 고쳐요">💾 저장</button><button class="btn" data-excancel="1" title="고친 것을 버려요">취소</button>${ed.dirty?'<span class="kv">고친 것 있음 · 저장 전</span>':''}</div>`
+    :`<div class="exact"><button class="btn" data-exedit="1" title="끌기·↑↓로 순서를 바꾸고 게임을 넣거나 빼요">✏ 순서 바꾸기</button>${exSentLine()}</div>`;
+  const fm=c.face_mode!=null&&c.face_mode!==''?(EX_FACE[String(c.face_mode).toLowerCase()]??c.face_mode):'',BF=exBf(c);
+  return `<details class="tc exc" id="ex-card" data-gk="ex:q"${ed?' open':''}><summary><div class="tch"><span>📦 <b>추출 중 · ${game?esc(game):'<span class="kv">게임 세는 중</span>'}</b>${gi}${fm?` <small class="exfm" id="ex-face" title="이 게임의 얼굴 애니 방식">얼굴 ${esc(fm)}</small>`:''}</span>${lvF(at,now,!at&&c.src!=='none')}</div>
+    ${bars}<div class="kv exnow" id="ex-now">지금: ${nowL}</div>${BF.line}<div class="kv tcm">${eta} · 대기 ${(Q0.games||[]).length}개(🔵 ${cnt.own} · 🟡 ${cnt.buy}) · 눌러서 순서</div></summary>
+    ${c.src==='extract'?exTable(c):''}${BF.body}<div class="kv exql">대기 게임 순서</div><div class="exq" id="ex-q">${G.map((g,i)=>exRow(g,i,!!ed,G.length)).join('')||'<div class="empty">대기 게임이 없어요</div>'}</div>
+    <div class="kv">순서 고친 때 ${esc(String(Q0.updated||'').slice(5,16).replace('T',' '))} · ${esc(Q0.by||'')}</div>${tools}</details>`}
+function exRe(){render()}
+function exEdit(on){const x=Ex.get();if(!x)return;S3.exEd=on?{base:x.queue.updated,games:(x.queue.games||[]).map(g=>({game:g.game,owned:g.owned,state:g.state,note:g.note})),dirty:false}:null;exRe()}
+function exMove(i,j){const E=S3.exEd;if(!E||j<0||j>=E.games.length||i===j)return;const [g]=E.games.splice(i,1);E.games.splice(j,0,g);E.dirty=true;exRe()}
+function exSave(){const E=S3.exEd;if(!E)return;if(!E.dirty){exEdit(false);return}
+  const r=Q.add('extract_queue',{base:E.base,games:E.games});S3.exSent=r&&r.id;S3.exEd=null;Sync3.flush();toast('📦 순서를 PC로 보냈어요 · 1분 안에 바뀌어요');exRe()}
+document.addEventListener('click',e=>{const t=e.target.closest('[data-exedit],[data-excancel],[data-exsave],[data-exmv],[data-exdel],[data-exadd]');if(!t)return;e.preventDefault();e.stopPropagation();const d=t.dataset;
+  if(d.exedit)return exEdit(true);if(d.excancel)return exEdit(false);if(d.exsave)return exSave();
+  if(d.exmv){const [i,s]=d.exmv.split(':').map(Number);return exMove(i,i+s)}
+  const E=S3.exEd;if(!E)return;
+  if(d.exdel!=null){const i=+d.exdel,g=E.games[i];if(g&&confirm(`'${g.game}' 을(를) 순서에서 뺄까요? (원본 파일에 '뺀 기록'은 남아요)`)){E.games.splice(i,1);E.dirty=true;exRe()}return}
+  if(d.exadd){const n=$('#ex-add-n'),o=$('#ex-add-o'),v=(n&&n.value||'').trim();if(!v){toast('게임 이름을 적어 주세요');return}
+    if(E.games.some(g=>g.game.toLowerCase()===v.toLowerCase())){toast('이미 순서에 있어요');return}
+    const own=!!(o&&o.checked);E.games.push({game:v.slice(0,80),owned:own,state:own?'대기':'구매 대기'});E.dirty=true;if(n)n.value='';exRe()}},true);
+// 끌기: ⠿ 손잡이를 누른 채 위아래로(폰은 손가락, PC는 마우스). 지나가는 줄과 자리를 바꿈
+document.addEventListener('pointerdown',e=>{const h=e.target.closest('[data-exdrag]');if(!h||!S3.exEd)return;e.preventDefault();
+  const box=$('#ex-q');if(!box)return;let cur=+h.dataset.exdrag;box.classList.add('drag');try{box.setPointerCapture(e.pointerId)}catch(_){}
+  const mv=ev=>{const el=document.elementFromPoint(ev.clientX,ev.clientY),r=el&&el.closest('#ex-q [data-exi]');if(!r)return;const j=+r.dataset.exi;if(j!==cur){exMove(cur,j);cur=j}
+    box.querySelectorAll('.exr').forEach(x=>x.classList.toggle('drg',+x.dataset.exi===cur))};
+  const up=()=>{box.removeEventListener('pointermove',mv);box.removeEventListener('pointerup',up);box.removeEventListener('pointercancel',up);box.classList.remove('drag');box.querySelectorAll('.drg').forEach(x=>x.classList.remove('drg'))};
+  box.addEventListener('pointermove',mv);box.addEventListener('pointerup',up);box.addEventListener('pointercancel',up)});
+
 // ---- HB HQ 실시간 두 탭 (PD 11/27 04:47 p1_hq_live): 🏠 오늘 · 📊 진행판 ----
 // 숫자(일·팀·막힘·어시스턴트·Claude)는 status.json(S3.st.status, 모양 hq_status_v1 — TA팀 hub\tools\status_feed.py)에서만 읽는다.
 // 원본 바꿔 끼우기(C2): Live 의 raw·at·pcAt 만 고친다. 화면(오늘·진행판)은 그대로.
@@ -2112,7 +2219,7 @@ function today2(){const now=Date.now()/1000,t0=performance.now(),x=nowNext(),q=q
 const STEP_NO='①②③④⑤⑥⑦⑧';
 function lvSteps(t){const S=t.steps||[];if(!S.length)return '';const cur=S.findIndex(x=>x.s==='doing'),ci=cur>=0?cur:(S.every(x=>x.s==='done')?-1:Math.max(0,Math.min(S.length-1,(+t.step||1)-1)));
   return `<div class="tst">${S.map((x,i)=>{const k=x.s==='done'?'done':i===ci?'now':'todo';return `<span class="ts ts-${k}">${STEP_NO[i]||i+1} ${esc(nm3(x.n))} ${k==='done'?'✅':k==='now'?'▶':'⬜'}</span>`}).join('')}</div>`}
-function lvTeamCard(t,now){const ic=TEAM_IC[t.key]||'',at=lvT(t.updated)||lvT(t.last_progress),R=t.results||[],Q=t.queue||[],busy=!!t.task||t.light==='🔴'||t.light==='🟡'||t.running;
+function lvTeamCard(t,now){if(t.key==='ref_factory'&&typeof exBlock==='function'&&Ex.get()&&!t._ex)return `<div class="tcx" id="lv-tc-ref">${exBlock(now)}${lvTeamCard(Object.assign({},t,{_ex:1}),now)}</div>`;const ic=TEAM_IC[t.key]||'',at=lvT(t.updated)||lvT(t.last_progress),R=t.results||[],Q=t.queue||[],busy=!!t.task||t.light==='🔴'||t.light==='🟡'||t.running;
   if(!busy)return `<div class="tc idle" data-team="${esc(t.key)}"><span>${esc(t.light||'⚪')} ${ic} <b>${esc(nm3(t.name))}</b> · ${esc(nm3(t.why||'쉼'))}</span>${lvF(lvT(t.last_progress),now)}</div>`;
   const alld=(t.steps||[]).length&&t.steps.every(x=>x.s==='done');
   return `<details class="tc" data-team="${esc(t.key)}" data-gk="tc:${esc(t.key)}"><summary><div class="tch"><span>${ic} <b>${esc(nm3(t.name))}</b> ${esc(t.light||'⚪')}</span>${lvF(at,now)}</div>
@@ -2122,7 +2229,8 @@ function lvTeamCard(t,now){const ic=TEAM_IC[t.key]||'',at=lvT(t.updated)||lvT(t.
     ${Q.length?`<div class="tcq"><b>다음 할 일 ${Q.length}</b>${Q.map(q=>`<div class="kv">· ${esc(nm3(q))}</div>`).join('')}</div>`:''}
     <div class="tcq"><b>결과 편지 최근 ${R.length}</b>${R.map(r=>`<div class="kv">${esc(r.t)} → ${esc(TEAM_NM(r.to)||r.to)} · ${esc(lvNoIc(nm3(r.title)))}</div>`).join('')||'<div class="kv">아직 없어요</div>'}</div>
     <div class="kv">열린 편지 ${+t.inbox_open||0}${t.inbox_new?' · 새 편지 '+t.inbox_new:''} · 도는 일 ${+t.jobs_run||0}${t.jobs_blocked?' · 막힌 일 '+t.jobs_blocked:''}</div>${talkTeamBtn(t.key)}</details>`}
-function lvTeamCards(now){const T=Live.get('teams',[]);if(!T.length)return '';const busy=T.filter(t=>t.task||t.light==='🔴'||t.light==='🟡'||t.running),idle=T.filter(t=>!busy.includes(t));
+function lvTeamCards(now){const T=Live.get('teams',[]);if(!T.length)return '';const busy=T.filter(t=>t.task||t.light==='🔴'||t.light==='🟡'||t.running||(t.key==='ref_factory'&&typeof Ex!=='undefined'&&Ex.get())),idle=T.filter(t=>!busy.includes(t));
+  busy.sort((a,b)=>(b.key==='ref_factory')-(a.key==='ref_factory'));   // 📦 에셋팀 추출 카드를 맨 위로
   return `<div class="tcs" id="lv-tcs">${busy.map(t=>lvTeamCard(t,now)).join('')}</div>${idle.length?`<div class="tci">${idle.map(t=>lvTeamCard(t,now)).join('')}</div>`:''}`}
 function lvSystem(now){const S=Live.get('system',[]);if(!S.length&&!Live.get('auto_jobs',[]).length)return '';
   const AJ=Live.get('auto_jobs',[]),aj=AJ.length?`<div class="lvsys" id="lv-auto"><span class="kv syl">⚙️ 자동 작업 ${AJ.length}</span>${AJ.map(x=>{const p=typeof x.pct==='number'?Math.round(x.pct):null;return `<details class="sy ${x.bucket==='blocked'?'bad':''}" data-gk="aj:${esc(x.id)}"><summary>${esc(nm3(x.title||x.id))}${p!=null?` <b class="num">&nbsp;${p}%</b>`:''}</summary><div class="kv">${esc(nm3(x.now||''))}<br>${esc(x.status||'')}${x.eta_min!=null?' · 남은 시간 약 '+esc(jrH(Math.round(+x.eta_min))):''} · ${lvFresh(lvT(x.changed),now)[0]}</div></details>`}).join('')}</div>`:'';
@@ -2169,7 +2277,7 @@ const NM_OLD=/관제센터|부대표|코칭팀|코칭실|개발팀|자료팀|취
 function nmSweep(){for(const r of document.querySelectorAll('.room.on,#nav,#lvbar')){const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT);let n;while(n=w.nextNode()){if(NM_OLD.test(n.nodeValue)&&n.parentNode&&!n.parentNode.closest('textarea,input,script,style'))n.nodeValue=nm3(n.nodeValue)}}}
 
 // v3 화면 (11/22, 초안): 공통 틀 + 로비 + 대표실. 작업실·운영실·퇴근은 다음 단계.
-const V3_STATES=['status','talk','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
+const V3_STATES=['status','talk','extract','layout','jobs','meta','notices','tasks','hq_approvals','hb_gates','remote_result','codex_today','unlock','later_list','audit_sample','timetable','croquis','journal','workspace','history','dex','quit','mailbox','hqv_a','hqv_b','hqv_c','hqv_d','hqv_e','hqv_f','hqv_g','hqv_h','two','chars','disk','answers','plan_today','plan_week','progress','ext_games','reports','push','screen_ask','cal_cfg','handoff','sec_rules','idea','workroom','gdocs','ws','team_health','twv_a','twv_b','twv_c','twv_d','twv_e','twv_f'];
 const isVid=n=>/^(hqv|twv)_/.test(n);
 const ROOMS=[['today','오늘','hex','--gold'],['board','진행판','bars','--gold'],['lobby','로비','hex','--gold'],['studio','작업실','keys','--blue'],['lib','HB Library','book','--blue'],['director','대표실','check','--gold'],['ops','PD실','org','--green'],['hb','통과 기준','bars','--gold'],['coach','애니 리드실','cap','--blue'],['log','기록실','note','--blue'],['plan','일정','cal','--gold'],['out','퇴근','moon','--gold'],['world','3D','cube','--gold']];
 const COLOR={v4:'#CEA85E',today:'#CEA85E',board:'#CEA85E',lobby:'#CEA85E',director:'#CEA85E',studio:'#7AA4D2',ops:'#68B096',world:'#CEA85E',out:'#CEA85E',review:'#7AA4D2',log:'#7AA4D2',hb:'#CEA85E',two:'#7AA4D2',lib:'#7AA4D2',coach:'#7AA4D2',plan:'#CEA85E'};
